@@ -79,7 +79,7 @@
         ; looking for PID
 
           ldy     #$00
-        @loop
+        @loop:
           lda     LIST_PID,y
           cmp     ORIX_MALLOC_BUSY_TABLE_PID,x
           beq     @found
@@ -88,7 +88,7 @@
           bne     @loop
           rts
           ; at this step, we did not found the process, we should send an exception
-        @found
+        @found:
          tya
          tax
      
@@ -124,10 +124,10 @@ skip:
     rts
 str_column:
     .byte "TYPE  START END   SIZE  PROGRAM  CHUNK",$0D,$0A,0    
-.)
+
 str_empty_program:
     .asciiz "       "
-str_FREE
+str_FREE:
     .asciiz "Free  "
 
 

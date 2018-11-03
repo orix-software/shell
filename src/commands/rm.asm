@@ -1,5 +1,4 @@
 .proc _rm
-
   ldx   #$01               ; get the fiest arg
   jsr   _orix_get_opt      ; 
   lda   ORIX_ARGV
@@ -22,12 +21,15 @@ no_such_file:
   PRINT rm
 
   PRINT str_cannot_remove
-  CPUTC "'"
+  lda   #$27
+  BRK_ORIX XWRD0      ; FIXME CPUTC  
 
   ldx #$01
   jsr _orix_get_opt
   PRINT ORIX_ARGV
-  CPUTC("'")
+  lda   #$27
+  BRK_ORIX XWRD0      ; FIXME CPUTC
+  
   PRINT str_not_found
   rts
   

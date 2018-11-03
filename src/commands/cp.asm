@@ -1,4 +1,4 @@
-.include "orix/commands/lib/common.asm"
+;.include "commands/lib/common.asm"
 
 CP_SIZE_OF_BUFFER=40000
 
@@ -12,7 +12,7 @@ _mv:
 _cp:
   lda   #$00 ; don't Delete param1 file FIXME 65c02
   sta   TEMP_ORIX_2
-_cp_execute
+_cp_execute:
   ;ptr2 will be used to save fp
   lda   #$00
   sta   ptr1_32         ; FIXME 65C02
@@ -23,7 +23,7 @@ _cp_execute
   beq   @next
   rts
   
-@next  
+@next:
   ; open first params
   ldx   #$01
   jsr   _orix_get_opt
@@ -55,7 +55,7 @@ _cp_execute
   PRINT str_oom
   ; oom
   rts
-@not_oom  
+@not_oom:  
   sta   PTR_READ_DEST
   sta   ptr1
 
@@ -112,7 +112,7 @@ _cp_execute
   BRK_TELEMON XRM
   ; now remove file
 
-@out
+@out:
   
   rts
 no_such_file:
@@ -120,18 +120,22 @@ no_such_file:
   CPUTC   ':'
   CPUTC   ' ' 
   PRINT   str_cannot_stat
-  CPUTC("'") ; FIXME
+  lda     #$27
+  BRK_TELEMON XWRD0
+  
  
   ldx   #$01
   jsr   _orix_get_opt
  
   PRINT ORIX_ARGV
-  CPUTC("'")
+  lda     #$27
+  BRK_TELEMON XWRD0
+  
   PRINT   str_not_found
   rts
 str_cannot_stat:
   .asciiz   "cannot stat "
 str_oom:
   .byte     "Out of memory",$0D,$0A,0 ; FIXME
-.)
+
 

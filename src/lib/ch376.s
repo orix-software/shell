@@ -1,4 +1,4 @@
-.include "telestrat.inc"
+
 
 CH376_DETECTED        := $AA
 

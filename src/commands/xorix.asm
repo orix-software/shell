@@ -97,8 +97,7 @@ blit_bg_line_odd:
     lda   #100
     sta   HRS2
         
-  ;   BRK_TELEMON(XCURSE)
-    
+      
     lda   #<str_file
     sta   RES
     lda   #>str_file

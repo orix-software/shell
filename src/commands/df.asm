@@ -43,7 +43,7 @@ no_error_for_mouting:
   AND     #%11110000
   clc
   adc     #$30
-  BRK_TELEMON(XWR0)
+  BRK_TELEMON XWR0
 
   lda     volatile_str
   AND     #%00001111

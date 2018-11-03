@@ -1,12 +1,12 @@
 
-orix_chunck_malloc_address_small_low
+orix_chunck_malloc_address_small_low:
 	.byt <chunk_small
     .byt <chunk_small+ORIX_CHUNK_MALLOC_SIZE_SMALL
-orix_chunck_malloc_address_small_high
+orix_chunck_malloc_address_small_high:
     .byt >chunk_small
     .byt >chunk_small+ORIX_CHUNK_MALLOC_SIZE_SMALL
 
-orix_chunck_malloc_address_big_low
+orix_chunck_malloc_address_big_low:
     .byt <chunk_big
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*2
@@ -37,7 +37,7 @@ orix_chunck_malloc_address_big_low
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*27
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*28
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*29
-orix_chunck_malloc_address_big_high
+orix_chunck_malloc_address_big_high:
     .byt >chunk_big
     .byt >chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG
     .byt >chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*2

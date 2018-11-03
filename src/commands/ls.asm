@@ -18,7 +18,7 @@ no_error_for_mouting:
 
     ldx #$01
     jsr _orix_get_opt
-    STRCPY(ORIX_ARGV,BUFNOM)
+    STRCPY ORIX_ARGV,BUFNOM
 
 no_param:
     
@@ -28,12 +28,15 @@ no_param:
     lda #'*'
     sta BUFNOM
 
-#ifdef CPU_65C02
+
+.IFPC02
+.pc02
     stz BUFNOM+1
-#else
+.p02    
+.else
 	lda #$00
 	sta BUFNOM+1
-#endif
+.endif
   
 ispattern:
     jsr _ch376_set_file_name
@@ -58,11 +61,13 @@ out_ls:
     rts
 catalogue_ok:
     jsr display_one_file_catalog
-#ifdef CPU_65C02
+.IFPC02
+.pc02
     bra next_entry
-#else
+.p02
+.else
     jmp next_entry
-#endif
+.endif
 
 fin_catalogue:
     BRK_TELEMON XCRLF  ;jump a line

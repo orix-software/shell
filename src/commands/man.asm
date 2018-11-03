@@ -75,12 +75,12 @@ next:
     lda #$01 ; 1 is the fd id of the file opened
     sta TR0
   ; define target address
-    lda #<$bb80
+    lda #<SCREEN
     sta PTR_READ_DEST
-    lda #>$bb80
+    lda #>SCREEN
     sta PTR_READ_DEST+1
-  ; We read 8000 bytes
-    lda #<1024
+  ; We read 1024 bytes
+    lda #<1024      ; FIXME  size from parameters
     ldy #>1024
   ; reads byte 
     BRK_ORIX XFREAD
@@ -96,10 +96,10 @@ out:
     SWITCH_ON_CURSOR
     rts
 
-str_man_error
+str_man_error:
   .byte "What manual page do you want?",$0D,$0A,0
-man_path
+man_path:
   .asciiz "/usr/share/man/"
-str_man_hlp
+str_man_hlp:
   .asciiz ".hlp"
 .endproc

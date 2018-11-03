@@ -94,7 +94,7 @@ write:
   ldy     #O_WRONLY
   lda     vi_struct
   ldx     vi_struct+1
-  BRK_TELEMON(XOPEN)
+  BRK_TELEMON XOPEN
 
   cpx     #$ff
   bne     fileopened

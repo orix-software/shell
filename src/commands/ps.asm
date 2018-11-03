@@ -34,5 +34,5 @@ str_ps_title:
 str_init:
    .byte  "  1 init",$0D,$0A
    .byte  "  2 bash",$0D,$0A,0
-.)
+.endproc
 

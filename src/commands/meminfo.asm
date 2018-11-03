@@ -50,5 +50,5 @@ strMemFree:
     .asciiz "MemFree:"
 strKB:
     .byte " KB",$0A,$0D,0
-.endmacro
+.endproc
 

@@ -18,5 +18,5 @@ missing_operand:
   PRINT touch
   PRINT str_missing_operand
   rts  
-.)
+.endproc
 

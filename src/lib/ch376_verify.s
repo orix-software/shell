@@ -22,7 +22,7 @@ ok:
 	lda	 	#$00
 	rts
 
-str_drive_error
+str_drive_error:
 	.asciiz "Impossible to mount key"
 
 .endproc

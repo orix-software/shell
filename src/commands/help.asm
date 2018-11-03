@@ -17,7 +17,7 @@ loop:
     tax
 loopme: 
     stx TR6
-    CPUTC " "
+    CPUTC ' '
     ldx TR6
     inx
     cpx #$08

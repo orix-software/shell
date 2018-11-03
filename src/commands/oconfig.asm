@@ -7,7 +7,7 @@
 oconfig_str_compile_time:
 
 .ifdef WITH_MULTITASKING
-.bytes ORIX_STRCONFIG_MULTITASKING,$0A,$0D
+.byte ORIX_STRCONFIG_MULTITASKING,$0A,$0D
 .endif
 
 .ifdef WITH_ACIA

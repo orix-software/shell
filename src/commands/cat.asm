@@ -1,5 +1,5 @@
 .proc _cat
-.(
+
     ; TODO : use XOPEN
     ldx #$01
     jsr _orix_get_opt
@@ -55,21 +55,25 @@ loop9:
     lda CH376_DATA ; read the data
     cmp #$0A
     bne skip
-    BRK_TELEMON(XCRLF)
-#ifdef CPU_65C02 ; FIXME
+    RETURN_LINE
+.ifdef CPU_65C02 ; FIXME
+.pc02
     bra next
-#else
+.p02    
+.else
     jmp next
-#endif
+.endif
 skip:
     cmp #$0D
     bne skip2
     BRK_TELEMON XCRLF
-#ifdef CPU_65C02
+.ifdef CPU_65C02
+.pc02
     bra next
-#else
+.p02    
+.else
     jmp next
-#endif
+.endif
 skip2:
     BRK_TELEMON XWR0
 next:
@@ -80,7 +84,9 @@ next:
     sta CH376_COMMAND
     jsr _ch376_wait_response
 .ifdef CPU_65C02
+.pc02
     bra continue
+.p02    
 .else
     jmp continue
 .endif
@@ -89,5 +95,5 @@ finished:
     rts  
 txt_usage:
     .byte "usage: cat FILE",$0D,$0A,0
-.endmacro
+.endproc
 
