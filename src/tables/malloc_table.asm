@@ -8,8 +8,8 @@ orix_chunck_malloc_address_small_high:
 
 orix_chunck_malloc_address_big_low:
     .byt <chunk_big
-    .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG
-    .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*2
+    .byt <(chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG)
+    .byt <(chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*2)
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*3
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*4
     .byt <chunk_big+ORIX_CHUNK_MALLOC_SIZE_BIG*5

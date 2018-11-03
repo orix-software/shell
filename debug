@@ -1,0 +1,7 @@
+src/shell.asm(30): Error: Unexpected trailing garbage characters
+src/shell.asm(52): Error: Constant expression expected
+src/shell.asm(99): Error: Constant expression expected
+src/shell.asm(101): Error: Constant expression expected
+src/shell.asm(103): Error: Constant expression expected
+src/shell.asm(107): Error: Constant expression expected
+make: *** [build] Error 1

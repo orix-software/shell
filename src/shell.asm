@@ -2,22 +2,156 @@
 .include   "fcntl.inc"
 .include   "cpu.mac"
 
-ORIX_MAX_PROCESS        = 4
-ORIX_MAX_MAX_LENGTH_BUFEDT     =  ORIX_MAX_PATH_LENGTH+9
-
-ORIX_NUMBER_OF_MALLOC  = 3
-
+PATH_CURRENT_MAX_LEVEL        = 4       ; Only in telemon 3.0 number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high
+MAX_LENGTH_OF_FILES           = 9       ;  We say 8 chars for directory and end of string
+MAX_LENGTH_OF_A_COMMAND       = 9
+MAX_ARGS                      = 3       ;  Number of possible args in the command line
+ORIX_MAX_PROCESS              = 4
+ORIX_NUMBER_OF_MALLOC         = 3
 ORIX_MALLOC_FREE_FRAGMENT_MAX = 6
+ORIX_MALLOC_MAX_MEM_ADRESS    = $B3FF
+ORIX_MAX_OPEN_FILES           = 2
+SIZE_OF_VOLATILE_STR          = 50      ; can't be below 20 because it's used to load Orix header
+KEY_LCTRL                     = 5
+KET_RCTRL                     = 6
+KEY_LSHIFT                    = 7
+KEY_RSHIFT                    = 8
+KEY_FUNCT		              = 9
+KEY_LEFT		              = 8
+KEY_RIGHT		              = 9
+KEY_DOWN		              = 10
+KEY_UP			              = 11
+
+SIZE_OF_STACK_BANK            =  1
+
+KEY_RETURN                    = $0D
+KEY_ESC                       = $1B
+KEY_DEL                       = $7F
+XOPENRELATIVE                 = $31
+
+NEXT_STACK_BANK               :=$418
+
+
+ORIX_MAX_PATH_LENGTH = MAX_LENGTH_OF_FILES*PATH_CURRENT_MAX_LEVEL+PATH_CURRENT_MAX_LEVEL
+
+MAX_LENGTH_BUFEDT     =  ORIX_MAX_PATH_LENGTH+9
+
+ORIX_MAX_MAX_LENGTH_BUFEDT     =  ORIX_MAX_PATH_LENGTH+9
 
 ORIX_MALLOC_FREE_TABLE_SIZE  = 3*ORIX_MALLOC_FREE_FRAGMENT_MAX
 ORIX_MALLOC_BUSY_TABLE_SIZE  = 6*ORIX_NUMBER_OF_MALLOC
 
-ORIX_MALLOC_MAX_MEM_ADRESS = $B3FF
 
-ORIX_MAX_OPEN_FILES    = 2
+.org $4c7
+.bss
+;*=end_of_copy_page4-begin_of_copy_page4
+FIXME_DUNNO:
+    .res 1
+STACK_BANK:
+    .res SIZE_OF_STACK_BANK
+
+
+; 6522
+.org $500
+.bss
+NUMBER_OPENED_FILES: ; ALIAS but in stratsed it's $549
+    .res 1
+TEMP_ORIX_2:
+    .res 1
+NUMBER_OF_COLUMNS:
+    .res 1
+GETOPT_PTR:
+    .res 1 ; Store the index of the current opt
+TEMP_ORIX_1:
+    .res 1
+ORIX_ARGC:
+    .res 1
+ORIX_GETOPT_PTR:
+    .res 1
+ORIX_PATH_CURRENT_POSITION:
+    .res 1
+ORIX_CURRENT_PROCESS_MULTITASKING:
+    .res 1
+ERRNO:
+    .res 1
+TERM:
+    .res 1
+TEMP_SH_COMMAND: ; For sh command only
+    .res 2
+ORIX_CURRENT_PROCESS_FOREGROUND:
+    .res 1
+MEMTOTAL:
+    .res 4 ; Store the length of the RAM in bytes
+
+.org BUFNOM+14
+.bss
+ORIX_PATH_CURRENT:
+    .res ORIX_MAX_PATH_LENGTH,0
+
+ORIX_MALLOC_FREE_TABLE:
+; (adress begin) (adress_end) (size of chunk 16 bit)
+ORIX_MALLOC_FREE_BEGIN_LOW_TABLE:
+    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
+ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE:
+    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
+
+ORIX_MALLOC_FREE_END_LOW_TABLE:
+    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
+ORIX_MALLOC_FREE_END_HIGH_TABLE:
+    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
+
+MEMFREE:
+ORIX_MALLOC_FREE_SIZE_LOW_TABLE:
+    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
+ORIX_MALLOC_FREE_SIZE_HIGH_TABLE:
+    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
+    .res 2 ; For 32 bits management
+
+ORIX_MALLOC_FREE_TABLE_NUMBER:
+; it contains the number of free chuncks
+    .res 1
+
+; Busy table
+ORIX_MALLOC_BUSY_TABLE:
+ORIX_MALLOC_BUSY_TABLE_BEGIN_LOW:
+    .res ORIX_NUMBER_OF_MALLOC
+ORIX_MALLOC_BUSY_TABLE_BEGIN_HIGH:
+    .res ORIX_NUMBER_OF_MALLOC
+ORIX_MALLOC_BUSY_TABLE_END_LOW:
+    .res ORIX_NUMBER_OF_MALLOC
+ORIX_MALLOC_BUSY_TABLE_END_HIGH:
+    .res ORIX_NUMBER_OF_MALLOC
+ORIX_MALLOC_BUSY_TABLE_SIZE_LOW:
+    .res ORIX_NUMBER_OF_MALLOC
+ORIX_MALLOC_BUSY_TABLE_SIZE_HIGH:
+    .res ORIX_NUMBER_OF_MALLOC
+
+; We store the PID of the malloc
+ORIX_MALLOC_BUSY_TABLE_PID:
+    .res ORIX_NUMBER_OF_MALLOC
+
+ORIX_MALLOC_BUSY_TABLE_NUMBER:
+    .res 1
+
+.org BUFEDT+MAX_LENGTH_BUFEDT
+.bss
+ORIX_ARGV_NAME:
+    .res    MAX_LENGTH_OF_FILES  ; name
+ORIX_ARGV:
+	.res    MAX_LENGTH_OF_FILES*MAX_ARGS
+; used to check term
 
 
 
+volatile_str:
+    .res SIZE_OF_VOLATILE_STR
+
+LIST_PID:
+    .res ORIX_MAX_PROCESS
+LIST_NAME_PID:
+    .res 9*ORIX_MAX_PROCESS
+orix_end_memory_kernel:
+    .res 1
 
 
 .macro  BRK_ORIX   value
@@ -274,8 +408,6 @@ skip_UNREGISTER_PROCESS
 	sta RESB+1
 	jsr _strcpy
 .endmacro    
-  
-
 
 BASIC11_IRQ_VECTOR_ROM=$EE22
 
@@ -401,7 +533,7 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .define TELEFORTH 0
 .endif
 
-BASH_NUMBER_OF_COMMANDS=26+IOPORT+OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANKS+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
+BASH_NUMBER_OF_COMMANDS=IOPORT+OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANKS+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
 
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 
 COLOR_FOR_DIRECTORY  =       $86 ; colors when ls display directory
@@ -491,7 +623,9 @@ init_malloc_busy_table:
 
 
 .IFPC02
+.pc02
     stz     ORIX_PATH_CURRENT+1
+.p02    
 .else
     lda     #$00
     sta     ORIX_PATH_CURRENT+1 
@@ -505,11 +639,13 @@ start_prompt_and_jump_a_line:
 start_prompt:
   
 .IFPC02
+.pc02
     stz     VARAPL               ; Used to store the length of the command line
     stz     BUFEDT
     stz     ORIX_ARGV
     stz     ERRNO
     stz     ORIX_CURRENT_PROCESS_FOREGROUND
+.p02    
 .else
     lda     #$00
     sta     VARAPL               ; Used to store the length of the command line
@@ -521,12 +657,14 @@ start_prompt:
 
 display_prompt:
 .IFPC02
+.pc02
     stz     ORIX_GETOPT_PTR
+.p02    
 .else
     lda     #$00
     sta     ORIX_GETOPT_PTR      ; init the PTR of the command line
 .endif
-    PRINT(ORIX_PATH_CURRENT)     ; Display current path in the prompt
+    PRINT   ORIX_PATH_CURRENT     ; Display current path in the prompt
     BRK_TELEMON XECRPR           ; display prompt (# char)
     SWITCH_ON_CURSOR
 
@@ -626,13 +764,13 @@ no_more_space:
     
     ; switch off timiers on via2
     lda     #0+32+64
-    sta     V2IER
+    sta     VIA2::IER
     
     ; here we jump to command because we founded "./"
     jsr     _orix_load_and_start_app
     ; switch on timers en via2
     lda     #128+32+64
-    sta     V2IER
+    sta     VIA2::IER
     ; switch on the cursor
     SWITCH_ON_CURSOR
     rts
@@ -713,7 +851,7 @@ command_found:
     ; we manage only max process here, but it could be also a out of memory error
     ; but here we are in a command in ROM, ooe will not arrive except if command do a malloc exception
     ; display maxProcessReached
-    PRINT(strMaxProcessReached)
+    PRINT strMaxProcessReached
     ; at this step we reach the max process 
     rts 
 
@@ -748,9 +886,11 @@ restart_test_space:
     cmp     #' '
     beq     trimme
     rts
-@end:
+loop:
 .IFPC02
+.pc02
     bra     restart_test_space  
+.p02    
 .else
     jmp     restart_test_space  
 .endif  
@@ -761,8 +901,9 @@ trimme:
     sta     (RES),y
     iny ;1 
     lda     (RES),y
-    beq     @end
+    beq     loop
     bne     trimme
+
     rts
 .endproc
 ; This routine is used to read into /bin directory, and tries to open a binary, if it's Not ok it return in A and X $ffff
@@ -804,25 +945,49 @@ str_root_bin:
 
 
 ; Commands
+.ifdef WITH_BANKS
 .include "commands/banks.asm"
+.endif
+
+.ifdef WITH_BASIC11
 .include "commands/basic11.asm"
+.endif
+
+.ifdef WITH_CAT
 .include "commands/cat.asm"
+.endif
+
+.ifdef WITH_CD
 .include "commands/cd.asm"
+.endif
+
+.ifdef WITH_CLEAR
 .include "commands/clear.asm"
+.endif
+
+.ifdef WITH_CP
 .include "commands/cp.asm"
+.endif
 
 .ifdef WITH_DF
 .include "commands/df.asm"
 .endif
 
+.ifdef WITH_CP
 .include "commands/echo.asm"
+.endif
+
+.ifdef WITH_ENV
 .include "commands/env.asm"
+.endif
 
 .ifdef WITH_TELEFORTH
 .include "commands/teleforth.asm"
 .endif
 
+.ifdef WITH_HELP
 .include "commands/help.asm"
+.endif
 
 .ifdef WITH_HISTORY
 .include "commands/history.asm"
@@ -836,27 +1001,81 @@ str_root_bin:
 .include "commands/kill.asm"
 .endif
 
+.ifdef WITH_LESS
 .include "commands/less.asm"
+.endif
+
+.ifdef WITH_LS
 .include "commands/ls.asm"
+.endif
+
+.ifdef WITH_LSCPU
 .include "commands/lscpu.asm"
+.endif
+
+.ifdef WITH_LSMEM
 .include "commands/lsmem.asm"
+.endif
+
+.ifdef WITH_LSOF
 .include "commands/lsof.asm"
+.endif
+
+.ifdef WITH_MAN
 .include "commands/man.asm"
+.endif
+
+.ifdef WITH_MEMINFO
 .include "commands/meminfo.asm"
+.endif
+
+.ifdef WITH_MKDIR
 .include "commands/mkdir.asm"
+.endif
+
+.ifdef WITH_MOUNT
 .include "commands/mount.asm"
+.endif
 
+.ifdef WITH_OCONFIG
 .include "commands/oconfig.asm"
+.endif
 
+.ifdef WITH_PS
 .include "commands/ps.asm"
+.endif
+
+.ifdef WITH_PWD
 .include "commands/pwd.asm"
+.endif
+
+.ifdef WITH_REBOOT
 .include "commands/reboot.asm"
+.endif
+
+.ifdef WITH_RM
 .include "commands/rm.asm"
+.endif
+
+.ifdef WITH_SEDSD
 .include "commands/sedsd.asm"
+.endif
+
+.ifdef WITH_TOUCH
 .include "commands/touch.asm"
+.endif
+
+.ifdef WITH_MONITOR
 .include "commands/monitor.asm"
+.endif
+
+.ifdef WITH_TREE
 .include "commands/tree.asm"
+.endif
+
+.ifdef WITH_UNAME
 .include "commands/uname.asm"
+.endif
 
 .ifdef WITH_SH
 .include "commands/sh.asm"
@@ -867,7 +1086,9 @@ str_root_bin:
 .endif
 ; Functions
 
+.ifdef WITH_VIEWHRS
 .include "commands/viewhrs.asm"
+.endif
 
 .ifdef WITH_XORIX
 .include "commands/xorix.asm"
@@ -923,19 +1144,19 @@ _orix_load_and_start_app:
     jsr     _ch376_set_file_name
     jsr     _ch376_file_open
     cmp     #CH376_ERR_MISS_FILE
-    bne     @next
+    bne     skip_and_malloc_header
     RETURN_LINE
-    PRINT(ORIX_ARGV)
-    PRINT(str_command_not_found) ; MACRO
+    PRINT   ORIX_ARGV
+    PRINT   str_command_not_found ; MACRO
     
     rts	
   
 _orix_load_and_start_app_xopen_done:
-@next:
+skip_and_malloc_header:
 
     MALLOC(20) ; Malloc 20 bytes (20 bytes for header)
     
-    ptr_header:=ZP_APP_PTR1
+    ptr_header:=VARLNG
     
     sta     ptr_header
     sty     ptr_header+1
@@ -962,9 +1183,9 @@ not_a_tape_file:
     ; not found it means that we display error message
     ldx     #$00
     jsr     _orix_get_opt
-    PRINT(ORIX_ARGV)
+    PRINT   ORIX_ARGV
 
-    PRINT(str_cant_execute)
+    PRINT   str_cant_execute
     RETURN_LINE
     ; FIXME close the opened file here
 
@@ -998,10 +1219,10 @@ is_an_orix_file:
     ldx     #$00
     jsr     _orix_get_opt
     
-    REGISTER_PROCESS(ORIX_ARGV)
+    REGISTER_PROCESS ORIX_ARGV
     
     bne register_process_valid ; if it's return 0 then there is an error
-    PRINT(strMaxProcessReached)
+    PRINT strMaxProcessReached
     ; at this step we reach the max process 
     rts 
 
@@ -1103,10 +1324,10 @@ next:
     .byt    $1A        ; .byte $1A ; nop on nmos, "inc A" every cmos
     cmp     #$01
     bne     @is6502Nmos
-    lda     #ID_CPU_65C02       ; it's a 65C02
+    lda     #CPU_65C02       ; it's a 65C02
     rts
 @is6502Nmos:
-    lda     #ID_CPU_6502
+    lda     #CPU_6502
     rts
 .endproc
 
@@ -1114,27 +1335,27 @@ next:
 
 ;CPU_6502
     ; routine used for some debug
-    PRINT(str_cpu)
+    PRINT   str_cpu
     jsr     _getcpu
-    cmp     #ID_CPU_65C02
+    cmp     #CPU_65C02
     bne     @is6502
-    PRINT(str_65C02)
+    PRINT   str_65C02
     RETURN_LINE
 .pc02    
     bra     @next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 .p02    
 @is6502:
 	
-    PRINT(str_6502)
+    PRINT   str_6502
 	RETURN_LINE
 @next:
-    PRINT(str_ch376)
+    PRINT   str_ch376
     jsr     _ch376_ic_get_ver
     BRK_TELEMON XWR0
     BRK_TELEMON XCRLF
     ;RETURN_LINE
     
-    PRINT(str_ch376_check_exist)
+    PRINT   str_ch376_check_exist
     jsr     _ch376_check_exist
     jsr     _print_hexa
 	BRK_TELEMON XCRLF
@@ -1187,32 +1408,62 @@ _print_hexa_no_sharp:
 ;*****************************************************
 
 commands_low:
+
+.ifdef WITH_BASIC11
     .byt <_basic11
-    .byt <_banks    
+.endif    
+
+.ifdef WITH_BANK    
+    .byt <_banks
+.endif
+
+.ifdef WITH_CAT
     .byt <_cat
+.endif    
+
 .ifdef WITH_CA65
     .byt <_ca65
 .endif    	
-    .byt <_cd
-    .byt <_clear ; 
-    .byt <_cp
 
+.ifdef WITH_CD
+    .byt <_cd
+.endif    
+
+.ifdef WITH_CLEAR    
+    .byt <_clear ; 
+.endif    
+
+.ifdef WITH_CP
+    .byt <_cp
+.endif
+
+.ifdef WITH_DATE
     .byt <_date 
+.endif    
 
 .ifdef WITH_DF
     .byt <_df
 .endif
 
+.ifdef WITH_DIR
     .byt <_ls ; dir (alias)
+.endif    
 
+.ifdef WITH_ECHO
     .byt <_echo ; 
+.endif    
+
+.ifdef WITH_ENV    
     .byt <_env
+.endif    
 
 .ifdef WITH_TELEFORTH
     .byt <_forth
 .endif
 
+.ifdef WITH_HELP
     .byt <_help ;
+.endif    
 	
 .ifdef WITH_HISTORY
     .byt <_history
@@ -1225,24 +1476,42 @@ commands_low:
 .ifdef WITH_LESS
     .byt <_less
 .endif    
-    
+
+.ifdef WITH_LS   
     .byt <_ls
+.endif    
+
+.ifdef WITH_LSCPU
     .byt <_lscpu
+.endif
+
+.ifdef WITH_LSMEM
     .byt <_lsmem
+.endif    
 
 .ifdef WITH_LSOF
     .byt <_lsof
 .endif
 
+.ifdef WITH_MAN
     .byt <_man
+.endif
+
+.ifdef WITH_MEMINFO
     .byt <_meminfo
+.endif    
+
+.ifdef WITH_MKDIR
     .byt <_mkdir
+.endif    
 
 .ifdef WITH_MONITOR
     .byt <_monitor
 .endif    
-    
+
+.ifdef WITH_MV   
     .byt <_mv ; is in _cp
+.endif    
     
 .ifdef WITH_MOUNT
     .byt <_mount
@@ -1252,9 +1521,17 @@ commands_low:
     .byt <_oconfig
 .endif
 
+.ifdef WITH_PS
     .byt <_ps
+.endif    
+
+.ifdef WITH_PWD    
     .byt <_pwd
+.endif    
+
+.ifdef WITH_RM
     .byt <_rm
+.endif    
 
 .ifdef WITH_SEDSD
     .byt <_sedsd
@@ -1264,50 +1541,90 @@ commands_low:
     .byt <_sh
 .endif 
 
+.ifdef WITH_TOUCH
     .byt <_touch
+.endif
+
+.ifdef WITH_UNAME
     .byt <_uname
+.endif    
     
 .ifdef WITH_VI
     .byt <_vi
 .endif
 
+.ifdef WITH_VIEWHRS
     .byt <_viewhrs
+.endif    
+
+.ifdef WITH_REBOOT
     .byt <_reboot	
-    .byt <_debug	
+.endif
+
+.ifdef WITH_DEBUG
+    .byt <_debug
+.endif    	
     
 .ifdef WITH_XORIX
     .byt <_xorix
 .endif	
   
 commands_high:
+.ifdef WITH_BASIC11
     .byt >_basic11
-    .byt >_banks    
+.endif
+
+.ifdef WITH_BANK
+    .byt >_banks
+.endif    
+
+.ifdef WITH_CAT    
     .byt >_cat
+.endif    
 
 .ifdef WITH_CA65
     .byt >_ca65
 .endif	 	
 
+.ifdef WITH_CD
     .byt >_cd
-    .byt >_clear
-    .byt >_cp
+.endif
 
-    .byt >_date ; alias()
+.ifdef WITH_CLEAR
+    .byt >_clear
+.endif    
+
+.ifdef WITH_CP
+    .byt >_cp
+.endif    
+
+.ifdef WITH_DATE
+    .byt >_date 
+.endif
 
 .ifdef WITH_DF
     .byt >_df
 .endif        
 
+.ifdef WITH_LS
     .byt >_ls ; (dir)
+.endif    
 
+.ifdef WITH_ECHO
     .byt >_echo
+.endif    
+
+.ifdef WITH_ENV    
     .byt >_env
+.endif    
 
 .ifdef WITH_TELEFORTH
     .byt >_forth
 .endif    
 
+.ifdef WITH_HELP
     .byt >_help
+.endif    
 	
 .ifdef WITH_HISTORY
     .byt >_history
@@ -1321,22 +1638,41 @@ commands_high:
     .byt >_less
 .endif        
 
+.ifdef WITH_LS
     .byt >_ls
+.endif    
+
+.ifdef WITH_LSCPU    
     .byt >_lscpu
+.endif
+
+.ifdef WITH_LSMEM
     .byt >_lsmem
+.endif    
     
 .ifdef WITH_LSOF    
     .byt >_lsof
-.endif    
+.endif
+
+.ifdef WITH_MAN
     .byt >_man
+.endif
+
+.ifdef WITH_MEMINFO
     .byt >_meminfo
+.endif    
+
+.ifdef WITH_MKDIR
     .byt >_mkdir
+.endif
 
 .ifdef WITH_MONITOR
     .byt >_monitor
 .endif        
     
+.ifdef WITH_MV
     .byt >_mv
+.endif    
     
 .ifdef WITH_MOUNT
     .byt >_mount
@@ -1345,10 +1681,18 @@ commands_high:
 .ifdef WITH_OCONFIG
     .byt >_oconfig
 .endif
-     
+
+.ifdef WITH_PS    
     .byt >_ps
+.endif    
+
+.ifdef WITH_PWD
     .byt >_pwd
+.endif    
+
+.ifdef WITH_RM    
     .byt >_rm
+.endif    
 
 .ifdef WITH_SEDSD
     .byt >_sedsd
@@ -1358,51 +1702,90 @@ commands_high:
     .byt >_sh
 .endif  
 
+.ifdef WITH_TOUCH
     .byt >_touch
+.endif
+
+.ifdef WITH_UNAME
     .byt >_uname
+.endif    
 
 .ifdef WITH_VI
     .byt >_vi
 .endif
-	
+
+.ifdef WITH_VIEWHRS
     .byt >_viewhrs
+.endif    
+
+.ifdef WITH_REBOOT
     .byt >_reboot
+.endif
+
+.ifdef WITH_DEBUG
     .byt >_debug	
-
-
+.endif 
     
 .ifdef WITH_XORIX
     .byt >_xorix
 .endif	
     
 list_command_low:
+.ifdef WITH_BASIC11
     .byt <basic11
-    .byt <banks    
+.endif
+
+.ifdef WITH_BANK
+    .byt <banks 
+.endif   
+
+.ifdef WITH_CAT    
     .byt <cat
+.endif    
 
 .ifdef WITH_CA65
     .byt <ca65
 .endif		
 
+.ifdef WITH_CD
     .byt <cd
+.endif    
+
+.ifdef WITH_CLEAR    
     .byt <clear
+.endif
+
+.ifdef WITH_CP
     .byt <cp
+.endif    
+
+.ifdef WITH_DATE
     .byt <date
+.endif    
 
 .ifdef WITH_DF
     .byt <df
 .endif        
 
+.ifdef WITH_DIR
     .byt <dir
+.endif    
 
+.ifdef WITH_ECHO
     .byt <echocmd
+.endif    
+
+.ifdef WITH_ENV    
     .byt <env
+.endif    
 
 .ifdef WITH_TELEFORTH
     .byt <teleforth
 .endif    
 
+.ifdef WITH_HELP
     .byt <help
+.endif    
 	
 .ifdef WITH_HISTORY
     .byt <history
@@ -1415,24 +1798,42 @@ list_command_low:
 .ifdef WITH_LESS
     .byt <less
 .endif   
-    
+
+.ifdef WITH_LS    
     .byt <ls
+.endif    
+
+.ifdef WITH_LSCPU    
     .byt <lscpu
+.endif
+    
+.ifdef WITH_LSMEM
     .byt <lsmem
+.endif    
 
 .ifdef WITH_LSOF
     .byt <lsof
 .endif    
 
+.ifdef WITH_MAN
     .byt <man
+.endif
+
+.ifdef WITH_MEMINFO
     .byt <meminfo
+.endif    
+
+.ifdef WITH_MKDIR    
     .byt <mkdir
+.endif    
 
 .ifdef WITH_MONITOR
     .byt <monitor
 .endif    
-    
+
+.ifdef WITH_MV   
     .byt <mv
+.endif    
     
 .ifdef WITH_MOUNT
     .byt <mount
@@ -1441,10 +1842,18 @@ list_command_low:
 .ifdef WITH_OCONFIG
     .byt <oconfig
 .endif
-       
+
+.ifdef WITH_PS       
     .byt <ps
+.endif    
+
+.ifdef WITH_PWD    
     .byt <pwd
+.endif    
+
+.ifdef WITH_RM
     .byt <rm
+.endif
 
 .ifdef WITH_SEDSD
     .byt <sedoric
@@ -1454,46 +1863,90 @@ list_command_low:
     .byt <sh
 .endif
 
+.ifdef WITH_TOUCH
     .byt <touch
+.endif    
+
+.ifdef WITH_UNAME
     .byt <uname
+.endif    
 
 .ifdef WITH_VI
     .byt <vi
 .endif    
   
+.ifdef WITH_VIEWHRS
     .byt <viewhrs
+.endif    
+
+.ifdef WITH_REBOOT    
     .byt <reboot
+.endif
+
+.ifdef WITH_DEBUG
     .byt <debug
+.endif    
     
 .ifdef WITH_XORIX
     .byt <xorix
 .endif	
     
 list_command_high:
+.ifdef WITH_BASIC11
     .byt >basic11
-    .byt >banks    
+.endif
+
+.ifdef WITH_BANK
+    .byt >banks
+.endif   
+
+.ifdef WITH_CAT    
     .byt >cat
+.endif
+
 .ifdef WITH_CA65
     .byt >ca65
-.endif	 	
+.endif
+
+.ifdef WITH_CD
     .byt >cd
+.endif    
+
+.ifdef WITH_CLEAR    
     .byt >clear
+.endif
+
+.ifdef WITH_CP    
     .byt >cp
+.endif
+
+.ifdef WITH_DATE
     .byt >date
+.endif    
 
 .ifdef WITH_DF
     .byt >df
 .endif        
-    
-    .byt >dir
 
+.ifdef WITH_DIR
+    .byt >dir
+.endif
+
+.ifdef WITH_ECHO
     .byt >echocmd
+.endif    
+
+.ifdef WITH_ENV
     .byt >env
+.endif
     
 .ifdef WITH_TELEFORTH
     .byt >teleforth
-.endif    
+.endif
+
+.ifdef WITH_HELP
     .byt >help
+.endif
 
 .ifdef WITH_HISTORY
     .byt >history
@@ -1507,23 +1960,39 @@ list_command_high:
     .byt >less
 .endif    
 
+.ifdef WITH_LS
     .byt >ls
+.endif    
+
+.ifdef WITH_LSCPU    
     .byt >lscpu
+.endif
+
+.ifdef WITH_LSMEM
     .byt >lsmem
+.endif
   
 .ifdef WITH_LSOF    
     .byt >lsof
 .endif
 
+.ifdef WITH_MAN
     .byt >man
+.endif
+
     .byt >meminfo
+
+.ifdef WITH_MKDIR
     .byt >mkdir
+.endif    
     
 .ifdef WITH_MONITOR
     .byt >monitor
 .endif
-    
+
+.ifdef WITH_MV
     .byt >mv
+.endif    
 
 .ifdef WITH_MOUNT
     .byt >mount
@@ -1532,10 +2001,18 @@ list_command_high:
 .ifdef WITH_OCONFIG
     .byt >oconfig
 .endif 
-         
+
+.ifdef WITH_PS
     .byt >ps
+.endif    
+
+.ifdef WITH_PWD
     .byt >pwd
+.endif    
+
+.ifdef WITH_RM
     .byt >rm
+.endif    
 
 .ifdef WITH_SEDSD
     .byt >sedoric
@@ -1545,46 +2022,90 @@ list_command_high:
     .byt >sh
 .endif
 
+.ifdef WITH_TOUCH
     .byt >touch
-    .byt >uname    
+.endif
+
+.ifdef WITH_UNAME
+    .byt >uname
+.endif
 
 .ifdef WITH_VI
     .byt  >vi
 .endif
 
+.ifdef WITH_VIEWHRS
     .byt >viewhrs
+.endif    
+
+.ifdef WITH_REBOOT    
     .byt >reboot
+.endif
+
+.ifdef WITH_DEBUG
     .byt >debug
+.endif    
    
 .ifdef WITH_XORIX
     .byt >xorix
 .endif	
 
 commands_length:
+.ifdef WITH_BASIC11
     .byt 7 ; _basic11
+.endif    
+
+.ifdef WITH_BANK
     .byt 4 ; _banks
+.endif
+
+.ifdef WITH_CAT    
     .byt 3 ; _cat
+.endif
+
 .ifdef WITH_CA65
     .byt 4 ;ca65
-.endif		
+.endif
+
+.ifdef WITH_CD
     .byt 2 ; _cd
+.endif    
+
+.ifdef WITH_CLEAR    
     .byt 5 ; _clear ; 
+.endif    
+
+.ifdef WITH_CP    
     .byt 2 ; _cp
+.endif
+
+.ifdef WITH_DATE
     .byt 4 ; _date 
+.endif    
 
 .ifdef WITH_DF    
     .byt 2 ; _df ;     
 .endif
-    .byt 3 ; _ls ; dir (alias)
 
+.ifdef WITH_LS
+    .byt 3 ; _ls ; dir (alias)
+.endif    
+
+.ifdef WITH_ECHO
     .byt 4 ; _echo ; 
+.endif    
+
+.ifdef WITH_ENV    
     .byt 3 ; _env
+.endif    
 
 .ifdef WITH_TELEFORTH
     .byt 5 ; teleforth
 .endif 
 
+.ifdef WITH_HELP
     .byt 4 ; _help ; 
+.endif    
 	
 .ifdef WITH_HISTORY
     .byt 7 ; history
@@ -1598,23 +2119,41 @@ commands_length:
     .byt 4 ;_less
 .endif
 
+.ifdef WITH_LS
     .byt 2 ; _ls
-    .byt 5
+.endif    
+
+.ifdef WITH_LSCPU
+    .byt 5 ; lscpu
+.endif
+
+.ifdef WITH_LSMEM
     .byt 5 ; lsmem
+.endif    
 
 .ifdef WITH_LSOF
     .byt 4 ; lsof
 .endif
 
+.ifdef WITH_MAN
     .byt 3 ; man
+.endif
+
+.ifdef WITH_MEMINFO
     .byt 7 ; meminfo
+.endif    
+
+.ifdef WITH_MKDIR    
     .byt 5 ; _mkdir
+.endif    
 
 .ifdef WITH_MONITOR
     .byt 7 ; monitor
 .endif          
-    
+
+.ifdef WITH_CP
     .byt 2 ; mv
+.endif    
     
 .ifdef WITH_MOUNT
     .byt 5 ; mount
@@ -1624,9 +2163,17 @@ commands_length:
     .byt 7 ; oconfig
 .endif
 
+.ifdef WITH_PS
     .byt 2 ; ps
+.endif
+
+.ifdef WITH_PWD
     .byt 3 ; _pwd
+.endif    
+
+.ifdef WITH_RM
     .byt 2 ; rm
+.endif    
 
 .ifdef WITH_SEDSD
     .byt 7
@@ -1636,51 +2183,98 @@ commands_length:
     .byt 2 ; sh
 .endif   
 
+.ifdef WITH_TOUCH
     .byt 5 ; touch
-    .byt 5 ;_uname
-    
-.ifdef WITH_VI
-    .byt 2
 .endif
 
-    .byt 7
+.ifdef WITH_UNAME
+    .byt 5 ;_uname
+.endif    
+    
+.ifdef WITH_VI
+    .byt 2  ; vi
+.endif
+
+.ifdef WITH_VIEWHRS
+    .byt 7  ; viewhrs
+.endif    
+
+.ifdef WITH_REBOOT    
     .byt 6 ;_reboot	
+.endif
+
+.ifdef WITH_DEBUG
     .byt 5 ;_debug	
+.endif    
 
 .ifdef WITH_XORIX
     .byt 5 ;xorix
 .endif	    
-    
+
+.ifdef WITH_BASIC11    
 basic11:
     .asciiz "basic11"
+.endif    
+
+.ifdef WITH_BANK    
 banks:
     .asciiz "bank"
+.endif    
+
+.ifdef WITH_CAT    
 cat:
     .asciiz "cat"
+.endif
+
+.ifdef WITH_CD
 cd:
     .asciiz "cd"
+.endif    
+
+.ifdef WITH_CLEAR    
 clear:
     .asciiz "clear"
+.endif
+
+.ifdef WITH_CP
 cp:
     .asciiz "cp"
+.endif    
+
+.ifdef WITH_DATE    
 date:
     .asciiz "date"
+.endif    
+
+.ifdef WITH_DF    
 df:
     .asciiz "df"
+.endif    
+
+.ifdef WITH_DIR
 dir:
     .asciiz "dir"
+.endif
+
+.ifdef WITH_ECHO    
 echocmd:
     .asciiz "echo"
+.endif    
+
+.ifdef WITH_ENV    
 env:
     .asciiz "env"
+.endif    
 
 .ifdef WITH_TELEFORTH    
 teleforth:
     .asciiz "forth"
 .endif
 
+.ifdef WITH_HELP
 help:
     .asciiz "help"
+.endif    
 history:
     .asciiz "history"
 
@@ -1688,65 +2282,139 @@ history:
 ioports:
     .asciiz "ioports"
 .endif
-	
+
+.ifdef WITH_KILL	
 kill:
     .asciiz "kill"
+.endif
+
+.ifdef WITH_LESS
 less:
     .asciiz "less"
+.endif
+
+.ifdef WITH_LS
 ls:
     .asciiz "ls"
+.endif    
+
+.ifdef WITH_LSCPU    
 lscpu:
     .asciiz "lscpu"
+.endif    
+
+.ifdef WITH_LSMEM
 lsmem:	
     .asciiz "lsmem"
+.endif
+
+.ifdef WITH_LSOF    
 lsof:	
     .asciiz "lsof"
+.endif    
+
+.ifdef WITH_MAN    
 man:
     .asciiz "man"  
+.endif    
 meminfo:
     .asciiz "meminfo"
+
+.ifdef WITH_MKDIR
 mkdir:
     .asciiz "mkdir"
+.endif    
+
+.ifdef WITH_MONITIR
 monitor:
     .asciiz "monitor"
+.endif
+
+.ifdef WITH_MOUNT
 mount:
     .asciiz "mount"
+.endif
+
+.ifdef WITH_MV
 mv:
     .asciiz "mv"
+.endif    
     
 .ifdef WITH_OCONFIG
 oconfig:
     .asciiz "oconfig"
 .endif           
 
+.ifdef WITH_RM
 rm:
     .asciiz "rm"
+.endif
+
+.ifdef WITH_PS
 ps:
     .asciiz "ps"
+.endif
+
+.ifdef WITH_PWD
 pwd:
     .asciiz "pwd"
+.endif    
+
+.ifdef WITH_REBOOT    
 reboot:
     .asciiz "reboot"
+.endif    
+
+
+.ifdef WITH_SEDORIC
 sedoric:
     .asciiz "sedoric"
+.endif
+
+.ifdef WITH_SH
 sh:
     .asciiz "sh"
+.endif
+
+.ifdef WITH_TREE
 tree:
     .asciiz "tree"
+.endif    
+
+.ifdef WITH_TOUCH    
 touch:
-    .asciiz"touch"
+    .asciiz "touch"
+.endif    
+
+.ifdef WITH_UNAME
 uname:
     .asciiz "uname"
+.endif
+
+.ifdef WITH_VI
 vi:
     .asciiz "vi"
+.endif
+
+.ifdef WITH_VIEWHRS
 viewhrs:
     .asciiz "viewhrs"
+.endif
+
+.ifdef WITH_XORIX
 xorix:
     .asciiz "xorix"
+.endif
+
+.ifdef WITH_CA65
 ca65:
     .asciiz "c"
+.endif
+
+.ifdef WITH_DEBUG
 debug:
     .asciiz "debug"
+.endif    
    
 str_6502:                           ; use for lscpu
     .asciiz "6502"
@@ -1879,7 +2547,7 @@ orix_command_table_high:
 signature:
 .asciiz  "Orix - __DATEBUILT__"
 .include "tables/text_first_line_adress.asm"  
-.include "tables/malloc_table.asm"  
+; .include "tables/malloc_table.asm"  
 
 _orix_unregister_process:
 
