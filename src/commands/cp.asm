@@ -1,0 +1,137 @@
+.include "orix/commands/lib/common.asm"
+
+CP_SIZE_OF_BUFFER=40000
+
+MALLOC_PTR1:=VARLNG
+
+_mv:
+  lda   #$01 ; don't Delete param1 file
+  sta   TEMP_ORIX_2
+  jmp   _cp_execute
+
+_cp:
+  lda   #$00 ; don't Delete param1 file FIXME 65c02
+  sta   TEMP_ORIX_2
+_cp_execute
+  ;ptr2 will be used to save fp
+  lda   #$00
+  sta   ptr1_32         ; FIXME 65C02
+  sta   ptr1_32+1
+  sta   ptr1_32+2
+  sta   ptr1_32+3
+  jsr   commands_check_2_params
+  beq   @next
+  rts
+  
+@next  
+  ; open first params
+  ldx   #$01
+  jsr   _orix_get_opt
+
+  lda   #<ORIX_ARGV
+  ldx   #>ORIX_ARGV
+  
+  ldy   #O_RDONLY ; Open in readonly
+  BRK_TELEMON XOPEN
+  cmp   #$ff
+  beq   no_such_file
+
+  ; Let's copy
+  
+  ; Send the fp pointer
+
+  sta   TR0
+; define target address
+    
+  MALLOC CP_SIZE_OF_BUFFER
+  sta   MALLOC_PTR1
+  sty   MALLOC_PTR1+1
+
+  ;MALLOC(209)
+  cmp   #$00
+  bne   @not_oom
+  cpy #$00
+  bne   @not_oom
+  PRINT str_oom
+  ; oom
+  rts
+@not_oom  
+  sta   PTR_READ_DEST
+  sta   ptr1
+
+  sty   ptr1+1
+  sty   PTR_READ_DEST+1
+; We read 8000 bytes
+  lda   #<CP_SIZE_OF_BUFFER
+  ldy   #>CP_SIZE_OF_BUFFER
+; reads byte 
+  BRK_TELEMON XFREAD
+  ; Compute bytes written
+  lda     PTR_READ_DEST+1
+  sec
+  sbc     ptr1+1
+  sta     ptr1+1
+  ;tax			
+  lda     PTR_READ_DEST
+  sec
+  sbc     ptr1
+  sta     ptr1
+
+
+  BRK_TELEMON XCLOSE
+ 
+  ldx   #$02
+  jsr   _orix_get_opt ; get second arg
+
+  lda   #<ORIX_ARGV
+  ldx   #>ORIX_ARGV
+  
+  ldy   #O_WRONLY ; Open in readonly
+  BRK_TELEMON XOPEN
+ 
+  lda   MALLOC_PTR1
+  sta   PTR_READ_DEST
+  lda   MALLOC_PTR1+1
+  sta   PTR_READ_DEST+1
+; We read 8000 bytes
+  lda   ptr1
+  ldy   ptr1+1
+; reads byte 
+  BRK_TELEMON XFWRITE
+
+  BRK_TELEMON XCLOSE
+  ; and we write the file
+  
+  lda   TEMP_ORIX_2
+  beq   @out
+  
+  ldx   #$01
+  jsr   _orix_get_opt
+  lda   #<ORIX_ARGV
+  ldx   #>ORIX_ARGV
+  BRK_TELEMON XRM
+  ; now remove file
+
+@out
+  
+  rts
+no_such_file:
+  PRINT   cp
+  CPUTC   ':'
+  CPUTC   ' ' 
+  PRINT   str_cannot_stat
+  CPUTC("'") ; FIXME
+ 
+  ldx   #$01
+  jsr   _orix_get_opt
+ 
+  PRINT ORIX_ARGV
+  CPUTC("'")
+  PRINT   str_not_found
+  rts
+str_cannot_stat:
+  .asciiz   "cannot stat "
+str_oom:
+  .byte     "Out of memory",$0D,$0A,0 ; FIXME
+.)
+
