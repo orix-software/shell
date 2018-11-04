@@ -1,0 +1,5 @@
+site_name: Orix
+pages:
+    - Home: index.md
+    - Ls: ls.md
+theme: readthedocs

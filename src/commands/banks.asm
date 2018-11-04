@@ -19,7 +19,7 @@
 	STA     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
 	STY     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
 	STX     BNKCIB
-	JMP     SWITCH_TO_BANK_ID
+	JMP     EXBNK
 	
 ; displays all bank	
 displays_all_banks:   

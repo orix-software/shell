@@ -56,8 +56,9 @@ missing_operand_after:
 	ldx #$01
 	jsr _orix_get_opt
   PRINT ORIX_ARGV
-  lda #"'"            ; FIXME CGETC
-  BRK_TELEMON XWR0
+  ;lda #$27            ; FIXME CGETC
+  ;BRK_TELEMON XWR0
+  CPUTC '''
   BRK_TELEMON XCRLF
  
   lda #$01
