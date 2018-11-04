@@ -549,7 +549,8 @@ BASH_NUMBER_OF_COMMANDS=1+HELP+IOPORT
 
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 
 COLOR_FOR_DIRECTORY  =        $86 ; colors when ls display directory
-	
+userzp                  :=	VARLNG
+
 
 .org $C000
 .code
