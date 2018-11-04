@@ -2,6 +2,11 @@
 .include   "fcntl.inc"
 .include   "cpu.mac"
 
+;.define WITH_HELP 1
+WITH_HELP=1
+WITH_IOPORT=1
+;.define WITH_LS
+
 PATH_CURRENT_MAX_LEVEL        = 4       ; Only in telemon 3.0 number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high
 MAX_LENGTH_OF_FILES           = 9       ;  We say 8 chars for directory and end of string
 MAX_LENGTH_OF_A_COMMAND       = 9
@@ -411,7 +416,25 @@ skip_UNREGISTER_PROCESS
 
 BASIC11_IRQ_VECTOR_ROM=$EE22
 
-.define CH376_ERROR_VERBOSE
+
+
+.ifdef WITH_BANK
+    BANK=1
+.else
+    BANK=0
+.endif
+
+.ifdef WITH_HELP
+    HELP=1
+.else
+    HELP=0
+.endif
+
+.ifdef WITH_IOPORT
+    IOPORT=1
+.else
+    IOPORT=0
+.endif
 
 .ifdef WITH_OCONFIG
 .define OCONFIG 1
@@ -423,12 +446,6 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .define LSOF 1
 .else
 .define LSOF 0
-.endif
-
-.ifdef WITH_IOPORT
-.define IOPORT 1
-.else
-.define IOPORT 0
 .endif
 
 .ifdef WITH_MONITOR
@@ -503,11 +520,6 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .define CPUINFO 0
 .endif
 
-.ifdef WITH_BANKS
-.define BANKS 1
-.else
-.define BANKS 0
-.endif
 
 .ifdef WITH_KILL
 .define KILL 1
@@ -532,11 +544,11 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .else
 .define TELEFORTH 0
 .endif
-
-BASH_NUMBER_OF_COMMANDS=IOPORT+OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANKS+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
+;+IOPORT+OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANK+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
+BASH_NUMBER_OF_COMMANDS=1+HELP+IOPORT
 
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 
-COLOR_FOR_DIRECTORY  =       $86 ; colors when ls display directory
+COLOR_FOR_DIRECTORY  =        $86 ; colors when ls display directory
 	
 
 .org $C000
@@ -945,7 +957,7 @@ str_root_bin:
 
 
 ; Commands
-.ifdef WITH_BANKS
+.ifdef WITH_BANK
 .include "commands/banks.asm"
 .endif
 
@@ -1980,7 +1992,9 @@ list_command_high:
     .byt >man
 .endif
 
+.ifdef WITH_MEMINFO
     .byt >meminfo
+.endif    
 
 .ifdef WITH_MKDIR
     .byt >mkdir
@@ -2151,7 +2165,7 @@ commands_length:
     .byt 7 ; monitor
 .endif          
 
-.ifdef WITH_CP
+.ifdef WITH_MV
     .byt 2 ; mv
 .endif    
     
@@ -2274,9 +2288,12 @@ teleforth:
 .ifdef WITH_HELP
 help:
     .asciiz "help"
-.endif    
+.endif
+
+.ifdef WITH_HISTORY
 history:
     .asciiz "history"
+.endif    
 
 .ifdef WITH_IOPORT	
 ioports:
@@ -2364,7 +2381,6 @@ pwd:
 reboot:
     .asciiz "reboot"
 .endif    
-
 
 .ifdef WITH_SEDORIC
 sedoric:

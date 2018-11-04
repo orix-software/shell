@@ -1,3 +1,3 @@
-[![Build Status](https://travis-ci.org/oric-software/orix.svg?branch=master)](https://travis-ci.org/oric-software/monitor)
+[![Build Status](https://travis-ci.org/orix-software/shell.svg?branch=master)](https://travis-ci.org/orix-software/shell)
 
-
+Shell for Orix

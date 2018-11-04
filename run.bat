@@ -7,7 +7,7 @@ SET UNITTEST="NO"
 
 SET ORIGIN_PATH=%CD%
 
-SET ROM=monitor
+SET ROM=shell
 
 %CC65%\ca65.exe -ttelestrat --include-dir %CC65%\asminc\ src/%ROM%.asm -o %ROM%.ld65
 %CC65%\ld65.exe -tnone  %ROM%.ld65 -o %ROM%.rom
@@ -16,7 +16,7 @@ SET ROM=monitor
 
 IF "%1"=="NORUN" GOTO End
 
-copy %ROM%.rom %ORICUTRON%\roms\monitor.rom > NUL
+copy %ROM%.rom %ORICUTRON%\roms\ > NUL
 
 cd %ORICUTRON%
 oricutron -mt  --symbols "%ORIGIN_PATH%\xa_labels_orix.txt"
