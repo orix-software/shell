@@ -1,6 +1,9 @@
-BANKS_PTR1=ZP_APP_PTR1 ; 2 bytes
-
 .proc _banks
+    current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
+    tmp2         := userzp+2    ; 1 bytes
+    ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
+    ptr2         := userzp    ; 2 bytes
+
     ldx     #$01
     jsr     _orix_get_opt           ; get arg 
     bcc     displays_all_banks      ; if there is no args, let's displays all banks
@@ -28,14 +31,14 @@ displays_all_banks:
     ; Telestrat and Twilighte board V0_3
     lda     #%00000111                ; we start from the bank 7 to 1
 .endif	
-    sta     tmp1
+    sta     current_bank
 loop2:
-    PRINT str_bank
-    lda     tmp1
+    PRINT   str_bank                  ; Displays "Bank : " string
+    lda     current_bank              ; Load current bank
     clc 
-    adc     #44+4
+    adc     #44+4                     ; displays the number of the bank
     BRK_ORIX XWR0
-    CPUTC ' '
+    CPUTC ' '                         ; Displays a space
     sei
     lda     #<$fff8
     sta     ptr1
@@ -75,8 +78,7 @@ loop2:
 exit:
     cli
     RETURN_LINE
-    dec     tmp1
-    lda     tmp1
+    dec     current_bank
     bne     loop2
     rts
 str_bank:

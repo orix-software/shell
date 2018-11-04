@@ -2,11 +2,23 @@
 .include   "fcntl.inc"
 .include   "cpu.mac"
 
-;.define WITH_HELP 1
+
+WITH_ENV=1
 WITH_HELP=1
 WITH_IOPORT=1
+WITH_LS=1
+WITH_LSCPU=1
+WITH_MOUNT=1
+WITH_BANK=1
+
 ;.define WITH_LS
 
+OFFSET_TO_READ_BYTE_INTO_BANK := $32
+ID_BANK_TO_READ_FOR_READ_BYTE := $34
+
+SWITCH_TO_BANK_ID             := $040C
+
+ORIX_ID_BANK                  = 5
 PATH_CURRENT_MAX_LEVEL        = 4       ; Only in telemon 3.0 number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high
 MAX_LENGTH_OF_FILES           = 9       ;  We say 8 chars for directory and end of string
 MAX_LENGTH_OF_A_COMMAND       = 9
@@ -54,7 +66,8 @@ FIXME_DUNNO:
     .res 1
 STACK_BANK:
     .res SIZE_OF_STACK_BANK
-
+READ_BYTE_FROM_OVERLAY_RAM:
+    .res 1
 
 ; 6522
 .org $500
@@ -424,6 +437,12 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     BANK=0
 .endif
 
+.ifdef WITH_ENV
+    ENV=1
+.else
+    ENV=0
+.endif
+
 .ifdef WITH_HELP
     HELP=1
 .else
@@ -434,6 +453,18 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     IOPORT=1
 .else
     IOPORT=0
+.endif
+
+.ifdef WITH_LS
+    LS=1
+.else
+    LS=0
+.endif
+
+.ifdef WITH_LSCPU
+    LSCPU=1
+.else
+    LSCPU=0
 .endif
 
 .ifdef WITH_OCONFIG
@@ -461,9 +492,9 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .endif
 
 .ifdef WITH_MOUNT
-.define MOUNT 1
+    MOUNT=1
 .else
-.define MOUNT 0
+    MOUNT=0
 .endif
 
 .ifdef WITH_DEBUG
@@ -473,9 +504,9 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .endif
 
 .ifdef WITH_DF
-.define DF 1
+    DF=1
 .else
-.define DF 0
+    DF=0
 .endif
 
 .ifdef WITH_VI
@@ -520,11 +551,10 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .define CPUINFO 0
 .endif
 
-
 .ifdef WITH_KILL
-.define KILL 1
+    KILL = 1
 .else
-.define KILL 0
+    KILL = 0
 .endif
 
 .ifdef WITH_HISTORY
@@ -534,9 +564,9 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .endif
 
 .ifdef WITH_XORIX
-.define XORIX 1
+    XORIX=1
 .else
-.define XORIX 0
+    XORIX=0
 .endif
 
 .ifdef WITH_TELEFORTH
@@ -544,11 +574,12 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .else
 .define TELEFORTH 0
 .endif
-;+IOPORT+OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANK+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
-BASH_NUMBER_OF_COMMANDS=1+HELP+IOPORT
+;OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANK+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
+BASH_NUMBER_OF_COMMANDS=1+DF+ENV+HELP+IOPORT+KILL+LS+BANK+LSCPU+MOUNT+XORIX
 
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 
 COLOR_FOR_DIRECTORY  =        $86 ; colors when ls display directory
+
 userzp                  :=	VARLNG
 
 
@@ -1619,7 +1650,7 @@ commands_high:
     .byt >_df
 .endif        
 
-.ifdef WITH_LS
+.ifdef WITH_DIR
     .byt >_ls ; (dir)
 .endif    
 
@@ -2102,7 +2133,7 @@ commands_length:
     .byt 2 ; _df ;     
 .endif
 
-.ifdef WITH_LS
+.ifdef WITH_DIR
     .byt 3 ; _ls ; dir (alias)
 .endif    
 
@@ -2115,7 +2146,7 @@ commands_length:
 .endif    
 
 .ifdef WITH_TELEFORTH
-    .byt 5 ; teleforth
+    .byt 5 ; forth
 .endif 
 
 .ifdef WITH_HELP

@@ -141,7 +141,7 @@ loop19:
 it_is_a_file:
     ldx #20 ; don't care but we read it, it's the attributes
 
-loop:
+@loop:
     lda CH376_DATA ; First byte is a
     dex
     bpl @loop

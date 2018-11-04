@@ -1,7 +1,7 @@
 .proc _lscpu
     PRINT   str_architecture
     jsr     _getcpu
-    cmp     #ID_CPU_65C02
+    cmp     #CPU_65C02
     bne     is6502
     PRINT   str_65C02
     jmp     next         ; FIXME 65c02
