@@ -1,10 +1,10 @@
 .proc _man
 
-MAN_SAVE_MALLOC_PTR:=VARLNG
-MAN_SAVE_MALLOC_FP:=VARLNG+2
+  MAN_SAVE_MALLOC_PTR:=VARLNG
+  MAN_SAVE_MALLOC_FP :=VARLNG+2
     ;
     MALLOC 29              ; length of /usr/share/man/ + 8 + .hlp + \0
-  
+    ; FIXME test OOM
    
     sta MAN_SAVE_MALLOC_PTR
     sta RESB
@@ -79,9 +79,9 @@ next:
     sta PTR_READ_DEST
     lda #>SCREEN
     sta PTR_READ_DEST+1
-  ; We read 1024 bytes
-    lda #<1024      ; FIXME  size from parameters
-    ldy #>1024
+  ; We read 1080 bytes
+    lda #<1080      ; FIXME  size from parameters
+    ldy #>1080
   ; reads byte 
     BRK_ORIX XFREAD
     BRK_ORIX XCLOSE

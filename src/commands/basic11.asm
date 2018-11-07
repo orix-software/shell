@@ -1,11 +1,12 @@
 .proc _basic11
+    COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
     sei
     ; stop t2 from via1
     lda #0+32
-    sta V1IER
+    sta VIA::IER
     ; stop via 2
     lda #0+32+64
-    sta V2IER	
+    sta VIA2::IER
 	
     ldx #$00
 loop:
@@ -22,6 +23,6 @@ loop:
 copy:
     sei
     lda #ATMOS_ID_BANK
-    sta V2DRA
+    sta VIA2::PRA
     jmp $F88F ; NMI vector of ATMOS rom
 .endproc
