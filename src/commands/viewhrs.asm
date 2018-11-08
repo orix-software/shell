@@ -13,7 +13,7 @@
     bne     next
     beq     not_found
     rts
-error:
+@error:
     PRINT   str_viewhrs_error
     rts
 not_found: 

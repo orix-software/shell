@@ -30,7 +30,7 @@ read_byte:
     tay  ; earn 1 byte instead of doing ldy #$ff
     jsr _ch376_set_bytes_read
 continue:
-    cmp #$1d ; something to read
+    cmp #$1D ; something to read
     beq we_read
     cmp #$14 ; finished
     beq finished 
@@ -55,6 +55,7 @@ loop9:
     lda CH376_DATA ; read the data
     cmp #$0A
     bne skip
+
     RETURN_LINE
 .ifdef CPU_65C02 ; FIXME
 .pc02
@@ -77,6 +78,7 @@ skip:
 skip2:
     BRK_TELEMON XWR0
 next:
+
 
     dec	userzp
     bpl loop9

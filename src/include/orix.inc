@@ -1,30 +1,46 @@
 
 WITH_BANK=1
+WITH_BASIC11=1
+WITH_CAT=1
+WITH_CD=1
 WITH_CLEAR=1
+WITH_CP=1
 WITH_DATE=1
+WITH_DF=1
 WITH_DEBUG=1
+WITH_ECHO=1
 WITH_ENV=1
+WITH_FORTH=1
 WITH_HELP=1
 WITH_HISTORY=1
 WITH_IOPORT=1
+WITH_LESS=1
 WITH_LS=1
 WITH_LSCPU=1
 WITH_LSMEM=1
 WITH_LSOF=1
 WITH_MAN=1
+WITH_MEMINFO=1
 WITH_MOUNT=1
 WITH_MV=1
-WITH_MEMINFO=1
 WITH_MKDIR=1
 WITH_MONITOR=1
+;WITH_OCONFIG=1
 WITH_PS=1
+WITH_PWD=1
+WITH_REBOOT=1
 WITH_RM=1
+;WITH_SEDORIC=1
 WITH_SH=1
 WITH_TOUCH=1
+WITH_UNAME=1
+;WITH_VI=1
+WITH_VIEWHRS=1
+;WITH_XORIX=1
 ;WITH_TREE=1
-; uname
-; reboot
-; viewhrs
+
+
+
 
 
 XDIVIDE_INTEGER32_BY_1024=$1E
@@ -35,9 +51,10 @@ ptr1_32                       := $33
 
 SWITCH_TO_BANK_ID             := $040C
 
+ATMOS_ID_BANK                 = 6
 ORIX_ID_BANK                  = 5
 MONITOR_ID_BANK               = 4
-
+TELEFORTH_ID_BANK     	      = 3
 
 PATH_CURRENT_MAX_LEVEL        = 4       ; Only in telemon 3.0 number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high
 MAX_LENGTH_OF_FILES           = 9       ;  We say 8 chars for directory and end of string
@@ -455,16 +472,41 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     BANK=0
 .endif
 
-.ifdef WITH_DATE
-    DATE=1
+.ifdef WITH_BASIC11
+    BASIC11=1
 .else
-    DATE=0
+    BASIC11=0
 .endif
+
+.ifdef WITH_CAT
+    CAT=1
+.else
+    CAT=0
+.endif
+
 
 .ifdef WITH_CLEAR
     CLEAR=1
 .else
     CLEAR=0
+.endif
+
+.ifdef WITH_CD
+    CD=1
+.else
+    CD=0
+.endif
+
+.ifdef WITH_CP
+    CP=1
+.else
+    CP=0
+.endif
+
+.ifdef WITH_DATE
+    DATE=1
+.else
+    DATE=0
 .endif
 
 .ifdef WITH_DEBUG
@@ -477,6 +519,12 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     DF=1
 .else
     DF=0
+.endif
+
+.ifdef WITH_ECHO
+    ECHO=1
+.else
+    ECHO=0
 .endif
 
 .ifdef WITH_ENV
@@ -539,6 +587,12 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     MKDIR_COMMAND=0
 .endif
 
+.ifdef WITH_LESS
+    LESS=1
+.else
+    LESS=0
+.endif
+
 .ifdef WITH_MONITOR
     MONITOR=1   
 .else
@@ -546,9 +600,9 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .endif
 
 .ifdef WITH_CA65
-.define CA65 1
+    CA65=1
 .else
-.define CA65 0
+    CA65=0
 .endif
 
 .ifdef WITH_MOUNT
@@ -563,7 +617,6 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     MV=0
 .endif
 
-
 .ifdef WITH_OCONFIG
     OCONFIG=1
 .else
@@ -576,16 +629,22 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     PS=0
 .endif
 
-.ifdef WITH_VI
-    VI=1
+.ifdef WITH_PWD
+    PWD=1
 .else
-    VI=0
+    PWD=0
 .endif
 
 .ifdef WITH_RM
     RM=1
 .else
     RM=0
+.endif
+
+.ifdef WITH_REBOOT
+    REBOOT=1
+.else
+    REBOOT=0
 .endif
 
 .ifdef WITH_SEDSD
@@ -598,6 +657,12 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     TREE=1
 .else
     TREE=0
+.endif
+
+.ifdef WITH_UNAME
+    UNAME=1
+.else
+    UNAME=0
 .endif
 
 .ifdef WITH_TOUCH
@@ -618,16 +683,11 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     MORE=0
 .endif
 
-.ifdef WITH_LESS
-    LESS=1
-.else
-    LESS=0
-.endif
 
 .ifdef WITH_CPUINFO
-.define CPUINFO 1
+    CPUINFO=1
 .else
-.define CPUINFO 0
+    CPUINFO=0
 .endif
 
 .ifdef WITH_KILL
@@ -642,19 +702,33 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     HISTORY=0
 .endif
 
+.ifdef WITH_VIEWHRS
+    VIEWHRS=1
+.else
+    VIEWHRS=0
+.endif
+
+
+.ifdef WITH_VI
+    VI=1
+.else
+    VI=0
+.endif
+
+
 .ifdef WITH_XORIX
     XORIX=1
 .else
     XORIX=0
 .endif
 
-.ifdef WITH_TELEFORTH
-.define TELEFORTH 1
+.ifdef WITH_FORTH
+    FORTH=1
 .else
-.define TELEFORTH 0
+    FORTH=0
 .endif
 ;OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANK+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
-BASH_NUMBER_OF_COMMANDS=1+CLEAR+DEBUG+DF+DATE+ENV+HELP+HISTORY+IOPORT+KILL+LS+BANK+LSCPU+LSOF+LSMEM+MAN+MOUNT+MEMINFO+MKDIR_COMMAND+MONITOR+MV+PS+RM+SH+TOUCH+TREE+XORIX
+BASH_NUMBER_OF_COMMANDS=1+BASIC11+CD+CP+CAT+CLEAR+DEBUG+DF+DATE+ECHO+ENV+FORTH+HELP+HISTORY+IOPORT+KILL+LESS+LS+BANK+LSCPU+LSOF+LSMEM+MAN+MOUNT+MEMINFO+MKDIR_COMMAND+MONITOR+MV+PS+PWD+REBOOT+RM+SH+UNAME+VI+VIEWHRS+TOUCH+TREE+XORIX
 
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 
 COLOR_FOR_DIRECTORY  =        $86 ; colors when ls display directory

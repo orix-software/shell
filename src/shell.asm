@@ -453,7 +453,7 @@ str_root_bin:
 .include "commands/env.asm"
 .endif
 
-.ifdef WITH_TELEFORTH
+.ifdef WITH_FORTH
 .include "commands/teleforth.asm"
 .endif
 
@@ -927,7 +927,7 @@ commands_low:
     .byt <_env
 .endif    
 
-.ifdef WITH_TELEFORTH
+.ifdef WITH_FORTH
     .byt <_forth
 .endif
 
@@ -1015,6 +1015,10 @@ commands_low:
     .byt <_touch
 .endif
 
+.ifdef WITH_TREE
+    .byt <_touch
+.endif
+
 .ifdef WITH_UNAME
     .byt <_uname
 .endif    
@@ -1088,7 +1092,7 @@ commands_high:
     .byt >_env
 .endif    
 
-.ifdef WITH_TELEFORTH
+.ifdef WITH_FORTH
     .byt >_forth
 .endif    
 
@@ -1176,6 +1180,10 @@ commands_high:
     .byt >_touch
 .endif
 
+.ifdef WITH_TREE
+    .byt >_tree
+.endif
+
 .ifdef WITH_UNAME
     .byt >_uname
 .endif    
@@ -1249,8 +1257,8 @@ list_command_low:
     .byt <env
 .endif    
 
-.ifdef WITH_TELEFORTH
-    .byt <teleforth
+.ifdef WITH_FORTH
+    .byt <forth
 .endif    
 
 .ifdef WITH_HELP
@@ -1337,6 +1345,10 @@ list_command_low:
     .byt <touch
 .endif    
 
+.ifdef WITH_TREE
+    .byt <tree
+.endif    
+
 .ifdef WITH_UNAME
     .byt <uname
 .endif    
@@ -1410,8 +1422,8 @@ list_command_high:
     .byt >env
 .endif
     
-.ifdef WITH_TELEFORTH
-    .byt >teleforth
+.ifdef WITH_FORTH
+    .byt >forth
 .endif
 
 .ifdef WITH_HELP
@@ -1498,6 +1510,10 @@ list_command_high:
     .byt >touch
 .endif
 
+.ifdef WITH_TREE
+    .byt >tree
+.endif
+
 .ifdef WITH_UNAME
     .byt >uname
 .endif
@@ -1571,7 +1587,7 @@ commands_length:
     .byt 3 ; _env
 .endif    
 
-.ifdef WITH_TELEFORTH
+.ifdef WITH_FORTH
     .byt 5 ; forth
 .endif 
 
@@ -1659,6 +1675,10 @@ commands_length:
     .byt 5 ; touch
 .endif
 
+.ifdef WITH_TREE
+    .byt 4 ; tree
+.endif
+
 .ifdef WITH_UNAME
     .byt 5 ;_uname
 .endif    
@@ -1735,8 +1755,8 @@ env:
     .asciiz "env"
 .endif    
 
-.ifdef WITH_TELEFORTH    
-teleforth:
+.ifdef WITH_FORTH    
+forth:
     .asciiz "forth"
 .endif
 
@@ -1913,13 +1933,7 @@ txt_file_not_found:
 
 
 
-.IFPC02
-cpu_build:
-    .asciiz "65C02"
-.else
-cpu_build:
-    .asciiz "6502"
-.endif
+
 
 ; [IN] X the id of_orix_register_process the command
 process_init:
@@ -2012,7 +2026,17 @@ orix_command_table_high:
 
 
 signature:
-    .byte  "Orix Shell - ",__DATE__,0
+    .byte  "Orix Shell-"
+str_compile_time:
+    .byt    __DATE__
+    .byt    " "
+.IFPC02
+cpu_build:
+    .asciiz "65C02"
+.else
+cpu_build_:
+    .asciiz "6502"
+.endif
     .include "tables/text_first_line_adress.asm"  
 ; .include "tables/malloc_table.asm"  
 
@@ -2034,7 +2058,7 @@ _orix_unregister_process:
 @found:
   pha                           ; save PID
   lda     #$00  ; FIXME 65C02  
-  sta LIST_PID,x                ; destroy the PID in ps table
+  sta     LIST_PID,x                ; destroy the PID in ps table
   ; destroy busy chunks of this process
  
   

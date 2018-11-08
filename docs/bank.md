@@ -11,9 +11,5 @@ This command displays bank when the command is called without parameter. WIth a 
 bank : displays all the bank
 bank 4 : switch to bank 4
 
-
-## Working software
-+ Super jeep, swiv, Trex, Zorgons
-
 ## SOURCE
 Internal command in Orix (assembly)
