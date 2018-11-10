@@ -710,10 +710,12 @@ is_not_encapsulated:
 		
 
 
+    ;ldx     #$00
+    ;jsr     _orix_get_opt
+    
+;    REGISTER_PROCESS ORIX_ARGV
 
 
-switch_off: ; ???? FIXME
-.byt $EA,$00,$00,$00,$00,$00,$00,$EF,$00,$00,$00,$00,$00,$00
 
 .proc _XREAD
 	
