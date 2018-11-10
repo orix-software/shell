@@ -170,7 +170,7 @@ next_key:
     BRK_TELEMON XWR0             ; write key on the screen (it's really a key pressed
     ldx     VARAPL               ; get the position on the command line
     sta     BUFEDT,x             ; stores the char in command line buffer
-    inx                      ; increase by 1 the current position in the command line buffer
+    inx                          ; increase by 1 the current position in the command line buffer
     stx     VARAPL
   
 .IFPC02
@@ -622,6 +622,8 @@ skip_and_malloc_header:
 
     MALLOC(20) ; Malloc 20 bytes (20 bytes for header)
     
+    TEST_OOM_AND_MAX_MALLOC
+
     ptr_header:=VARLNG
     
     sta     ptr_header
@@ -710,10 +712,6 @@ is_not_encapsulated:
 		
 
 
-    ;ldx     #$00
-    ;jsr     _orix_get_opt
-    
-;    REGISTER_PROCESS ORIX_ARGV
 
 
 

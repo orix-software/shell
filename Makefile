@@ -4,6 +4,7 @@ LD=ld65
 CFLAGS=-ttelestrat
 LDFILES=
 ROM=shell
+ORIX_ROM=shell
 
 all : build
 .PHONY : all
@@ -16,6 +17,8 @@ SOURCE=src/$(ROM).asm
 
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
+ 
+
  
 build: $(SOURCE)
 	@date +'.define __DATE__ "%F %R"' > src/build.inc

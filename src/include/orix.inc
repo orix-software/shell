@@ -325,13 +325,16 @@ orix_end_memory_kernel:
     BRK_ORIX XFREAD
 .endmacro
 
+; This macro must be placed after MALLOC call
 .macro TEST_OOM_AND_MAX_MALLOC
+    ; Test if we reached the max number of malloc chunk
     cpx     #ORIX_NUMBER_OF_MALLOC
     bne     @check_for_oom_TEST_OOM_AND_MAX_MALLOC
     ; We reachead max malloc available
     PRINT   str_max_malloc_reached
     RETURN_LINE
     rts
+    ; check if malloc is null, if it's equal, displays Out of Memory
 @check_for_oom_TEST_OOM_AND_MAX_MALLOC:
     cmp     #NULL
     bne     @TEST_OOM_AND_MAX_MALLOC
