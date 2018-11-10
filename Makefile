@@ -30,7 +30,7 @@ test:
 	#xa tests/xrm.asm -o xrm
 	#xa tests/xmkdir.asm -o xmkdir
 	#cp src/include/orix.h build/usr/include/orix/
-	mkdir -p build/usr/src/orix-source-1.0/
+	mkdir -p build/usr/src/orix-source-1.0/src/
 	cp Makefile build/usr/src/orix-source-1.0/
 	cp README.md build/usr/src/orix-source-1.0/
 	cp src/* build/usr/src/orix-source-1.0/src/ -adpR
