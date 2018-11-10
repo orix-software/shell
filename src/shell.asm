@@ -1930,8 +1930,10 @@ str_command_not_found:
     .byte ": command not found",$0a,$0d,0
 txt_file_not_found:
     .asciiz "File not found :"
-
-
+str_out_of_memory:
+    .asciiz "Out of Memory"      
+str_max_malloc_reached:
+    .asciiz "Max number of malloc reached"
 
 
 
@@ -2126,46 +2128,44 @@ _orix_unregister_filehandle:
 
 ORIX_ROUTINES_TABLE:
 ORIX_ROUTINES_TABLE_LOW:
-    .byt <_orix_register_filehandle ;0
-    .byt <_orix_register_process    ;1 
-    .byt <_orix_unregister_process  ;2
+    .byt    <_orix_register_filehandle ;0
+    .byt    <_orix_register_process    ;1 
+    .byt    <_orix_unregister_process  ;2
 
 ORIX_ROUTINES_TABLE_HIGH:
-    .byt >_orix_register_filehandle
-    .byt >_orix_register_process
-    .byt >_orix_unregister_process
+    .byt    >_orix_register_filehandle
+    .byt    >_orix_register_process
+    .byt    >_orix_unregister_process
 
 
-    .res $FFE0-*
-    .org $FFE0
+    .res    $FFE0-*
+    .org    $FFE0
 
 _call_orix_routine:
-    ldx TR0
-    lda ORIX_ROUTINES_TABLE_LOW,x
-    sta RES
-    lda ORIX_ROUTINES_TABLE_HIGH,x
-    sta RES+1
-    jmp (RES)
+    ldx     TR0
+    lda     ORIX_ROUTINES_TABLE_LOW,x
+    sta     RES
+    lda     ORIX_ROUTINES_TABLE_HIGH,x
+    sta     RES+1
+    jmp     (RES)
 
 
-    .res $FFF8-*
-    .org $FFF8
-
-
+    .res    $FFF8-*
+    .org    $FFF8
 
 ; fffa
 
 copyright:
-    .word signature
+    .word   signature
 
 NMI:
-	.word start_orix
+	.word   start_orix
 
 ; fffc
 RESET:
-    .word start_orix
+    .word   start_orix
 ; fffe
 BRK_IRQ:	
-    .word IRQVECTOR
+    .word   IRQVECTOR
 
 	

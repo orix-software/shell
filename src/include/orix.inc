@@ -683,7 +683,6 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     MORE=0
 .endif
 
-
 .ifdef WITH_CPUINFO
     CPUINFO=1
 .else
@@ -707,7 +706,6 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .else
     VIEWHRS=0
 .endif
-
 
 .ifdef WITH_VI
     VI=1

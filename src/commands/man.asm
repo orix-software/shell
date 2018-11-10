@@ -1,11 +1,28 @@
 .proc _man
-
+  NULL                    =  $00
   MAN_SAVE_MALLOC_PTR:=VARLNG
   MAN_SAVE_MALLOC_FP :=VARLNG+2
     ;
     MALLOC 29              ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
+    cpx     #ORIX_NUMBER_OF_MALLOC
+    bne     @check_for_oom
+    ; We reachead max malloc available
+    PRINT   str_max_malloc_reached
+    RETURN_LINE
+    rts
+@check_for_oom:
+    cmp     #NULL
+    bne     @skip
+    cpy     #NULL
+    bne     @skip
+    PRINT   str_out_of_memory
+    RETURN_LINE
+    ; We reached OOM
+    rts
+@skip:    
    
+start_man:   
     sta MAN_SAVE_MALLOC_PTR
     sta RESB
     sty MAN_SAVE_MALLOC_PTR+1
@@ -94,6 +111,8 @@ out:
     BRK_ORIX XTEXT
     
     SWITCH_ON_CURSOR
+
+    FREE MAN_SAVE_MALLOC_PTR
     rts
 
 str_man_error:
