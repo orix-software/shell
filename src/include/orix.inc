@@ -36,20 +36,18 @@ WITH_TOUCH=1
 WITH_UNAME=1
 ;WITH_VI=1
 WITH_VIEWHRS=1
-;WITH_XORIX=1
+WITH_XORIX=1
 ;WITH_TREE=1
 
 
-
-
-NULL                    =  $00
-XDIVIDE_INTEGER32_BY_1024=$1E
+NULL                          =  $00
+XDIVIDE_INTEGER32_BY_1024     =  $1E
 
 OFFSET_TO_READ_BYTE_INTO_BANK := $32
 ID_BANK_TO_READ_FOR_READ_BYTE := $34
 ptr1_32                       := $33
 
-SWITCH_TO_BANK_ID             := $040C
+;SWITCH_TO_BANK_ID             := $040C
 
 ATMOS_ID_BANK                 = 6
 ORIX_ID_BANK                  = 5
@@ -233,7 +231,8 @@ orix_end_memory_kernel:
     LDX #$20
     STX DEFAFF
     LDX #justif
-    .byte $00,XDECIM
+    BRK_ORIX XDECIM
+    ;.byte $00,XDECIM
 .endmacro
 
 .macro CLS
@@ -249,15 +248,15 @@ orix_end_memory_kernel:
   
 .macro UNREGISTER_PROCESS
   lda ORIX_CURRENT_PROCESS_FOREGROUND
-  beq skip_UNREGISTER_PROCESS
+  beq @skip_UNREGISTER_PROCESS
   jsr _orix_unregister_process
-skip_UNREGISTER_PROCESS
+@skip_UNREGISTER_PROCESS
 .endmacro
 
 .macro UNREGISTER_PROCESS_BY_PID_IN_ACCUMULATOR
-  beq skip_UNREGISTER_PROCESS
+  beq @skip_UNREGISTER_PROCESS
   jsr _orix_unregister_process
-skip_UNREGISTER_PROCESS
+@skip_UNREGISTER_PROCESS
 .endmacro
  
 .macro SWITCH_ON_CURSOR

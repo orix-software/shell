@@ -1,15 +1,15 @@
 
-.define XORIX_BEGIN_BACKGROUND_GRID $A000+40*8+(2+2+1)*40
 
-.define XORIX_BEGIN_BACKGROUND_GRID_EVEN XORIX_BEGIN_BACKGROUND_GRID
-.define XORIX_BEGIN_BACKGROUND_GRID_ODD XORIX_BEGIN_BACKGROUND_GRID+40
 
-.define XORIX_STRUCT ZP_APP_PTR1
 
-.define XORIX_BEGIN_MENU            $A000
+
+
 .proc _xorix
-
-
+XORIX_BEGIN_MENU                  :=$A000
+XORIX_BEGIN_BACKGROUND_GRID       :=$A000+40*8+(2+2+1)*40
+XORIX_BEGIN_BACKGROUND_GRID_EVEN  :=XORIX_BEGIN_BACKGROUND_GRID
+XORIX_BEGIN_BACKGROUND_GRID_ODD   :=XORIX_BEGIN_BACKGROUND_GRID+40
+XORIX_STRUCT:=userzp
 ;XORIX struct
 ;unsigned char posx;
 ;unsigned char posy;
@@ -34,7 +34,7 @@
  ; rts
 
  
-  _blit_background
+  _blit_background:
 
     lda #<XORIX_BEGIN_BACKGROUND_GRID_EVEN
     sta RES
@@ -71,7 +71,7 @@ blit_line:
 blit_bg_line_even:
     ldy #39
     lda #%01101010
-  @loop  
+@loop:
     sta (RES),y
     dey
     bpl @loop
@@ -85,10 +85,10 @@ blit_bg_line_odd:
     dey
     bpl @loop
     rts
-  .)
+
 
   
-  _blit_menu
+  _blit_menu:
    
     lda   #$01
     sta   HRSFB
@@ -133,5 +133,5 @@ str_file:
           rts
 
 
-.)
+
  .endproc
