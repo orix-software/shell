@@ -186,7 +186,7 @@ next_key:
 key_del_routine:
     ldx     VARAPL               ; load the length of the command line buffer
     beq     send_oups_and_loop   ; command line is empty send oups sound
-    dex                      ; command line is NOT empty, remove last char in the buffer
+    dex                          ; command line is NOT empty, remove last char in the buffer
     lda     #$00                 ; remove last char FIXME 65c02
     sta     BUFEDT,x
     stx     VARAPL               ; and store the length
@@ -207,7 +207,7 @@ send_oups_and_loop:
 
     sta     RES
     sty     RES+1
-    jsr     ltrim; ltrim command line
+    jsr     ltrim               ; ltrim command line
     
     ; // Looking if it request ./ : it means that user want to load and execute
     ldy     #$00
@@ -294,32 +294,33 @@ orix_try_to_find_command_in_bin_path:
     rts
 even_in_slash_bin_command_not_found:
     RETURN_LINE
-    PRINT ORIX_ARGV
-    PRINT str_command_not_found
+    PRINT   ORIX_ARGV
+    PRINT   str_command_not_found
     lda     #$01
     sta     ERRNO
     rts
 
 command_found:
+    ; at this step we found the command from a rom
 	; X contains ID of the command
 	; Y contains the position of the BUFEDT
-    stx     TR7                    ; save the id of the command
+    stx     TR7                             ; save the id of the command
 
-    RETURN_LINE         ;jump a line
+    RETURN_LINE                             ;jump a line
     
-    ldx     TR7                    ; get the id of the command
+    ldx     TR7                             ; get the id of the command
     
-    lda     list_command_low,x     ; get the name of the command
-    ldy     list_command_high,x    ; and high
+    lda     list_command_low,x              ; get the name of the command
+    ldy     list_command_high,x             ; and high
     ; get PID father
     ldx     ORIX_CURRENT_PROCESS_FOREGROUND
-    jsr     _orix_register_process ; register process
-    bne     register_process_valid ; if it's return 0 then there is an error
+    jsr     _orix_register_process          ; register process
+    bne     register_process_valid          ; if it return's 0 then there is an error
 
     ; we manage only max process here, but it could be also a out of memory error
     ; but here we are in a command in ROM, ooe will not arrive except if command do a malloc exception
     ; display maxProcessReached
-    PRINT strMaxProcessReached
+    PRINT   strMaxProcessReached
     ; at this step we reach the max process 
     rts 
 
@@ -333,7 +334,7 @@ register_process_valid:         ; if we are here, it means that register_process
     lda     commands_high,x
     sta     RES+1
     
-    JMP     (RES) ; be careful with 6502 bug (jmp xxFF)
+    JMP     (RES)               ; be careful with 6502 bug (jmp xxFF)
 	
 end_string:
 
@@ -602,21 +603,21 @@ end_crap:       ; FIXME
 	
 _orix_load_and_start_app:
 
-    jsr     _ch376_verify_SetUsbPort_Mount
+    jsr     _ch376_verify_SetUsbPort_Mount          ; Mount card
     cmp     #$01
     beq     end_crap
 	
     jsr     _cd_to_current_realpath_new
     ldx     #$00
-    jsr     _orix_get_opt
+    jsr     _orix_get_opt                           ; get fiest parameter
     STRCPY ORIX_ARGV+2,BUFNOM
  	
     jsr     _ch376_set_file_name
     jsr     _ch376_file_open
-    cmp     #CH376_ERR_MISS_FILE
+    cmp     #CH376_ERR_MISS_FILE                    ; File is missling ?
     bne     skip_and_malloc_header
-    RETURN_LINE
-    PRINT   ORIX_ARGV
+    RETURN_LINE                                     
+    PRINT   ORIX_ARGV                               ; Yes file is missing displays error
     PRINT   str_command_not_found ; MACRO
     
     rts	
@@ -624,7 +625,7 @@ _orix_load_and_start_app:
 _orix_load_and_start_app_xopen_done:
 skip_and_malloc_header:
 
-    MALLOC(20) ; Malloc 20 bytes (20 bytes for header)
+    MALLOC 20 ; Malloc 20 bytes (20 bytes for header)
     
     TEST_OOM_AND_MAX_MALLOC
 
@@ -1896,6 +1897,11 @@ tree:
     .asciiz "tree"
 .endif    
 
+.ifdef WITH_TELNETD
+telnetd:
+    .asciiz "telnetd"
+.endif    
+
 .ifdef WITH_TOUCH    
 touch:
     .asciiz "touch"
@@ -2075,7 +2081,7 @@ _orix_unregister_process:
   cmp     LIST_PID,x               ; looking un ps table where the PID is
   beq     @found
   inx
-  cpx     #ORIX_NUMBER_OF_MALLOC
+  cpx     #ORIX_MAX_PROCESS 
   bne     @loop
   ; not found
   rts

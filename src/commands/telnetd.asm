@@ -1,3 +1,3 @@
-.proc telnetd
+.proc _telnetd
     rts
 .endproc
