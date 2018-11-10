@@ -25,7 +25,7 @@
 displays_all_banks:   
     lda     #ORIX_ID_BANK       ; store the current bank
     sta     tmp2
-.ifdef      WITH_TWILIGHTE_BOARD_V0_4	
+.ifdef      WITH_TWILIGHTE_BOARD_V0_5
     lda     #%00011111                ; 31
 .else
     ; Telestrat and Twilighte board V0_3

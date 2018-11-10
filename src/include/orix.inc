@@ -37,7 +37,7 @@ WITH_UNAME=1
 ;WITH_VI=1
 WITH_VIEWHRS=1
 WITH_XORIX=1
-;WITH_TREE=1
+WITH_TREE=1
 
 
 NULL                          =  $00

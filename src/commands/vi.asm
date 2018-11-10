@@ -1,40 +1,40 @@
 .include "include/apps/vi.h"
 
-.define vi_screen_address_position_edition          ZP_APP_PTR1 ; 2 bytes
-.define tmp0_16                       	            ZP_APP_PTR2 ; 2 bytes
-.define SCROLL_TMP_FROM                             ZP_APP_PTR2 ; 2 bytes
-.define vi_tmp_16                                   ZP_APP_PTR2 ; 2 bytes
-.define vi_tmp2_16                                  ZP_APP_PTR2 ; 2 bytes
-.define vi_ptr_edition_buffer                       ZP_APP_PTR3 ; 2 bytes
-.define vi_screen_x_position_edition                ZP_APP_PTR4 ; 1 byte
-.define vi_screen_y_position_edition                ZP_APP_PTR4+1 ; 1 byte
-.define vi_screen_x_position_command 	            ZP_APP_PTR5
-.define vi_screen_y_position_edition_real           ZP_APP_PTR5+1
-.define SCROLL_TMP_TO                               ZP_APP_PTR6 ; 2 bytes
-.define vi_is_a_new_file                            ZP_APP_PTR7; 1 bytes
-.define vi_first_column                             ZP_APP_PTR7+1 ; one byte, first column for vi
-.define vi_current_position_ptr_edition_buffer      ZP_APP_PTR8 ; 2 bytes
-.define vi_current_position_ptr_edition_buffer_end  ZP_APP_PTR11 ; 2 bytes
-.define vi_length_file                              ZP_APP_PTR9 ; 2 bytes
-.define vi_current_position_in_edition_buffer       ZP_APP_PTR10 ; 2 bytes
-.define vi_struct                                   ZP_APP_PTR12 ; 2 bytes
+vi_screen_address_position_edition          := ZP_APP_PTR1 ; 2 bytes
+tmp0_16                       	       :=      ZP_APP_PTR2 ; 2 bytes
+SCROLL_TMP_FROM                           :=   ZP_APP_PTR2 ; 2 bytes
+vi_tmp_16                                  :=  ZP_APP_PTR2 ; 2 bytes
+vi_tmp2_16                                :=   ZP_APP_PTR2 ; 2 bytes
+vi_ptr_edition_buffer                      :=  ZP_APP_PTR3 ; 2 bytes
+vi_screen_x_position_edition               :=  ZP_APP_PTR4 ; 1 byte
+vi_screen_y_position_edition              :=   ZP_APP_PTR4+1 ; 1 byte
+vi_screen_x_position_command 	          :=   ZP_APP_PTR5
+vi_screen_y_position_edition_real         :=   ZP_APP_PTR5+1
+SCROLL_TMP_TO                              :=  ZP_APP_PTR6 ; 2 bytes
+vi_is_a_new_file                           :=  ZP_APP_PTR7 ; 1 bytes
+vi_first_column                            :=  ZP_APP_PTR7+1 ; one byte, first column for vi
+vi_current_position_ptr_edition_buffer     :=  ZP_APP_PTR8 ; 2 bytes
+vi_current_position_ptr_edition_buffer_end  := ZP_APP_PTR11 ; 2 bytes
+vi_length_file                              := ZP_APP_PTR9 ; 2 bytes
+vi_current_position_in_edition_buffer       := ZP_APP_PTR10 ; 2 bytes
+vi_struct                                   := ZP_APP_PTR12 ; 2 bytes
 ; Used only in edition mode when screen needs to scroll
-.define VI_SIZE_OF_BUFFER                           1000
+VI_SIZE_OF_BUFFER                         =  1000
 
 
-.define vi_save_fp					 	  	         tmp0_16
-.define vi_command_line_edition_buffer   		     tmp0_16
-.define vi_text_address					   		     tmp0_16
+ vi_save_fp					 	  	         tmp0_16
+ vi_command_line_edition_buffer   		     tmp0_16
+ vi_text_address					   		     tmp0_16
 
-.define SIZE_OF_VI_STRUCT 					         8+3+1+1
-.define VI_STRUCT_FILENAME_INDEX                     $00
+ SIZE_OF_VI_STRUCT 					         8+3+1+1
+ VI_STRUCT_FILENAME_INDEX                     $00
 
 
-;.define VI_MODE_STRUCT_INDEX 						        $00
-;.define SCREEN_X_POSITION_EDITION_STRUCT_INDEX 		        $01
-;.define SCREEN_Y_POSITION_EDITION_STRUCT_INDEX 		 		$02
-;.define SCREEN_ADDRESS_POSITION_EDITION_LOW_STRUCT_INDEX	$03 ; 2 bytes
-;.define SCREEN_ADDRESS_POSITION_EDITION_HIGH_STRUCT_INDEX 	$04 ; 2 bytes
+; VI_MODE_STRUCT_INDEX 						        $00
+; SCREEN_X_POSITION_EDITION_STRUCT_INDEX 		        $01
+; SCREEN_Y_POSITION_EDITION_STRUCT_INDEX 		 		$02
+; SCREEN_ADDRESS_POSITION_EDITION_LOW_STRUCT_INDEX	$03 ; 2 bytes
+; SCREEN_ADDRESS_POSITION_EDITION_HIGH_STRUCT_INDEX 	$04 ; 2 bytes
 
 
 
@@ -291,30 +291,30 @@ not_found:
     iny
     jmp     @loop
     
-out3
+out3:
     
 
     lda     #34
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x
     inx
-    lda     #" "
+    lda     #' '
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x
     inx
     
     ldy     #$00
-loopme
+@loop:
     lda     msg_nofile,y
     beq     @out
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x
     inx
     iny
-    jmp     loopme
+    jmp     @loop
 @out2:
 ;***************************************/
 ;* End of Displays "argv[1]" [new file]*/
 ;***************************************/
 
-.)
+
 ; Clear screen  
 start:
     jsr     update_position_screen
@@ -335,7 +335,7 @@ inc_tmp0_16_with_y:
     adc     tmp0_16
     bcc     @skip
     inc     tmp0_16+1
-@skip2
+@skip:
     sta     tmp0_16
     inc     vi_screen_y_position_edition
     lda     #$00
@@ -354,7 +354,7 @@ syntax_highlight_display:
     sta (vi_screen_address_position_edition),y
     iny
     jmp finish ; fixme 65C02
-@out    
+@out:
     cmp #'#'
     bne @out2
     lda #INK_COLOR_MAGENTA
@@ -362,8 +362,8 @@ syntax_highlight_display:
     iny
     jmp @finish  ; fixme 65C02
     
-@out2
-@finish
+@out2:
+@finish:
 
     pla
    
@@ -373,7 +373,7 @@ vi_detect_syntax_highlight:
     ; is it asm ?
    
     ldx     #$00
-@loop    
+@loop:
     lda     ORIX_ARGV,x
     beq     out
     cmp     #'.'
@@ -423,14 +423,14 @@ add40_to_vi_screen_address_position_edition:
     
 print_new_file:
 
-.include "orix/commands/vi/lib.asm"
+.include "vi/lib.asm"
 
 syntax_highlight:
     .byte ".asm",0,0 ; ext, end of string, definition highlight
     .byte ".s",0,0
     .byte ".c",0,1
     .byte ".sh",0,2
-definition_highlight
+definition_highlight:
     .byte ";",2 ; command : color 2
 
 
@@ -447,6 +447,4 @@ msg_impossibletowrite:
     
 msg_written:
     .asciiz "written"
-.)
-
 .endproc

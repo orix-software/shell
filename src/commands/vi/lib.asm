@@ -52,15 +52,15 @@ not_return_windows_found:
     rts      
 .endproc    
   
-interpret_commandline
-.(
+interpret_commandline:
+
   
   ldx     #$00
 @loop:  
   lda     VI_COMMANDLINE_VIDEO_ADRESS,x
-  cmp     #"w"
+  cmp     #'w'
   beq     write
-  cmp     #"q"
+  cmp     #'q'
   beq     quit
   inx
   cpx     #VI_COMMANDLINE_MAX_CHAR
@@ -142,15 +142,15 @@ display_nofilename_error:
   ldy     #$00
 @loop:  
   lda     msg_nofilename,y
-  beq     @skip5
+  beq     @skip
   sta     VI_COMMANDLINE_VIDEO_ADRESS,x
   inx
   iny
   bne     @loop
-@skip5:
+@skip:
   jmp     command_edition
 
-.)
+
 
 .proc display_message_on_command_line
   sta 	  tmp0_16
@@ -185,8 +185,8 @@ display_nofilename_error:
 .endproc
 
 
-.prod vi_commandline_display_filename
-.(
+.proc vi_commandline_display_filename
+
   lda     #$22          ; display on commandline '"' char
   sta     VI_COMMANDLINE_VIDEO_ADRESS,x
   inx
@@ -241,7 +241,7 @@ display_nofilename_error:
   rts
 .endproc
 
-.proc clear_command_line:
+.proc clear_command_line
 
     ldx     #40
     lda     #32
@@ -253,7 +253,7 @@ display_nofilename_error:
 .endproc
 
 ; use A and Y
-.proc update_position_screen:
+.proc update_position_screen
 
     lda     vi_screen_x_position_edition
     cmp     #39
@@ -269,7 +269,7 @@ display_nofilename_error:
     ; It's a new file, then we erase the last edition line (with space)
     lda     #' '
     ldx     #39
-@loop   
+@loop:
     sta     VI_EDITION_LAST_VIDEO_ADRESS,x
     dex
     bpl     @loop
@@ -307,7 +307,7 @@ skip:
 .endproc
 
 edition_mode_routine:
-.( 
+
 restart_edition:
     jsr     vi_editor_switch_off_cursor
     jsr     update_position_screen
@@ -347,7 +347,7 @@ restart_edition:
 
 	
 down_pressed:
-.(
+
 	;jmp     go_down_on_screen ; replace by bne
     lda     vi_current_position_ptr_edition_buffer_end
     cmp     vi_current_position_ptr_edition_buffer        ; end of file ?
@@ -510,7 +510,7 @@ continue:
     inc     tmp0_16
     bne     @skip
     inc     tmp0_16+1
-@skip3
+@skip:
     
     lda     #38
     sec
@@ -776,7 +776,7 @@ quit:
 @continue:
   lda     vi_current_position_ptr_edition_buffer_end+1  
   sta     vi_tmp_16+1
-  .(
+
   continue_to_move_block:
     ldy     #$00
     lda     (vi_tmp_16),y
@@ -801,17 +801,17 @@ quit:
   
   end_copie:
   ; copy now the char below the cursor
-    ldy #$00
-    lda (vi_current_position_ptr_edition_buffer),y
+    ldy     #$00
+    lda     (vi_current_position_ptr_edition_buffer),y
 	iny
-	sta (vi_current_position_ptr_edition_buffer),y
+	sta     (vi_current_position_ptr_edition_buffer),y
   
-  .)
+
 increment_buffer:
-  inc     vi_current_position_ptr_edition_buffer_end
-  bne     skip5
-  inc     vi_current_position_ptr_edition_buffer_end+1
-skip5:
+    inc     vi_current_position_ptr_edition_buffer_end
+    bne     @skip
+    inc     vi_current_position_ptr_edition_buffer_end+1
+@skip:
   
     rts
 .endproc
@@ -841,7 +841,7 @@ skip5:
     lda     vi_length_file
     bne     @nodec
     dec     vi_length_file+1
-@nodec
+@nodec:
 	dec     vi_length_file
  
 

@@ -1016,7 +1016,7 @@ commands_low:
 .endif
 
 .ifdef WITH_TREE
-    .byt <_touch
+    .byt <_tree
 .endif
 
 .ifdef WITH_UNAME
