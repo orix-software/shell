@@ -537,6 +537,10 @@ str_root_bin:
 .include "commands/touch.asm"
 .endif
 
+.ifdef WITH_TELNETD
+.include "commands/telnetd.asm"
+.endif
+
 .ifdef WITH_MONITOR
 .include "commands/monitor.asm"
 .endif
@@ -1011,6 +1015,10 @@ commands_low:
     .byt <_sh
 .endif 
 
+.ifdef WITH_TELNETD
+    .byt <_telnetd
+.endif
+
 .ifdef WITH_TOUCH
     .byt <_touch
 .endif
@@ -1175,6 +1183,10 @@ commands_high:
 .ifdef WITH_SH
     .byt >_sh
 .endif  
+
+.ifdef WITH_TELNETD
+    .byt >_telnetd
+.endif
 
 .ifdef WITH_TOUCH
     .byt >_touch
@@ -1341,6 +1353,10 @@ list_command_low:
     .byt <sh
 .endif
 
+.ifdef WITH_TELNETD
+    .byt <telnetd
+.endif    
+
 .ifdef WITH_TOUCH
     .byt <touch
 .endif    
@@ -1504,6 +1520,10 @@ list_command_high:
 
 .ifdef WITH_SH
     .byt >sh
+.endif
+
+.ifdef WITH_TELNETD
+    .byt >telnetd
 .endif
 
 .ifdef WITH_TOUCH
@@ -1670,6 +1690,10 @@ commands_length:
 .ifdef WITH_SH
     .byt 2 ; sh
 .endif   
+
+.ifdef WITH_TELNETD
+    .byt 7 ; telnetd
+.endif
 
 .ifdef WITH_TOUCH
     .byt 5 ; touch

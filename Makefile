@@ -18,12 +18,12 @@ SOURCE=src/$(ROM).asm
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
  
-
- 
 build: $(SOURCE)
 	@date +'.define __DATE__ "%F %R"' > src/build.inc
 	$(AS) $(CFLAGS) $(SOURCE) -o $(ROM).ld65
 	$(LD) -tnone $(ROM).ld65 -o $(ROM).rom
+	$(AS) $(CFLAGS) $(SOURCE) -DWITH_32BANKS -o $(ROM)a.ld65
+	$(LD) -tnone $(ROM)a.ld65 -o $(ROM)a.rom
 
 doc:
 	echo hello doc

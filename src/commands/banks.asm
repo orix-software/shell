@@ -25,8 +25,9 @@
 displays_all_banks:   
     lda     #ORIX_ID_BANK       ; store the current bank
     sta     tmp2
-.ifdef      WITH_TWILIGHTE_BOARD_V0_5
+.ifdef      WITH_32BANKS
     lda     #%00011111                ; 31
+    sta     VIA2::DDRA
 .else
     ; Telestrat and Twilighte board V0_3
     lda     #%00000111                ; we start from the bank 7 to 1
@@ -80,6 +81,10 @@ exit:
     RETURN_LINE
     dec     current_bank
     bne     loop2
+.ifdef      WITH_32BANKS
+    lda     #%00010111              
+    sta     VIA2::DDRA
+.endif	
     rts
 str_bank:
     .asciiz "Bank "

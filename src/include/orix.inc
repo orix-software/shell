@@ -680,6 +680,18 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     SEDSD=0
 .endif
 
+.ifdef WITH_TELNETD
+    TELNETD=1
+.else
+    TELNETD=0
+.endif
+
+.ifdef WITH_TOUCH
+    TOUCH=1
+.else
+    TOUCH=0
+.endif
+
 .ifdef WITH_TREE
     TREE=1
 .else
@@ -692,11 +704,7 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     UNAME=0
 .endif
 
-.ifdef WITH_TOUCH
-    TOUCH=1
-.else
-    TOUCH=0
-.endif
+
 
 .ifdef WITH_SH
     SH=1
