@@ -42,7 +42,7 @@ WITH_VIEWHRS=1
 
 
 
-
+NULL                    =  $00
 XDIVIDE_INTEGER32_BY_1024=$1E
 
 OFFSET_TO_READ_BYTE_INTO_BANK := $32
@@ -61,9 +61,15 @@ MAX_LENGTH_OF_FILES           = 9       ;  We say 8 chars for directory and end 
 MAX_LENGTH_OF_A_COMMAND       = 9
 MAX_ARGS                      = 3       ;  Number of possible args in the command line
 ORIX_MAX_PROCESS              = 4
-ORIX_NUMBER_OF_MALLOC         = 3
+
+
+; Memory management parameter
+ORIX_NUMBER_OF_MALLOC         = 3       ; Max of possible Malloc for all Orix command
 ORIX_MALLOC_FREE_FRAGMENT_MAX = 6
 ORIX_MALLOC_MAX_MEM_ADRESS    = $B3FF
+
+
+
 ORIX_MAX_OPEN_FILES           = 2
 SIZE_OF_VOLATILE_STR          = 50      ; can't be below 20 because it's used to load Orix header
 KEY_LCTRL                     = 5
@@ -318,6 +324,25 @@ skip_UNREGISTER_PROCESS
     lda #<size
     ldy #>size
     BRK_ORIX XFREAD
+.endmacro
+
+.macro TEST_OOM_AND_MAX_MALLOC
+    cpx     #ORIX_NUMBER_OF_MALLOC
+    bne     @check_for_oom_TEST_OOM_AND_MAX_MALLOC
+    ; We reachead max malloc available
+    PRINT   str_max_malloc_reached
+    RETURN_LINE
+    rts
+@check_for_oom_TEST_OOM_AND_MAX_MALLOC:
+    cmp     #NULL
+    bne     @TEST_OOM_AND_MAX_MALLOC
+    cpy     #NULL
+    bne     @TEST_OOM_AND_MAX_MALLOC
+    PRINT   str_out_of_memory
+    RETURN_LINE
+    ; We reached OOM
+    rts
+@TEST_OOM_AND_MAX_MALLOC: 
 .endmacro
 
 .macro  CGETC
