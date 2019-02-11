@@ -6,12 +6,18 @@ How to compile ?
 
 You need to download cc65 lastest version in order to get last telestrat.inc file.
 
-# How to install ?
+## How to install ?
 you need to put this bank in bank 5
 
-# How a binary is started ?
+## How a binary is started ?
 * if the command is ./Mycommand, orix tries to start command from current path
 if not :
 * Orix tries to see if the command is in ROM banks, if it's the case, the command is launched
 * If the command is not in any banks, it tries to start binary from bin/ folder
 * if it's not the in binary folder, it prints command not found
+
+## Build options
+
+### Root file on sdcard 
+Pass to ca65 command line : -DWITH_SDCARD_FOR_ROOT=1
+or else it will reads en usb key

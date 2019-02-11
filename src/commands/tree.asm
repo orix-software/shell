@@ -1,3 +1,3 @@
 .proc _tree
-    rts
+  rts
 .endproc

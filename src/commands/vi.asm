@@ -29,6 +29,11 @@ VI_SIZE_OF_BUFFER                         =  1000
  SIZE_OF_VI_STRUCT 					         8+3+1+1
  VI_STRUCT_FILENAME_INDEX                     $00
 
+.struct vi_struct
+xpos    .byte
+ypos    .byte
+.endstruct
+
 
 ; VI_MODE_STRUCT_INDEX 						        $00
 ; SCREEN_X_POSITION_EDITION_STRUCT_INDEX 		        $01
@@ -56,19 +61,18 @@ VI_SIZE_OF_BUFFER                         =  1000
    
 
 .proc _vi
-.(
 	SWITCH_OFF_CURSOR
     CLS
     MALLOC SIZE_OF_VI_STRUCT
 
     cmp     #NULL
-    bne     not_oom2
+    bne     @not_oom2
     cpy     #NULL
-    bne     not_oom2
+    bne     @not_oom2
     PRINT   str_OOM
     ; oom
     rts    
-not_oom2:   
+@not_oom2:   
 
     sta     vi_struct
     sty     vi_struct+1
@@ -175,7 +179,7 @@ load_file:                       ; Valid file
     sta     PTR_READ_DEST+1
     lda     #<VI_SIZE_OF_BUFFER-1
     ldy     #>VI_SIZE_OF_BUFFER-1
-    BRK_ORIX(XFREAD)
+    BRK_ORIX XFREAD
     lda     #$00
     ; And of file 
 .ifdef CPU_65C02

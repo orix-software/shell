@@ -6,6 +6,12 @@
 .include   "build.inc"
 .include   "include/orix.inc"
 
+.struct bash_struct
+path_current    .res 10
+.endstruct
+
+
+
 
 .org $C000
 .code
@@ -209,7 +215,7 @@ send_oups_and_loop:
     sty     RES+1
     jsr     ltrim               ; ltrim command line
     
-    ; // Looking if it request ./ : it means that user want to load and execute
+    ;  Looking if it request ./ : it means that user want to load and execute
     ldy     #$00
 @loop:
     lda     (RES),y
@@ -1724,6 +1730,7 @@ commands_length:
     .byt 5 ;xorix
 .endif	    
 
+list_of_commands_bank:
 .ifdef WITH_BASIC11    
 basic11:
     .asciiz "basic11"
@@ -2167,6 +2174,83 @@ ORIX_ROUTINES_TABLE_HIGH:
     .byt    >_orix_register_process
     .byt    >_orix_unregister_process
 
+.proc _commandline_parse
+    lda #$12
+    sta $bb80+80*2
+    rts
+find_command:
+    ; Search command
+    ; Insert each command pointer in zpTemp02Word
+    ldx     #$01
+    jsr     _orix_get_opt
+  
+    ldx     #$00
+mloop:
+    lda     list_command_low,x
+    sta     RESB
+    lda     list_command_high,x
+    sta     RESB+1  
+  
+  
+    ldy     #$00
+next_char:
+    lda     (RES),y
+    cmp     (RESB),y        ; same character?
+    beq     no_space
+    cmp     #' '             ; space?
+    bne     command_not_found
+    lda     (RESB),Y        ; Last character of the command name?
+no_space:                   ; FIXME
+    cmp     #$00            ; Test end of command name or EOL
+    beq     command_found
+    iny
+    bne     next_char
+ 
+command_not_found:
+
+    inx
+    cpx     #BASH_NUMBER_OF_COMMANDS 
+    bne     mloop
+    rts
+command_found:
+    ; at this step we found the command from a rom
+	; X contains ID of the command
+	; Y contains the position of the BUFEDT
+    stx     TR7                             ; save the id of the command
+
+    ;RETURN_LINE                             ;jump a line
+    
+    ldx     TR7                             ; get the id of the command
+    
+    lda     list_command_low,x              ; get the name of the command
+    ldy     list_command_high,x             ; and high
+    ; get PID father
+    ldx     ORIX_CURRENT_PROCESS_FOREGROUND
+    jsr     _orix_register_process          ; register process
+    bne     register_process_valid          ; if it return's 0 then there is an error
+
+    ; we manage only max process here, but it could be also a out of memory error
+    ; but here we are in a command in ROM, ooe will not arrive except if command do a malloc exception
+    ; display maxProcessReached
+    PRINT   strMaxProcessReached
+    ; at this step we reach the max process 
+    rts 
+
+register_process_valid:         ; if we are here, it means that register_process_valid returns a PID
+    sta     ORIX_CURRENT_PROCESS_FOREGROUND
+    
+    ldx     TR7
+    lda     commands_low,x
+    sta     RES
+	
+    lda     commands_high,x
+    sta     RES+1
+    
+    JMP     (RES)               ; be careful with 6502 bug (jmp xxFF)
+
+.endproc
+
+
 
     .res    $FFE0-*
     .org    $FFE0
@@ -2180,9 +2264,24 @@ _call_orix_routine:
     jmp     (RES)
 
 
-    .res    $FFF8-*
-    .org    $FFF8
 
+;    .res    $FFF8-*
+ ;   .org    $FFF8
+
+      .res $FFF1-*
+      .org $FFF1
+; $fff1
+parse_vector:
+        .addr _commandline_parse      
+; fff3
+adress_commands:
+        .addr parse_vector
+; fff5        
+list_commands:
+        .addr list_of_commands_bank
+; $fff7
+number_of_commands:
+        .byt 1
 ; fffa
 
 copyright:
