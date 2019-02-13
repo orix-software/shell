@@ -1,8 +1,32 @@
-.include "include/apps/vi.h"
+
+VI_COMMANDLINE_MAX_CHAR        = 8
+VI_MAX_LENGTH_FILE             = 2000
+VI_EDITOR_CHAR_LIMITS_EMPTY    = '~'
+VI_COMMANDLINE_VIDEO_ADRESS    :=$bb80+40*27+1
+VI_EDITION_LAST_VIDEO_ADRESS   := $bb80+40*26
+VI_EDITION_VIDEO_ADRESS        :=$bb80
+VI_EDITOR_MAX_LENGTH_OF_A_LINE = 38
+VI_EDITOR_MAX_COLUMN = 40
+
+INK_COLOR_GREEN = 2
+INK_COLOR_MAGENTA = 6
+
+ZP_APP_PTR1:=$90
+ZP_APP_PTR2:=$92
+ZP_APP_PTR3:=$94
+ZP_APP_PTR4:=$96
+ZP_APP_PTR5:=$98
+ZP_APP_PTR6:=$9A
+ZP_APP_PTR7:=$A6
+ZP_APP_PTR8:=$9C
+ZP_APP_PTR9:=$9E
+ZP_APP_PTR10:=$A0
+ZP_APP_PTR11:=$A2
+ZP_APP_PTR12:=$A4
 
 vi_screen_address_position_edition          := ZP_APP_PTR1 ; 2 bytes
-tmp0_16                       	       :=      ZP_APP_PTR2 ; 2 bytes
-SCROLL_TMP_FROM                           :=   ZP_APP_PTR2 ; 2 bytes
+tmp0_16                                     :=      ZP_APP_PTR2 ; 2 bytes
+SCROLL_TMP_FROM                            :=   ZP_APP_PTR2 ; 2 bytes
 vi_tmp_16                                  :=  ZP_APP_PTR2 ; 2 bytes
 vi_tmp2_16                                :=   ZP_APP_PTR2 ; 2 bytes
 vi_ptr_edition_buffer                      :=  ZP_APP_PTR3 ; 2 bytes
@@ -22,16 +46,19 @@ vi_struct                                   := ZP_APP_PTR12 ; 2 bytes
 VI_SIZE_OF_BUFFER                         =  1000
 
 
- vi_save_fp					 	  	         tmp0_16
- vi_command_line_edition_buffer   		     tmp0_16
- vi_text_address					   		     tmp0_16
+ vi_save_fp					 	  =	         tmp0_16
+ vi_command_line_edition_buffer  = 		     tmp0_16
+ vi_text_address			=		   		     tmp0_16
 
- SIZE_OF_VI_STRUCT 					         8+3+1+1
- VI_STRUCT_FILENAME_INDEX                     $00
+ SIZE_OF_VI_STRUCT 			=		         8+3+1+1
+ VI_STRUCT_FILENAME_INDEX  =                   $00
 
 .struct vi_struct
-xpos    .byte
-ypos    .byte
+xpos_screen       .byte    ; position x of the cursor on the screen
+ypos_screen       .byte    ; position y of the cursor on the screen
+pos_file          .word    ; position on the file (address)
+posx_command_line .byte    ; position on command line
+ptr_file		  .word    ; adress of the beginning of the file
 .endstruct
 
 
@@ -83,7 +110,8 @@ ypos    .byte
     lda     #$00
     sta     (vi_struct),y  ; FIXME 65C02
     
-.ifdef CPU_65C02
+.IFPC02
+.pc02
     stz     vi_screen_x_position_edition
     stz     vi_screen_y_position_edition
     stz     vi_first_column
@@ -162,9 +190,10 @@ load_file:                       ; Valid file
     ; store filename in the struct
     
     iny
-.ifdef CPU_65C02
+.IFPC02
+.pc02
     bra     @loop
-#else	
+.else
     jmp     @loop
 .endif	
 @out:
@@ -182,7 +211,8 @@ load_file:                       ; Valid file
     BRK_ORIX XFREAD
     lda     #$00
     ; And of file 
-.ifdef CPU_65C02
+.IFPC02
+.pc02
     sta     (PTR_READ_DEST)
 .else    
     ldy     #$00  ; fix 65c02
@@ -220,32 +250,33 @@ skipadd:
     sta     tmp0_16+1
 	; and displays
 restart_load:    
-.(    
     ldy     #$00
-@loop    
+@loop:
     lda     (tmp0_16),y
-    beq     out
+    beq     @out
     cmp     #$0A ; return line ?
-	bne     next2
+	bne     @next2
     jsr     add40_to_vi_screen_address_position_edition
     jmp     @loop    
 
-next:    
+@next:
     cmp     #$0D
-    bne     next2
+    bne     @next2
     jsr     add40_to_vi_screen_address_position_edition
-	jmp     loop
-next2:
+	jmp     @loop
+@next2:
     ;jsr syntax_highlight_display
     sta     (vi_screen_address_position_edition),y
-skip    
+@skip:
     iny
-    bne     loop
-out:   
-.ifdef CPU_65C02
+    bne     @loop
+@out:
+.IFPC02
+.pc02
     stz     vi_screen_x_position_edition
     stz     vi_screen_y_position_edition
     stz     vi_is_a_new_file ; If 1 then it's an new file   
+.p02    
 .else
     lda     #$00
     sta     vi_screen_x_position_edition
@@ -257,7 +288,7 @@ out:
     sta     vi_screen_y_position_edition_real
     
    
-.)    
+
 
 	jsr     vi_editor_fill_screen_with_text
 	jmp     start
@@ -267,7 +298,8 @@ not_found:
 ;********************************/
     ;  init the current filename with \0 (null)
     lda     #$00
-.ifdef CPU_65C02
+.IFPC02
+.pc02
     sta     (vi_struct)
 .else
     ldy     #$00
@@ -277,7 +309,7 @@ not_found:
     beq     start ; not args
     ; at this step we have a filename passed in first arg
     ; let's displays "new file ..."
-.(  
+
     lda     #34                             ; Displays "
     sta     VI_COMMANDLINE_VIDEO_ADRESS     ; on command line 
     ldx     #$01                
@@ -287,7 +319,7 @@ not_found:
 @loop:
     lda     ORIX_ARGV,y                     ; read filename passed in arg
     sta     (vi_struct),y
-    beq     out3
+    beq     @out3
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x   ; and displays in command line
     ; store filename in the struct
     
@@ -295,7 +327,7 @@ not_found:
     iny
     jmp     @loop
     
-out3:
+@out3:
     
 
     lda     #34
@@ -306,14 +338,14 @@ out3:
     inx
     
     ldy     #$00
-@loop:
+@loop2:
     lda     msg_nofile,y
     beq     @out
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x
     inx
     iny
-    jmp     @loop
-@out2:
+    jmp     @loop2
+@out:
 ;***************************************/
 ;* End of Displays "argv[1]" [new file]*/
 ;***************************************/
@@ -357,7 +389,7 @@ syntax_highlight_display:
     lda #INK_COLOR_GREEN
     sta (vi_screen_address_position_edition),y
     iny
-    jmp finish ; fixme 65C02
+    jmp @finish ; fixme 65C02
 @out:
     cmp #'#'
     bne @out2
@@ -379,21 +411,21 @@ vi_detect_syntax_highlight:
     ldx     #$00
 @loop:
     lda     ORIX_ARGV,x
-    beq     out
+    beq     @out
     cmp     #'.'
-    beq     dot_found
+    beq     @dot_found
     inx
     bne     @loop
-    jmp     out
-dot_found:
+    jmp     @out
+@dot_found:
     inx
     lda     ORIX_ARGV,x
     cmp     #'a'
-    bne     out
+    bne     @out
     inx 
     lda     ORIX_ARGV,x
     cmp     #'s'
-    bne     out    
+    bne     @out    
     lda     ORIX_ARGV,x
     cmp     #'m'
     bne     @out

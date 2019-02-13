@@ -5,7 +5,7 @@
   ldy     #$00
   lda     (vi_ptr_edition_buffer),y
   beq     @end
-not_return_windows_found:
+@not_return_windows_found:
   sta     (vi_screen_address_position_edition),y
 @end:
   rts
@@ -306,7 +306,7 @@ skip:
     rts
 .endproc
 
-edition_mode_routine:
+.proc edition_mode_routine
 
 restart_edition:
     jsr     vi_editor_switch_off_cursor
@@ -318,32 +318,33 @@ restart_edition:
 	cmp     #KEY_LEFT
 	beq     left_pressed    
 	cmp     #KEY_RIGHT
-	beq     right_pressed	
+	bne     @test_up
+    jmp     right_pressed
+@test_up:    
 	cmp     #KEY_UP
-	beq     up_pressed	
+	bne    	@test_down
+    jmp     up_pressed
+@test_down:
 	cmp     #KEY_DOWN
-	beq     down_pressed	
+	bne     @test_return
+    jmp     down_pressed	
+@test_return:    
 	cmp     #KEY_RETURN ; enter ?
-	beq 	return_pressed
-	bne     @vi_next_key
-
-	jmp     edition_mode_routine
-
-@vi_next_key:	
-
+	bne     @test_del
+    jmp     return_pressed_routine
+@test_del:    
 	cmp     #KEY_DEL
-	beq     @key_del
+	bne     @test_esc
+    jmp     key_del_remove
+@test_esc:    
 	cmp     #KEY_ESC ; ESC don't need
 	beq     @esc_pressed
 ; here we write key 
 	jmp     put_key_on_screen
-@key_del:
-    jmp     key_del_remove
+
 @esc_pressed:
     jmp     vi_clear_and_restart_command_mode
 
-@return_pressed:
-	jmp 	return_pressed_routine
 
 	
 down_pressed:
@@ -351,14 +352,14 @@ down_pressed:
 	;jmp     go_down_on_screen ; replace by bne
     lda     vi_current_position_ptr_edition_buffer_end
     cmp     vi_current_position_ptr_edition_buffer        ; end of file ?
-    bne     skip
+    bne     @skip
     lda     vi_current_position_ptr_edition_buffer_end+1
     cmp     vi_current_position_ptr_edition_buffer+1       ; end of file ?
-    beq     skip    
+    beq     @skip    
     
     lda     vi_screen_y_position_edition
     cmp     #26
-    beq     restart_edition
+   ; beq     restart_edition
     
     inc     vi_screen_y_position_edition
     inc     vi_screen_y_position_edition_real
@@ -374,14 +375,14 @@ down_pressed:
     sta     vi_current_position_ptr_edition_buffer
 
     
-    jmp     restart_edition
+    jmp    edition_mode_routine
     
 up_pressed:  
 	;jmp     go_up_on_screen
    
     lda     vi_screen_y_position_edition
     beq     @out
-    beq     restart_edition
+  ;  beq     restart_edition
 
     dec     vi_screen_y_position_edition
     dec     vi_screen_y_position_edition_real
@@ -395,7 +396,7 @@ up_pressed:
     
     
 @out:    
-    jmp     restart_edition
+    jmp     edition_mode_routine
 
     
 left_pressed:
@@ -403,7 +404,7 @@ left_pressed:
 	;jmp     go_left_on_screen  
     lda     vi_screen_x_position_edition
     cmp     vi_first_column
-    beq     restart_edition
+    ;beq     restart_edition
 
     dec     vi_screen_x_position_edition
 	
@@ -416,27 +417,28 @@ left_pressed:
 	
 
 
-    jmp     restart_edition
-    
+    jmp     edition_mode_routine
+.endproc
+
 .proc right_pressed
 
     ; let's find if we have characters
 
     lda     vi_current_position_ptr_edition_buffer_end
     cmp     vi_current_position_ptr_edition_buffer        ; end of file ?
-    bne     continue
+    bne     @continue
 
     lda     vi_current_position_ptr_edition_buffer_end+1
     cmp     vi_current_position_ptr_edition_buffer+1       ; end of file ?
-    beq     skip
+    beq     @skip
 
 
 
-continue:
+@continue:
     lda     vi_screen_x_position_edition
     cmp     #38
     bne     @next
-    jmp     restart_edition
+    jmp     edition_mode_routine
 @next:  
     ldy     #$01
     lda     (vi_current_position_ptr_edition_buffer),y
@@ -452,7 +454,7 @@ continue:
     inc     vi_current_position_ptr_edition_buffer+1
 @skip:
 
-    jmp     restart_edition
+    jmp     edition_mode_routine
     rts
 .endproc    
 
@@ -491,7 +493,7 @@ continue:
 	bne     @skip
 	inc     vi_current_position_ptr_edition_buffer_end+1
 @skip:
-	jmp 	restart_edition  
+	jmp     edition_mode_routine  
 .endproc    
   
 .proc key_del_remove
@@ -554,7 +556,7 @@ skip2:
 skip5:
 
 no_key_to_remove:    
-    jmp     restart_edition
+    jmp     edition_mode_routine
 .endproc
   
   
@@ -631,7 +633,7 @@ don_t_scroll_line:
 @fill_zero:
 out:
 
-    jmp     restart_edition
+    jmp     edition_mode_routine
 .endproc  
   
 
@@ -831,7 +833,8 @@ increment_buffer:
   sta     vi_command_line_edition_buffer,x   ; Set EOS
   
 @end:
-  jmp     loopme
+    rts
+  ; jmp     loopme
 .endproc
 
 
