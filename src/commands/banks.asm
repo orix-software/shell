@@ -7,13 +7,13 @@
     ldx     #$01
     jsr     _orix_get_opt           ; get arg 
     bcc     displays_all_banks      ; if there is no args, let's displays all banks
-	lda     ORIX_ARGV
-	sec
+    lda     ORIX_ARGV
+    sec
 	sbc     #$30
 	tax
 	stx     VAPLIC
-	lda     #<$c000
-	ldy     #>$c000
+	lda     #<$C000
+	ldy     #>$C000
     sta     VAPLIC+1
 	sty     VAPLIC+2
 	STA     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
@@ -41,9 +41,9 @@ loop2:
     BRK_ORIX XWR0
     CPUTC ' '                         ; Displays a space
     sei
-    lda     #<$fff8
+    lda     #<$FFF8
     sta     ptr1
-    lda     #>$fff8
+    lda     #>$FFF8
     sta     ptr1+1
     ldy     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low

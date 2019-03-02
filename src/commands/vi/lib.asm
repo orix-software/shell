@@ -432,8 +432,6 @@ left_pressed:
     cmp     vi_current_position_ptr_edition_buffer+1       ; end of file ?
     beq     @skip
 
-
-
 @continue:
     lda     vi_screen_x_position_edition
     cmp     #38
@@ -635,8 +633,6 @@ out:
 
     jmp     edition_mode_routine
 .endproc  
-  
-
 
 .proc scrollup
     lda     #<VI_EDITION_VIDEO_ADRESS+40
@@ -671,8 +667,7 @@ out:
 .endproc
  
 .proc command_edition
-
-    lda     #$00
+    lda     #$00 ; FIX 65c02
     sta     vi_screen_x_position_command
     jsr     vi_editor_switch_off_cursor
 @loop:
@@ -680,16 +675,9 @@ out:
     cmp     #'i'
     beq     switch_to_edition_mode
     cmp     #':'
-    beq     wait_command
-.IFPC02
-.pc02
-    bra     @loop
-.p02    
-.else
-    jmp     @loop
-.endif	
+    bne     @loop
+    jmp     wait_command
 .endproc
-
 
 ; ********************************************************************************* COMMAND edition  
 
@@ -723,13 +711,29 @@ out:
   
   inc     vi_screen_x_position_command 
     
-wait_command_loopme:
+@wait_command_loopme:
   jsr     vi_command_line_vi_editor_switch_on_cursor       ; switch on cursor on command line
+;.scope restart_commandline  
   BRK_TELEMON XRDW0 ; read keyboard
   cmp     #KEY_ESC
   beq     vi_clear_and_restart_command_mode
   cmp     #KEY_DEL
-  beq     command_line_suppress_char       
+  bne     @test_key_return
+  ; delete char on command line
+  ldx     vi_screen_x_position_command                     ; Get the position of the cursor on command line
+  cpx     #$01                                             ; if it's 1 (because we have on first char ":")
+  beq     @wait_command_loopme                             ; We loop
+  jsr     vi_command_line_vi_editor_switch_off_cursor      ; Switch off cursor
+  lda     #$20                                             ; erase with a space                        
+  dex                                                      ; go to left for one column
+  sta     VI_COMMANDLINE_VIDEO_ADRESS,x                    ; erase
+  inx                                                      ; ? 
+  dec     vi_screen_x_position_command                     ; dec the position command
+  lda     #$00                                             ; set EOS on command line buffer Fix
+  sta     vi_command_line_edition_buffer,x                 ; Set EOS
+  bne     @wait_command_loopme
+  ; end of delete char on command line
+@test_key_return:
   cmp     #KEY_RETURN
   bne     @skip
 
@@ -738,20 +742,20 @@ wait_command_loopme:
 @skip: 
   ldx     vi_screen_x_position_command
   cpx     #VI_COMMANDLINE_MAX_CHAR
-  beq     wait_command_loopme
+  beq     @wait_command_loopme
   sta     VI_COMMANDLINE_VIDEO_ADRESS,x
   
   inx     
   cpx     #VI_COMMANDLINE_MAX_CHAR
   stx     vi_screen_x_position_command
-quit:
+
     
   sta     vi_screen_x_position_command,x
 
   ; manage command line edition
   inx     
 
-  jmp     wait_command_loopme  ; fixme 65c02
+  jmp     @wait_command_loopme  ; fixme 65c02
 .endproc
 
 
@@ -789,10 +793,8 @@ quit:
 	dec     vi_tmp_16+1
 @nodec:	
     dec     vi_tmp_16
-	
     
-  skip2:
-  
+skip2:
     lda     vi_tmp_16
     cmp     vi_current_position_ptr_edition_buffer
     bne     continue_to_move_block

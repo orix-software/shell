@@ -293,9 +293,9 @@ restart_load:
 	jsr     vi_editor_fill_screen_with_text
 	jmp     start
 not_found:  
-;********************************/
-;* Displays "argv[1]" [new file]*/
-;********************************/
+;********************************
+;* Displays "argv[1]" [new file]*
+;********************************
     ;  init the current filename with \0 (null)
     lda     #$00
 .IFPC02
