@@ -11,8 +11,6 @@ path_current    .res 10
 .endstruct
 
 
-
-
 .org $C000
 .code
 start_orix:
@@ -801,8 +799,18 @@ next:
     .byt    $1A        ; .byte $1A ; nop on nmos, "inc A" every cmos
     cmp     #$01
     bne     @is6502Nmos
+.p816    
+    ; is it 65c816
+    xba                     ; .byte $EB, put $01 in B accu (nop on 65C02/65SC02)
+    dec     a               ; .byte $3A, A=$00
+    xba                     ; .byte $EB, A=$01 if 65816/65802 and A=$00 if 65C02/65SC02
+    inc     a               ; .byte $1A, A=$02 if 65816/65802 and A=$01 if 65C02/65SC02
+    cmp     #2
+    beq     @isA65C816
     lda     #CPU_65C02       ; it's a 65C02
     rts
+@isA65C816:
+    lda     #CPU_65816
 @is6502Nmos:
     lda     #CPU_6502
     rts
