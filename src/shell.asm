@@ -2285,21 +2285,7 @@ register_process_valid:         ; if we are here, it means that register_process
 .endproc
 
 .proc   exec_commandline
-    sta     RES
-    sty     RES+1
 
-
-
-
-
-;     ldx     #$00
-; @loop:    
-;     lda     BUFEDT+4,x ; we know that exec is has a length of 4 + 1 byte for space
-;     beq     @out
-;     sta     BUFEDT,x
-;     inx
-;     bne     @loop
-; @out:
     lda     #<BUFEDT
     ldy     #>BUFEDT
 
