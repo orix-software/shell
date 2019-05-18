@@ -53,9 +53,9 @@ start_man:
     BRK_ORIX XOPEN
     sta     MAN_SAVE_MALLOC_FP
     
-    cpx     #$ff
+    cpx     #$FF
     bne     next
-    cmp     #$ff
+    cmp     #$FF
     bne     next
     beq     not_found
     rts
@@ -106,3 +106,4 @@ man_path:
 str_man_hlp:
   .asciiz ".hlp"
 .endproc
+

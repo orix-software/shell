@@ -7,9 +7,9 @@
     
     FOPEN   ORIX_ARGV,O_RDONLY
     
-    cpx     #$ff
+    cpx     #$FF
     bne     next
-    cmp     #$ff
+    cmp     #$FF
     bne     next
     beq     not_found
     rts
@@ -29,7 +29,7 @@ next:
     sty     VIEWHRS_SAVE_FP+1
     SWITCH_OFF_CURSOR
     HIRES
-    FREAD   $a000,8000,1,VIEWHRS_SAVE_FP
+    FREAD   $A000,8000,1,VIEWHRS_SAVE_FP
     BRK_ORIX XCLOSE
 cget_loop:
     BRK_ORIX XRDW0
@@ -45,3 +45,4 @@ str_viewhrs_error:
   .byte "What hrs do you want?",$0D,$0A,0
 
 .endproc
+

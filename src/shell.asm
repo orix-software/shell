@@ -6,12 +6,13 @@
 .include   "build.inc"
 .include   "include/orix.inc"
 
+RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
+
 .struct bash_struct
 path_current    .res 10
 .endstruct
 
-
-.org $C000
+.org        $C000
 .code
 start_orix:
     lda     #$00
@@ -141,6 +142,8 @@ display_prompt:
     SWITCH_ON_CURSOR
 
 start_commandline:
+    lda     #$05    ; Kernel bank
+    sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
     BRK_TELEMON XRDW0            ; read keyboard
     bmi     start_commandline    ; don't receive any specials chars (that is the case when funct key is used : it needs to be fixed in bank 7 in keyboard management
     cmp     #KEY_LEFT
@@ -347,7 +350,7 @@ end:
 	rts
 .endproc
 
-;  [IN] X get the id of the parameter
+; [IN] X get the id of the parameter
 ; [ IN] Y contains the index in BUFEDT
 ; Return in AY the ptr of the parameter
 
@@ -456,6 +459,10 @@ str_root_bin:
 
 .ifdef WITH_ENV
 .include "commands/env.asm"
+.endif
+
+.ifdef WITH_EXEC
+.include "commands/exec.asm"
 .endif
 
 .ifdef WITH_FORTH
@@ -613,7 +620,7 @@ _orix_load_and_start_app:
 	
     jsr     _cd_to_current_realpath_new
     ldx     #$00
-    jsr     _orix_get_opt                           ; get fiest parameter
+    jsr     _orix_get_opt                           ; get first parameter
     STRCPY ORIX_ARGV+2,BUFNOM
  	
     jsr     _ch376_set_file_name
@@ -718,11 +725,6 @@ is_not_encapsulated:
     BRK_TELEMON XCLOSE
 
     jmp     (VARAPL+2) ; jmp : it means that if program launched do an rts, it returns to interpreter
-		
-
-
-
-
 
 .proc _XREAD
 	
@@ -946,6 +948,10 @@ commands_low:
     .byt <_env
 .endif    
 
+.ifdef WITH_EXEC
+    .byt <_exec
+.endif    
+
 .ifdef WITH_FORTH
     .byt <_forth
 .endif
@@ -1115,6 +1121,10 @@ commands_high:
     .byt >_env
 .endif    
 
+.ifdef WITH_EXEC
+    .byt >_exec
+.endif    
+
 .ifdef WITH_FORTH
     .byt >_forth
 .endif    
@@ -1282,6 +1292,10 @@ list_command_low:
 
 .ifdef WITH_ENV    
     .byt <env
+.endif
+
+.ifdef WITH_EXEC
+    .byt <exec
 .endif    
 
 .ifdef WITH_FORTH
@@ -1452,7 +1466,11 @@ list_command_high:
 .ifdef WITH_ENV
     .byt >env
 .endif
-    
+
+.ifdef WITH_EXEC
+    .byt >exec
+.endif
+
 .ifdef WITH_FORTH
     .byt >forth
 .endif
@@ -1620,6 +1638,10 @@ commands_length:
 
 .ifdef WITH_ENV    
     .byt 3 ; _env
+.endif   
+
+.ifdef WITH_EXEC
+    .byt 4 ; _env
 .endif    
 
 .ifdef WITH_FORTH
@@ -1793,7 +1815,12 @@ echocmd:
 .ifdef WITH_ENV    
 env:
     .asciiz "env"
-.endif    
+.endif  
+
+.ifdef WITH_EXEC
+exec:
+    .asciiz "exec"
+.endif  
 
 .ifdef WITH_FORTH    
 forth:
@@ -2183,9 +2210,8 @@ ORIX_ROUTINES_TABLE_HIGH:
     .byt    >_orix_unregister_process
 
 .proc _commandline_parse
-    lda #$12
-    sta $bb80+80*2
-    rts
+
+
 find_command:
     ; Search command
     ; Insert each command pointer in zpTemp02Word
@@ -2258,6 +2284,28 @@ register_process_valid:         ; if we are here, it means that register_process
 
 .endproc
 
+.proc   exec_commandline
+    sta     RES
+    sty     RES+1
+
+
+
+
+
+;     ldx     #$00
+; @loop:    
+;     lda     BUFEDT+4,x ; we know that exec is has a length of 4 + 1 byte for space
+;     beq     @out
+;     sta     BUFEDT,x
+;     inx
+;     bne     @loop
+; @out:
+    lda     #<BUFEDT
+    ldy     #>BUFEDT
+
+    jsr     _bash
+    rts
+.endproc
 
 
     .res    $FFE0-*
@@ -2272,15 +2320,11 @@ _call_orix_routine:
     jmp     (RES)
 
 
-
-;    .res    $FFF8-*
- ;   .org    $FFF8
-
       .res $FFF1-*
       .org $FFF1
 ; $fff1
 parse_vector:
-        .addr _commandline_parse      
+        .addr exec_commandline     
 ; fff3
 adress_commands:
         .addr parse_vector
