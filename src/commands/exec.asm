@@ -10,6 +10,10 @@
  @out:
     sta     BUFEDT,x
 
+;   unregister exec
+    lda     ORIX_CURRENT_PROCESS_FOREGROUND
+    jsr     _orix_unregister_process
+
     lda     #<BUFEDT
     ldy     #>BUFEDT
     BRK_TELEMON($63) ; Exec
