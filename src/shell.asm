@@ -529,6 +529,10 @@ str_root_bin:
 .include "commands/ps.asm"
 .endif
 
+.ifdef WITH_PSTREE
+.include "commands/pstree.asm"
+.endif
+
 .ifdef WITH_PWD
 .include "commands/pwd.asm"
 .endif
