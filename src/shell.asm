@@ -2285,10 +2285,6 @@ register_process_valid:         ; if we are here, it means that register_process
 .endproc
 
 .proc   exec_commandline
-
-    lda     #<BUFEDT
-    ldy     #>BUFEDT
-
     jsr     _bash
     rts
 .endproc
