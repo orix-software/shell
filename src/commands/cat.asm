@@ -1,39 +1,38 @@
 .proc _cat
 
     ; TODO : use XOPEN
-    ldx #$01
-    jsr _orix_get_opt
-    bcc print_usage
-
+    ldx     #$01
+    jsr     _orix_get_opt
+    bcc     print_usage
 	
-    jsr _ch376_verify_SetUsbPort_Mount
-    cmp #$01
-    beq cat_error_param
+    jsr     _ch376_verify_SetUsbPort_Mount
+    cmp     #$01
+    beq     cat_error_param
 
-    jsr _cd_to_current_realpath_new
+    jsr     _cd_to_current_realpath_new
 
-    ldx #$01
-    jsr _orix_get_opt
-    STRCPY ORIX_ARGV,BUFNOM
+    ldx     #$01
+    jsr     _orix_get_opt
+    STRCPY  ORIX_ARGV,BUFNOM
 	
-    jsr _ch376_set_file_name
-    jsr _ch376_file_open
-    cmp #CH376_ERR_MISS_FILE
+    jsr     _ch376_set_file_name
+    jsr     _ch376_file_open
+    cmp     #CH376_ERR_MISS_FILE
     bne read_byte
   
-    PRINT BUFNOM
-    PRINT str_not_found
+    PRINT     BUFNOM
+    PRINT     str_not_found
 
     rts
 read_byte:
-    lda #$ff
+    lda     #$FF
     tay  ; earn 1 byte instead of doing ldy #$ff
-    jsr _ch376_set_bytes_read
+    jsr     _ch376_set_bytes_read
 continue:
-    cmp #$1D ; something to read
-    beq we_read
-    cmp #$14 ; finished
-    beq finished 
+    cmp     #$1D ; something to read FIXME REPLACE for a label
+    beq     we_read
+    cmp     #$14 ; finished FIXME REPLACE for a label
+    beq     finished 
 
 end_cat:
     rts

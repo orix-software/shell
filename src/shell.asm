@@ -6,6 +6,8 @@
 .include   "build.inc"
 .include   "include/orix.inc"
 
+.include   "dependencies/kernel/src/include/kernel.inc"
+
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 .struct bash_struct
@@ -573,6 +575,10 @@ str_root_bin:
 .include "commands/sh.asm"
 .endif
 
+.ifdef WITH_WATCH
+.include "commands/watch.asm"
+.endif
+
 .ifdef WITH_VI
 .include "commands/vi.asm"
 .endif
@@ -895,7 +901,6 @@ _print_hexa_no_sharp:
     rts   
 
 
-
 ;*****************************************************
 
 commands_low:
@@ -972,6 +977,10 @@ commands_low:
     .byt <_ioports ;    
 .endif	
 
+.ifdef WITH_KILL
+    .byt <_kill ;    
+.endif	
+
 .ifdef WITH_LESS
     .byt <_less
 .endif    
@@ -1022,7 +1031,11 @@ commands_low:
 
 .ifdef WITH_PS
     .byt <_ps
-.endif    
+.endif
+
+.ifdef WITH_PSTREE
+    .byt <_pstree
+.endif   
 
 .ifdef WITH_PWD    
     .byt <_pwd
@@ -1062,6 +1075,10 @@ commands_low:
 
 .ifdef WITH_VIEWHRS
     .byt <_viewhrs
+.endif    
+
+.ifdef WITH_WATCH
+    .byt <_watch
 .endif    
 
 .ifdef WITH_REBOOT
@@ -1145,6 +1162,10 @@ commands_high:
     .byt >_ioports
 .endif
 
+.ifdef WITH_KILL
+    .byt >_kill
+.endif
+
 .ifdef WITH_LESS
     .byt >_less
 .endif        
@@ -1197,6 +1218,10 @@ commands_high:
     .byt >_ps
 .endif    
 
+.ifdef WITH_PSTREE
+    .byt >_pstree
+.endif    
+
 .ifdef WITH_PWD
     .byt >_pwd
 .endif    
@@ -1235,6 +1260,10 @@ commands_high:
 
 .ifdef WITH_VIEWHRS
     .byt >_viewhrs
+.endif    
+
+.ifdef WITH_WATCH
+    .byt >_watch
 .endif    
 
 .ifdef WITH_REBOOT
@@ -1317,6 +1346,10 @@ list_command_low:
 .ifdef WITH_IOPORT	
     .byt <ioports
 .endif	
+
+.ifdef WITH_KILL
+    .byt <kill
+.endif	
     
 .ifdef WITH_LESS
     .byt <less
@@ -1370,6 +1403,10 @@ list_command_low:
     .byt <ps
 .endif    
 
+.ifdef WITH_PSTREE
+    .byt <pstree
+.endif    
+
 .ifdef WITH_PWD    
     .byt <pwd
 .endif    
@@ -1408,6 +1445,10 @@ list_command_low:
   
 .ifdef WITH_VIEWHRS
     .byt <viewhrs
+.endif    
+
+.ifdef WITH_WATCH
+    .byt <watch
 .endif    
 
 .ifdef WITH_REBOOT    
@@ -1490,6 +1531,10 @@ list_command_high:
 .ifdef WITH_IOPORT	
     .byt >ioports 
 .endif	
+
+.ifdef WITH_KILL
+    .byt >kill
+.endif	
     
 .ifdef WITH_LESS
     .byt >less
@@ -1543,6 +1588,10 @@ list_command_high:
     .byt >ps
 .endif    
 
+.ifdef WITH_PSTREE
+    .byt >pstree
+.endif    
+
 .ifdef WITH_PWD
     .byt >pwd
 .endif    
@@ -1581,6 +1630,10 @@ list_command_high:
 
 .ifdef WITH_VIEWHRS
     .byt >viewhrs
+.endif    
+
+.ifdef WITH_WATCH
+    .byt >watch
 .endif    
 
 .ifdef WITH_REBOOT    
@@ -1664,6 +1717,10 @@ commands_length:
     .byt 7 ; _ioports
 .endif	
 
+.ifdef WITH_KILL
+    .byt 4 ; _kill
+.endif	
+
 .ifdef WITH_LESS
     .byt 4 ;_less
 .endif
@@ -1716,6 +1773,10 @@ commands_length:
     .byt 2 ; ps
 .endif
 
+.ifdef WITH_PSTREE
+    .byt 6 ; pstree
+.endif
+
 .ifdef WITH_PWD
     .byt 3 ; _pwd
 .endif    
@@ -1754,6 +1815,10 @@ commands_length:
 
 .ifdef WITH_VIEWHRS
     .byt 7  ; viewhrs
+.endif    
+
+.ifdef WITH_WATCH
+    .byt 5  ; viewhrs
 .endif    
 
 .ifdef WITH_REBOOT    
@@ -1918,6 +1983,11 @@ ps:
     .asciiz "ps"
 .endif
 
+.ifdef WITH_PSTREE
+pstree:
+    .asciiz "pstree"
+.endif
+
 .ifdef WITH_PWD
 pwd:
     .asciiz "pwd"
@@ -1966,6 +2036,11 @@ vi:
 .ifdef WITH_VIEWHRS
 viewhrs:
     .asciiz "viewhrs"
+.endif
+
+.ifdef WITH_WATCH
+watch:
+    .asciiz "watch"
 .endif
 
 .ifdef WITH_XORIX

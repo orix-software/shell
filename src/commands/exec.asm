@@ -16,6 +16,7 @@
 
     lda     #<BUFEDT
     ldy     #>BUFEDT
+    
     BRK_TELEMON($63) ; Exec
 
     rts
