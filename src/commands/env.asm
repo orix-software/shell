@@ -2,7 +2,7 @@
     PRINT str_PATH
     BRK_ORIX XCRLF
     PRINT str_PWD
-    PRINT ORIX_PATH_CURRENT
+    PRINT shell_bash_variables+shell_bash_struct::path_current
     BRK_ORIX XCRLF
     rts
 str_PWD:
