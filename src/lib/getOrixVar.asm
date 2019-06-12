@@ -1,5 +1,5 @@
 
-; ORIX_PATH_CURRENT
+; shell_bash_variables+shell_bash_struct::path_current
 .proc _getTelemonVar
 
     ; X contains the id 
@@ -7,9 +7,9 @@
     ldy high,x
     rts
 low:    
-    .byt <ORIX_PATH_CURRENT
+    .byt <shell_bash_variables+shell_bash_struct::path_current
 high:
-    .byt >ORIX_PATH_CURRENT
+    .byt >shell_bash_variables+shell_bash_struct::path_current
 
 .endproc   
 

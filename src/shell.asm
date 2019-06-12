@@ -3,16 +3,21 @@
 .include   "errno.inc"              ; from cc65
 .include   "cpu.mac"                ; from cc65
 
+.include   "dependencies/kernel/src/include/process.inc"
+.include   "dependencies/kernel/src/include/process.mac"
+.include   "dependencies/kernel/src/include/keyboard.inc"
+.include   "dependencies/kernel/src/include/kernel.inc"
+.include   "dependencies/kernel/src/include/memory.inc"
 .include   "build.inc"
+.include   "include/bash.inc"
 .include   "include/orix.inc"
 
-.include   "dependencies/kernel/src/include/kernel.inc"
+
+
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
-.struct bash_struct
-path_current    .res 10
-.endstruct
+
 
 .org        $C000
 .code
@@ -34,7 +39,11 @@ start_orix:
     bpl     @loop
   
 
+
+
   ; register kernel
+
+  ; 
 
 ;**************************************************************************************************************************/
 ;*                                                     Register in process list 'init' process                            */
@@ -89,7 +98,7 @@ init_malloc_busy_table:
     
     ; Setting the current path to "/",0
     lda     #'/'
-    sta     ORIX_PATH_CURRENT
+    sta     shell_bash_variables+shell_bash_struct::path_current
 
     ; if it's hot reset, then don't initialize current path.
     BIT     FLGRST ; COLD RESET ?
@@ -99,11 +108,11 @@ init_malloc_busy_table:
 
 .IFPC02
 .pc02
-    stz     ORIX_PATH_CURRENT+1
+    stz     shell_bash_variables+(shell_bash_struct::path_current+1)
 .p02    
 .else
     lda     #$00
-    sta     ORIX_PATH_CURRENT+1 
+    sta     shell_bash_variables+shell_bash_struct::path_current+1 
 .endif
     lda     #$01                 
     sta     ORIX_PATH_CURRENT_POSITION
@@ -139,7 +148,7 @@ display_prompt:
     lda     #$00
     sta     ORIX_GETOPT_PTR      ; init the PTR of the command line
 .endif
-    PRINT   ORIX_PATH_CURRENT     ; Display current path in the prompt
+    PRINT   shell_bash_variables+shell_bash_struct::path_current     ; Display current path in the prompt
     BRK_TELEMON XECRPR           ; display prompt (# char)
     SWITCH_ON_CURSOR
 
@@ -174,7 +183,7 @@ next_key:
     beq     start_commandline
 
     ldx     VARAPL               ; get the length of the current line
-    cpx     #MAX_LENGTH_BUFEDT-1 ; do we reach the size of command line buffer ?
+    cpx     #BASH_MAX_BUFEDT_LENGTH-1 ; do we reach the size of command line buffer ?
     beq     start_commandline    ; yes restart command line until enter or del keys are pressed, but
     BRK_TELEMON XWR0             ; write key on the screen (it's really a key pressed
     ldx     VARAPL               ; get the position on the command line
@@ -225,7 +234,7 @@ send_oups_and_loop:
     cmp     #' '
     bne     no_more_space 
     iny
-    cpy     #MAX_LENGTH_BUFEDT
+    cpy     #BASH_MAX_BUFEDT_LENGTH
     bne     @loop
 no_command:
     rts 
@@ -604,6 +613,8 @@ str_root_bin:
 
 
 _cd_to_current_realpath_new:
+    lda #<shell_bash_variables+shell_bash_struct::path_current
+    ldy #>(shell_bash_variables+shell_bash_struct::path_current+1)
     BRK_TELEMON XOPENRELATIVE
     rts
 
@@ -2102,6 +2113,7 @@ _orix_register_process:
     ; get available PID
     sta     RES ; save A
     sty     RES+1
+    stx     TR5     ; save PPID
 ; get the next PID available    
 
     ldx     #$00
@@ -2156,7 +2168,7 @@ get_next_pid_number:
     lda     TR4
     ldx     RES
     sta     LIST_PID,x ; register 
-    ldx  TR4
+    ldx     TR4
 
  
     rts

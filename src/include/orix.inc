@@ -59,30 +59,10 @@ ORIX_ID_BANK                  = 5
 MONITOR_ID_BANK               = 4
 TELEFORTH_ID_BANK     	      = 3
 
-PATH_CURRENT_MAX_LEVEL        = 4       ; Only in telemon 3.0 number of level, if we add more, we should have to many RAM, if you need to set more level add bytes here : ptr_path_current_low and ptr_path_current_high
-MAX_LENGTH_OF_FILES           = 9       ;  We say 8 chars for directory and end of string
-MAX_LENGTH_OF_A_COMMAND       = 9
-MAX_ARGS                      = 3       ;  Number of possible args in the command line
-ORIX_MAX_PROCESS              = 4
-
-; Memory management parameter
-ORIX_NUMBER_OF_MALLOC         = 3       ; Max of possible Malloc for all Orix command
-ORIX_MALLOC_FREE_FRAGMENT_MAX = 6
-ORIX_MALLOC_MAX_MEM_ADRESS    = $B3FF
-
-KERNEL_NUMBER_OF_CHILD_PER_PROCESS = 1
 
 ORIX_MAX_OPEN_FILES           = 2
 SIZE_OF_VOLATILE_STR          = 50      ; can't be below 20 because it's used to load Orix header
-KEY_LCTRL                     = 5
-KET_RCTRL                     = 6
-KEY_LSHIFT                    = 7
-KEY_RSHIFT                    = 8
-KEY_FUNCT		              = 9
-KEY_LEFT		              = 8
-KEY_RIGHT		              = 9
-KEY_DOWN		              = 10
-KEY_UP			              = 11
+
 
 SIZE_OF_STACK_BANK            =  1
 
@@ -92,16 +72,6 @@ KEY_DEL                       = $7F
 XOPENRELATIVE                 = $31
 
 NEXT_STACK_BANK               :=$418
-
-
-ORIX_MAX_PATH_LENGTH = MAX_LENGTH_OF_FILES*PATH_CURRENT_MAX_LEVEL+PATH_CURRENT_MAX_LEVEL
-
-MAX_LENGTH_BUFEDT     =  ORIX_MAX_PATH_LENGTH+9
-
-ORIX_MAX_MAX_LENGTH_BUFEDT     =  ORIX_MAX_PATH_LENGTH+9
-
-ORIX_MALLOC_FREE_TABLE_SIZE  = 3*ORIX_MALLOC_FREE_FRAGMENT_MAX
-ORIX_MALLOC_BUSY_TABLE_SIZE  = 6*ORIX_NUMBER_OF_MALLOC
 
 
 .org $4c7
@@ -196,12 +166,12 @@ ORIX_MALLOC_BUSY_TABLE_PID:
 ORIX_MALLOC_BUSY_TABLE_NUMBER:
     .res 1
 
-.org BUFEDT+MAX_LENGTH_BUFEDT
+.org BUFEDT+BASH_MAX_BUFEDT_LENGTH
 .bss
 ORIX_ARGV_NAME:
     .res    MAX_LENGTH_OF_FILES  ; name
 ORIX_ARGV:
-	.res    MAX_LENGTH_OF_FILES*MAX_ARGS
+	.res    MAX_LENGTH_OF_FILES*BASH_MAX_ARGS
 ; used to check term
 
 
@@ -210,12 +180,12 @@ volatile_str:
 
 LIST_PID:
     .res ORIX_MAX_PROCESS
-    ; Number of child for a process
-LIST_FPID:
-    ; this contains for xprocess
-    .res ORIX_MAX_PROCESS*KERNEL_NUMBER_OF_CHILD_PER_PROCESS
 LIST_NAME_PID:
     .res 9*ORIX_MAX_PROCESS
+
+shell_bash_variables:
+    .tag shell_bash_struct    
+; ptr of LIST_NAME_PID
 orix_end_memory_kernel:
     .res 1
 
@@ -251,20 +221,7 @@ orix_end_memory_kernel:
   lda     #' '
   BRK_ORIX XFILLM
 .endmacro
-  
-.macro UNREGISTER_PROCESS
-  lda   ORIX_CURRENT_PROCESS_FOREGROUND
-  beq   @skip_UNREGISTER_PROCESS
-  jsr   _orix_unregister_process
-@skip_UNREGISTER_PROCESS:
-.endmacro
-
-.macro UNREGISTER_PROCESS_BY_PID_IN_ACCUMULATOR
-  beq @skip_UNREGISTER_PROCESS
-  jsr _orix_unregister_process
-@skip_UNREGISTER_PROCESS:
-.endmacro
- 
+   
 .macro SWITCH_ON_CURSOR
   ldx #$00
   BRK_ORIX XCSSCR
@@ -278,12 +235,6 @@ orix_end_memory_kernel:
 .macro HIRES
 	BRK_ORIX XHIRES
 .endmacro    
-
-.macro REGISTER_PROCESS str_name_process 
-    lda #<str_name_process
-    ldy #>str_name_process
-    jsr _orix_register_process  
-.endmacro
 
 ;FIXME   
 .macro GET8_FROM_STRUCT offset, zpaddress
