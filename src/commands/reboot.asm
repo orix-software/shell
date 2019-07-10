@@ -9,26 +9,30 @@ STORE_CODE_TO_REBOOT:=$1000
 	ldx     #$00
 .IFPC02
 .pc02
-loop3:
+@L1:
 	stz     $200,x
 	stz     $500,x
 .p02	
 .else
 	lda     #$00
-@loop:
+@L1:
 	sta     $200,x
 	sta     $500,x
 .endif	
 	dex
-	bne @loop
+	bne		@L1
 	
+	; flag cold reset
+	lda		#128
+	sta		FLGRST
+
 copy:
 	ldx     #$10
-loop:
+@L2:
 	lda     _copy_code,x
 	sta     STORE_CODE_TO_REBOOT,x
 	dex
-	bpl     loop
+	bpl     @L2
 	jmp     STORE_CODE_TO_REBOOT
 	
 _copy_code:

@@ -13,8 +13,6 @@
 .include   "include/orix.inc"
 
 
-
-
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 

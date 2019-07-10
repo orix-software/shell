@@ -66,9 +66,6 @@ SIZE_OF_VOLATILE_STR          = 50      ; can't be below 20 because it's used to
 
 SIZE_OF_STACK_BANK            =  1
 
-KEY_RETURN                    = $0D
-KEY_ESC                       = $1B
-KEY_DEL                       = $7F
 XOPENRELATIVE                 = $31
 
 NEXT_STACK_BANK               :=$418
