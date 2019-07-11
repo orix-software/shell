@@ -66,8 +66,8 @@ end:
     sty     TEMP_SH_COMMAND
  
     lda     #<BUFEDT
-	  ldy     #>BUFEDT
-	  jsr     _bash             ; launch interpreter
+    ldy     #>BUFEDT
+    jsr     _bash             ; launch interpreter
   ; Free the process 
     UNREGISTER_PROCESS 
   

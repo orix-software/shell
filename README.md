@@ -1,6 +1,15 @@
 [![Build Status](https://travis-ci.org/orix-software/shell.svg?branch=master)](https://travis-ci.org/orix-software/shell)
 
+# Rules for source code
+
+* Macro are in uppercase
+* use userzp label to get space from zerp page. You can have at least 10 bytes from userzp in order to use zp
+* Allocate with malloc your memory. In that case, in the future, it will be easier to start multithreading.
+* userzp will be managed by kernel when multithreading occurs
+
+
 # Shell for Orix (ROM)
+
 
 How to compile ?
 

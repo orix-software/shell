@@ -18,10 +18,10 @@
     jsr     _ch376_set_file_name
     jsr     _ch376_file_open
     cmp     #CH376_ERR_MISS_FILE
-    bne read_byte
+    bne     read_byte
   
-    PRINT     BUFNOM
-    PRINT     str_not_found
+    PRINT   BUFNOM
+    PRINT   str_not_found
 
     rts
 read_byte:
@@ -38,58 +38,55 @@ end_cat:
     rts
 print_usage:	
 cat_error_param:
-    PRINT txt_usage
+    PRINT   txt_usage
 	rts  
  
 we_read:
-    lda #CH376_RD_USB_DATA0
-    sta CH376_COMMAND
+    lda     #CH376_RD_USB_DATA0
+    sta     CH376_COMMAND
 
-    lda CH376_DATA ; contains length read
-	sta	userzp
-    ;tay ; Number of bytes to read
+    lda     CH376_DATA ; contains length read
+	sta	    userzp
 loop9:
-    ;tya
-    ;pha
-    lda CH376_DATA ; read the data
-    cmp #$0A
-    bne skip
+    lda     CH376_DATA ; read the data
+    cmp     #$0A
+    bne     @S3
 
     RETURN_LINE
 .ifdef CPU_65C02 ; FIXME
 .pc02
-    bra next
+    bra     @S4
 .p02    
 .else
-    jmp next
+    jmp     @S4
 .endif
-skip:
-    cmp #$0D
-    bne skip2
+@S3:
+    cmp     #$0D
+    bne     @S1
     BRK_TELEMON XCRLF
 .ifdef CPU_65C02
 .pc02
-    bra next
+    bra     @S4
 .p02    
 .else
-    jmp next
+    jmp     @S4
 .endif
-skip2:
+@S1:
     BRK_TELEMON XWR0
-next:
+@S4:
 
 
-    dec	userzp
-    bpl loop9
-    lda #CH376_BYTE_RD_GO
-    sta CH376_COMMAND
-    jsr _ch376_wait_response
+    dec	    userzp
+    bne     loop9
+    lda     #CH376_BYTE_RD_GO
+    sta     CH376_COMMAND
+    jsr     _ch376_wait_response
 .ifdef CPU_65C02
 .pc02
-    bra continue
+    bra     continue
 .p02    
 .else
-    jmp continue
+    jmp     continue
 .endif
 finished:
     BRK_TELEMON XCRLF

@@ -1,6 +1,5 @@
 .proc _ls
     NUMBER_OF_COLUMNS_LS = 3
-   
     
     lda #NUMBER_OF_COLUMNS_LS+1
     sta NUMBER_OF_COLUMNS ; used to do columns
@@ -121,7 +120,7 @@ don_t_test_if_extension_contains_chars:
     cpx #12
     bne loop12
 loop19:
-    LDA #$00
+    lda #$00
     sta BUFNOM,y    ; stz can be used in 65C02 but with X register instead of Y
     sty TEMP_ORIX_1 ; Store the length
    
@@ -134,7 +133,7 @@ loop19:
     sta BUFNOM
     dey ; we remove "."
 
-    LDA #$00
+    lda #$00
     sta BUFNOM,y
 
     sty TEMP_ORIX_1
