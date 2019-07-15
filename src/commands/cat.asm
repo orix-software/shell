@@ -1,9 +1,3 @@
-.IFP02
-    .macro bra _label
-        jmp _label
-    .endmacro
-.endif
-
 .proc _cat
     ldx #$01
     jsr _orix_get_opt
@@ -25,7 +19,7 @@
 
     jsr _ch376_file_open
     cmp #CH376_ERR_MISS_FILE
-    bne read_byte
+    bne cat_file
 
     PRINT BUFNOM
     PRINT str_not_found
@@ -36,17 +30,15 @@ cat_error_param:
     PRINT txt_usage
 rts
 
-read_byte:
+cat_file:
     lda #$FF
     tay
     jsr _ch376_set_bytes_read
     ; Renvoie CH376_USB_INT_SUCCESS ($14) si le fichier est vide, CH376_USB_INT_DISK_READ ($1D) si ok
 
     continue:
-    we_read:
-    @ZZ0001:
         cmp #CH376_USB_INT_DISK_READ
-        bne @ZZ0002
+        bne finished
 
             lda #CH376_RD_USB_DATA0
             sta CH376_COMMAND
@@ -54,12 +46,12 @@ read_byte:
             sta userzp
             ; Tester si userzp == 0?
 
-            @ZZ0003:
+            read_byte:
                 lda CH376_DATA
                 cmp #$0A
                 bne autre
                     BRK_TELEMON XCRLF
-                    bra next
+                    bne next                    ; ACC n'est pas modifié par XCRLF, donc saut inconditionnel
             autre:
                 cmp #$0D
                 beq next
@@ -67,7 +59,7 @@ read_byte:
             next:
                 dec userzp
 
-            bne @ZZ0003
+            bne read_byte
 
             lda #CH376_BYTE_RD_GO
             sta CH376_COMMAND
@@ -75,13 +67,10 @@ read_byte:
             ; _ch376_wait_response renvoie 1 en cas d'erreur et le CH376 ne renvoie pas de valeur 0
             ; donc le bne devient un saut inconditionnel!
 
-    ;jmp @ZZ0001
-    bne @ZZ0001
+    bne continue
 
     ; Tester si ACC==1 pour détecter une éventuelle erreur?
 
-    @ZZ0002:
-    end_cat:
     finished:
     BRK_TELEMON XCRLF
 rts
