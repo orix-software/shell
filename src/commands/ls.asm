@@ -14,7 +14,7 @@ NUMBER_OF_COLUMNS_LS = 3
 
         lda BUFNOM
         bne @ZZ0002
-            lda #"*"
+            lda #'*'
             sta BUFNOM
             lda #$00
             sta BUFNOM+1
@@ -43,10 +43,6 @@ NUMBER_OF_COLUMNS_LS = 3
         bne @ZZ0003
             lda #COLOR_FOR_DIRECTORY
             bne display_one_file_catalog
-
-        ; cmp #CH376_USB_INT_SUCCESS
-        ; bne @ZZ0003
-        ;    lda #CH376_USB_INT_DISK_READ
 
         @ZZ0003:
             cmp #CH376_USB_INT_DISK_READ
