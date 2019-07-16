@@ -98,10 +98,6 @@ init_malloc_busy_table:
     lda     #'/'
     sta     shell_bash_variables+shell_bash_struct::path_current
 
-    ; if it's hot reset, then don't initialize current path.
-    BIT     FLGRST ; COLD RESET ?
-    bpl     start_prompt	; yes
-
 
 
 .IFPC02
@@ -112,6 +108,12 @@ init_malloc_busy_table:
     lda     #$00
     sta     shell_bash_variables+shell_bash_struct::path_current+1 
 .endif
+
+    ; if it's hot reset, then don't initialize current path.
+    BIT     FLGRST ; COLD RESET ?
+    bpl     start_prompt	; yes
+
+
     lda     #$01                 
     sta     ORIX_PATH_CURRENT_POSITION
 
