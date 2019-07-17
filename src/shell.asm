@@ -98,8 +98,6 @@ init_malloc_busy_table:
     lda     #'/'
     sta     shell_bash_variables+shell_bash_struct::path_current
 
-
-
 .IFPC02
 .pc02
     stz     shell_bash_variables+(shell_bash_struct::path_current+1)
