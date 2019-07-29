@@ -5,20 +5,27 @@
     ; TODO read file length and malloc
     SH_FILE_LENGTH_MAX = 1000
 
-    MALLOC  SH_FILE_LENGTH_MAX
+;    MALLOC  SH_FILE_LENGTH_MAX
     ; FIXME test OOM
-    TEST_OOM_AND_MAX_MALLOC
-    sta     ptr_file
-    sta     ptr_file_save
-    sty     ptr_file+1
-    sty     ptr_file_save+1
+ ;   TEST_OOM_AND_MAX_MALLOC
+    ;sta     ptr_file
+    ;sta     ptr_file_save
+    ;sty     ptr_file+1
+    ;sty     ptr_file_save+1
 
 ; TODO malloc
 ; TODO mainargs
 
-    ldx     #$01
-    jsr     _orix_get_opt
-  
+    ;ldx     #$01
+    ;jsr     _orix_get_opt
+    ; is there a file to open ? 
+    ;lda     ORIX_ARGV
+    ;bne     thereis_a_script_to_execute
+    ; Let's start a prompt
+    jmp     start_sh
+
+
+thereis_a_script_to_execute:    
     FOPEN   ORIX_ARGV,O_RDONLY
  
     ; A register contains FP id

@@ -20,6 +20,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 .org        $C000
 .code
 start_orix:
+start_sh:
     lda     #$00
     sta     STACK_BANK
     ; set lowercase keyboard should be move in telemon bank
@@ -223,8 +224,10 @@ send_oups_and_loop:
 
     sta     RES
     sty     RES+1
-    jsr     ltrim               ; ltrim command line
     
+
+    jsr     ltrim               ; ltrim command line
+
     ;  Looking if it request ./ : it means that user want to load and execute
     ldy     #$00
 @loop:
@@ -2374,7 +2377,10 @@ register_process_valid:         ; if we are here, it means that register_process
 .endproc
 
 .proc   exec_commandline
-    jsr     _bash
+
+    ;lda    #$14
+    ;sta    $BB80+200
+    jsr    _bash
     rts
 .endproc
 
