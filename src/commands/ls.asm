@@ -1,82 +1,3 @@
-;MODULE = 'y'
-;WITH_SDCARD_FOR_ROOT = 'y'
-
-.ifdef MODULE
-	.include "telestrat.inc"
-
-	.include "../dependencies/kernel/src/include/kernel.inc"
-	.include "../dependencies/kernel/src/include/memory.inc"
-	.include "../dependencies/kernel/src/include/process.inc"
-
-	.include "../include/bash.inc"
-	.include "../include/orix.inc"
-
-	; .code nécessaire parce que le dernier segment de orix.inc est .bss
-	.code
-
-	.macro MODULE start, end, exec
-		.org $0000
-		.code
-		;.segment "ORIXHDR"
-		;__ORIXHDR__:
-		;.export __ORIXHDR__
-	        .byte $01,$00               ; non-C64 marker like o65 format
-	        .byte "o", "r", "i"      ; "ori" MAGIC number :$6f, $36, $35 like o65 format
-	        .byte $01                ; version of this header
-	cpu_mode:
-	        .byte $00                ; CPU see below for description
-	language_type:
-	        .byte $00                   ; reserved in the future, it will define if it's a Hyperbasic file, teleass file, forth file
-	        .byte $00                ; reserved
-	        .byte $00                       ; reserved
-	        .byte $00
-	        .byte $00                   ; reserved
-	        .byte $00                ; reserved
-	type_of_file:
-	        .byte $00
-	        .word start ; loading adress
-	        .word end   ; end of loading adress
-	        .word exec ; starting adress
-	.endmacro
-
-	MODULE StartOfModule, EndOfModule, _ls
-	;.segment "STARTUP"
-	;.segment "INIT"
-	;.segment "ONCE"
-	.org $0801
-	.code
-
-	StartOfModule:
-
-	.include "../lib/ch376.s"
-	.include "../lib/ch376_verify.s"
-
-	.include "../lib/get_opt.asm"
-	.include "../lib/strcpy.asm"
-
-	txt_file_not_found:
-	    .asciiz "File not found :"
-
-	.import _cd_to_current_realpath_new
-;	.proc _cd_to_current_realpath_new
-;	    lda #<shell_bash_variables+shell_bash_struct::path_current
-;	    ldy #>(shell_bash_variables+shell_bash_struct::path_current+1)
-;	    BRK_TELEMON XOPENRELATIVE
-;	    rts
-;	.endproc
-
-;	.proc _lowercase_char
-;			cmp     #'A'
-;			bcc     @skip
-;			cmp     #'Z'+1
-;			bcs     @skip
-;			adc     #'a'-'A'
-;		@skip:
-;			rts
-;	.endproc
-
-.endif
-
 NUMBER_OF_COLUMNS_LS = 3
 
 .proc _ls
@@ -84,113 +5,118 @@ NUMBER_OF_COLUMNS_LS = 3
     sta NUMBER_OF_COLUMNS
 
     jsr _ch376_verify_SetUsbPort_Mount
-    bcc @ZZ0001
-    ;bcs *+5
-    ;jmp @ZZ0001
-        jsr _cd_to_current_realpath_new
-        ldx #$01
-        jsr _orix_get_opt
+    ;bcc @ZZ0001
+    bcs *+5
+    jmp @ZZ0001
 
-        ; Potentiel buffer overflow ici
-        ; Il faudrait un STRNCPY
-        STRCPY ORIX_ARGV, BUFNOM
+    jsr _cd_to_current_realpath_new
+    ldx #$01
+    jsr _orix_get_opt
 
-        ;MALLOC 13
-        ; FIXME test OOM
-        ;TEST_OOM_AND_MAX_MALLOC
-        ;sta RESB
-        ;sty RESB+1
+    ; Potentiel buffer overflow ici
+    ; Il faudrait un STRNCPY
+    STRCPY ORIX_ARGV, BUFNOM
 
-        lda #<BUFEDT
-        sta RESB
-        lda #>BUFEDT
-        sta RESB+1
+    ;MALLOC 13
+    ; FIXME test OOM
+    ;TEST_OOM_AND_MAX_MALLOC
+    ;sta RESB
+    ;sty RESB+1
 
-        ; Potentiel buffer overflow ici
-        ; Il faudrait un STRNCPY
-        lda #<BUFNOM
-        sta RES
-        lda #>BUFNOM
-        sta RES+1
-        jsr _strcpy
+    lda #<BUFEDT
+    sta RESB
+    lda #>BUFEDT
+    sta RESB+1
 
-        ; RESB pointe toujours sur BUFNOM
-        jsr WildCard
-        bne Error               ; Il faut une autre erreur, il c'est parce qu'il y a des caractères incorrects
-        ;bcc @ZZ0002             ; Pas de '?' ni de '*'
-        bcs @all
+    ; Potentiel buffer overflow ici
+    ; Il faudrait un STRNCPY
+    lda #<BUFNOM
+    ldy #>BUFNOM
+    sta TR2         ; TR2: Cf Match
+    sty TR3
+    sta RES
+    sty RES+1
+    jsr _strcpy
 
-        lda BUFNOM
-        bne @ZZ0002
-            @all:
-            lda #'*'
-            sta BUFNOM
-            lda #$00
-            sta BUFNOM+1
+    ; RESB pointe toujours sur BUFEDT
+    jsr WildCard
+    bne Error       ; Il faut une autre erreur, ici c'est parce qu'il y a des caractères incorrects
+    ;bcc @ZZ0002     ; Pas de '?' ni de '*'
+    bcs @all
 
-        @ZZ0002:
-        jsr _ch376_set_file_name
-        jsr _ch376_file_open
-        ; Au retour, on peut avoir USB_INT_SUCCESS ou USB_INT_DISK_READ)
+    lda BUFNOM
+    bne @ZZ0002
 
-        ; $14 -> Fichier existant (USB_INT_SUCCESS) (cas 'ls fichie.ext')
-        ; $1D -> Lecture OK (USB_INT_DISk_READ
-        ; $41 -> Fin de liste (ERR_OPEN_DIR) ou ouverture répertoire (cas 'ls repertoire')
-        ; $42 -> fichier inexistant (ERR_MISS_FILE)
+  @all:
+    lda #'*'
+    sta BUFNOM
+    lda #$00
+    sta BUFNOM+1
 
-        cmp #CH376_ERR_MISS_FILE
-        beq Error
+  @ZZ0002:
+    jsr _ch376_set_file_name
+    jsr _ch376_file_open
+    ; Au retour, on peut avoir USB_INT_SUCCESS ou USB_INT_DISK_READ)
 
-        ; Ajuste le pointeur vers BUFNOM pour plus tard
-        ; (le 1er caractère contient la couleur)
-        inc RES
-        bne *+4
-        inc RES+1
+    ; $14 -> Fichier existant (USB_INT_SUCCESS) (cas 'ls fichie.ext')
+    ; $1D -> Lecture OK (USB_INT_DISk_READ
+    ; $41 -> Fin de liste (ERR_OPEN_DIR) ou ouverture répertoire (cas 'ls repertoire')
+    ; $42 -> fichier inexistant (ERR_MISS_FILE)
 
-        @ZZ1001:
-        cmp #CH376_USB_INT_SUCCESS
-        bne @ZZ1002
-            lda #COLOR_FOR_FILES
-            bne display_one_file_catalog
+    cmp #CH376_ERR_MISS_FILE
+    beq Error
 
-        @ZZ1002:
-        cmp #CH376_ERR_OPEN_DIR
-        bne @ZZ0003
-            lda #COLOR_FOR_DIRECTORY
-            bne display_one_file_catalog
+    ; Ajuste le pointeur vers BUFNOM pour plus tard
+    ; (le 1er caractère contient la couleur)
+    inc TR2
+    bne *+4
+    inc TR3
 
-        @ZZ0003:
-            cmp #CH376_USB_INT_DISK_READ
-            bne @ZZ0004
-                lda #CH376_RD_USB_DATA0
-                sta CH376_COMMAND
-                lda CH376_DATA
-                cmp #32
-                beq @ZZ0005
-                    ;FREE RESB
-                    rts
+  @ZZ1001:
+    cmp #CH376_USB_INT_SUCCESS
+    bne @ZZ1002
+    lda #COLOR_FOR_FILES
+    bne display_one_file_catalog
 
-                @ZZ0005:
-                jsr display_catalog
+  @ZZ1002:
+    cmp #CH376_ERR_OPEN_DIR
+    bne @ZZ0003
+    lda #COLOR_FOR_DIRECTORY
+    bne display_one_file_catalog
 
-        ; display_one_file_catalog renvoie la valeur de _ch376_wait_response qui renvoie 1 en cas d'erreur
-        ; et le CH376 ne renvoie pas de valeur 0
-        ; donc le bne devient un saut inconditionnel!
-        ; jmp @ZZ0003
-        bne @ZZ0003
+  @ZZ0003:
+    cmp #CH376_USB_INT_DISK_READ
+    bne @ZZ0004
 
-        @ZZ0004:
-        ;FREE RESB
-        BRK_ORIX XCRLF
+    lda #CH376_RD_USB_DATA0
+    sta CH376_COMMAND
+    lda CH376_DATA
+    cmp #32
+    beq @ZZ0005
 
-    @ZZ0001:
+    ;FREE RESB
+    rts
+
+  @ZZ0005:
+    jsr display_catalog
+
+    ; display_one_file_catalog renvoie la valeur de _ch376_wait_response qui renvoie 1 en cas d'erreur
+    ; et le CH376 ne renvoie pas de valeur 0
+    ; donc le bne devient un saut inconditionnel!
+    ; jmp @ZZ0003
+    bne @ZZ0003
+
+  @ZZ0004:
+    ;FREE RESB
+
+    BRK_ORIX XCRLF
+
+  @ZZ0001:
     rts
 
 ; ------------------------------------------------------------------------------
 Error:
     PRINT txt_file_not_found
-    ; ldx #$01
-    ; jsr _orix_get_opt
     .BYTE $2C
 
 display_one_file_catalog:
@@ -200,7 +126,7 @@ display_one_file_catalog:
 
     PRINT BUFNOM
     BRK_ORIX XCRLF
-rts
+    rts
 
 ; ------------------------------------------------------------------------------
 
@@ -210,133 +136,105 @@ display_catalog:
     ldy #$01
     ldx #$01
 
-    @ZZ0007:
-.if 0
-        lda CH376_DATA
-        cmp #' '
-        beq @ZZ0008
-            jsr _lowercase_char
-            sta BUFNOM,y
-            iny
-
-        @ZZ0008:
-
-        inx
-        cpx #9
-        bne @ZZ0009
-            lda #'.'
-            sta BUFNOM,Y
-            sty TR5
-            iny
-        @ZZ0009:
-
-        cpx #10
-        bne @ZZ0010
-            cmp #' '
-            bne @ZZ0011
-                lda TR5
-                sty TR5
-                tay
-                lda #' '
-                sta BUFNOM,Y
-                ldy TR5
-            @ZZ0011:
-        @ZZ0010:
-.else
-        lda CH376_DATA
-        sta BUFNOM,y
-        iny
-        inx
-.endif
-        cpx #12
+  @ZZ0007:
+    lda CH376_DATA
+    sta BUFNOM,y
+    iny
+    inx
+    cpx #12
     bne @ZZ0007
 
     lda CH376_DATA
     cmp #$10
     bne @ZZ0012
-        lda #COLOR_FOR_DIRECTORY
-        sta BUFNOM
-        ;dey     ; BUG!?
 
-    @ZZ0012:
+    lda #COLOR_FOR_DIRECTORY
+    sta BUFNOM
+
+  @ZZ0012:
     lda #$00
     sta BUFNOM,Y
     ;sty TEMP_ORIX_1
 
     ldx #20
 
-    @ZZ0013:
-        lda CH376_DATA
-        dex
+  @ZZ0013:
+    lda CH376_DATA
+    dex
     bpl @ZZ0013
 
     jsr Match
     bne @ZZ0014
 
-    ; Devrait être BUFNOM+1 et BUFNOM+2
     lda BUFNOM
     cmp #'.'
     beq @ZZ0014
-        lda BUFNOM+1
-        cmp #'.'
-        beq @ZZ0015
-            dec NUMBER_OF_COLUMNS
-            bne @ZZ0016
-                BRK_ORIX XCRLF
-                lda #NUMBER_OF_COLUMNS_LS
-                sta NUMBER_OF_COLUMNS
-            @ZZ0016:
 
-            ; PRINT BUFNOM
-		ldy #$ff
-		ldx #$00
-	@loop:
-		iny
-		lda BUFNOM,y
-		beq @end
-		cmp#' '
-		beq @loop
-		cpy #$09
-		bne @suite
-		pha
-		CPUTC '.'
-		pla
-		inx
+    lda BUFNOM+1
+    cmp #'.'
+    beq @ZZ0015
 
-	@suite:
-		; jsr _lowercase_char
-;.proc _lowercase_char
-		cmp     #'A'
-		bcc     @skip
-		cmp     #'Z'+1
-		bcs     @skip
-		adc     #'a'-'A'
-	@skip:
-;.endproc
+    dec NUMBER_OF_COLUMNS
+    bne @ZZ0016
 
+    ; Attention XCRLF modifie RES
+    BRK_ORIX XCRLF
+    lda #NUMBER_OF_COLUMNS_LS
+    sta NUMBER_OF_COLUMNS
 
-		BRK_TELEMON XWR0
-		inx
-		bne @loop
-	@end:
+  @ZZ0016:
+    ; PRINT BUFNOM
+    ldy #$ff
+    ldx #$00
 
-            ;ldy TEMP_ORIX_1
+  @loop:
+    iny
+    lda BUFNOM,y
+    beq @end
 
-            @ZZ0017:
-                cpx #13
-                beq @ZZ0018
-                    inx
-                    CPUTC ' '
-            jmp @ZZ0017
+    cmp#' '
+    beq @loop
 
-            @ZZ0018:
-        @ZZ0015:
-    @ZZ0014:
+    cpy #$09
+    bne @suite
+
+    pha
+    CPUTC '.'
+    pla
+    inx
+
+  @suite:
+    ; jsr _lowercase_char
+    cmp     #'A'
+    bcc     @skip
+    cmp     #'Z'+1
+    bcs     @skip
+    adc     #'a'-'A'
+
+  @skip:
+    BRK_TELEMON XWR0
+    inx
+    bne @loop
+  @end:
+
+    ;ldy TEMP_ORIX_1
+
+  @ZZ0017:
+    cpx #13
+    beq @ZZ0018
+
+    inx
+    CPUTC ' '
+    jmp @ZZ0017
+
+  @ZZ0018:
+  @ZZ0015:
+  @ZZ0014:
 
     lda #CH376_FILE_ENUM_GO
     sta CH376_COMMAND
     jsr _ch376_wait_response
-rts
+    rts
 
 optstring:
 .BYT 'l',0
@@ -346,310 +244,288 @@ optstring:
 ; ==============================================================================
 ;
 ; Entrée:
-;	RES: Pointeur vers la chaîne
-;	RESB: Pointeur vers la chaîne résultat
+;    RES: Pointeur vers la chaîne
+;    RESB: Pointeur vers la chaîne résultat
 ;
 ; Sortie:
-;	Z = 1 -> OK , C=1 -> '?' ou '*' utilisés dans le masque, (C=0 & Y=$FF -> pas de '?' ni de '*')
-;	Z = 0 -> Nok, ACC=Erreur, Y=Offset dans RES, X=Offset dans RESB
+;    Z = 1 -> OK , C=1 -> '?' ou '*' utilisés dans le masque, (C=0 & Y=$FF -> pas de '?' ni de '*')
+;    Z = 0 -> Nok, ACC=Erreur, Y=Offset dans RES, X=Offset dans RESB
+;
+; Utilise:
+;    TR0, TR1
 ;
 ; Prepare le buffer: "????????.???"
 ;
 .proc WildCard
-	lda #'?'
-	ldy #$0B-1
+    lda #'?'
+    ldy #$0B-1
 
-@loop:
-	sta (RESB),y
-	dey
-	bpl @loop
+  @loop:
+    sta (RESB),y
+    dey
+    bpl @loop
 
 ; Pas de '.' renvoyé par le CH376
-;	lda #'.'
-;	ldy #$08
-;	sta (RESB),y
+;    lda #'.'
+;    ldy #$08
+;    sta (RESB),y
 
-	lda #$00
-	ldy #$0C-1
-	sta (RESB),y
+    lda #$00
+    ldy #$0C-1
+    sta (RESB),y
 
-	ldx #$00
-	ldy #$00
+    ldx #$00
+    ldy #$00
 
-Suivant:
-	lda (RES),y
-	beq ExtensionFill
+  Suivant:
+    lda (RES),y
+    beq ExtensionFill
 
-	cmp #'.'
-	beq Extension
+    cmp #'.'
+    beq Extension
 
-;	cpx #$07
-	cpx #$08
-	beq Erreur3
+;    cpx #$07
+    cpx #$08
+    beq Erreur3
 
-	cmp #'?'
-	beq Question
+    cmp #'?'
+    beq Question
 
-	cmp #'*'
-	beq Star
+    cmp #'*'
+    beq Star
 
-	cmp #'0'
-	bcc Erreur
-	cmp #'9'+1
-	bcc Ok
+    cmp #'0'
+    bcc Erreur
+    cmp #'9'+1
+    bcc Ok
 
 ; Pour forcer le masque en majuscules
-	cmp #'A'
-	bcc Erreur
-	cmp #'Z'+1
-	bcc Ok
+    cmp #'A'
+    bcc Erreur
+    cmp #'Z'+1
+    bcc Ok
 
-	cmp #'a'
-	bcc Erreur
-	cmp #'z'+1
-	bcs Erreur
-	and #$DF
-	bne Ok
+    cmp #'a'
+    bcc Erreur
+    cmp #'z'+1
+    bcs Erreur
+    and #$DF
+    bne Ok
 
 ; Pour forcer le masque en minuscules
-;        cmp #'z'+1
-;        bcs Erreur
-;        cmp #'a'
-;        bcs Ok
+;    cmp #'z'+1
+;    bcs Erreur
+;    cmp #'a'
+;    bcs Ok
 ;
-;	cmp #'A'
-;	bcc Erreur
-;	cmp #'Z'+1
-;	bcs Erreur
-;	ora #$20
-;	bne Ok
-.if 0
-Erreur4:
-	; Extension trop longue
-	lda #$04
-	.byte $2c
-
-Erreur3:
-	;Nom trop long
-	lda #$03
-	.byte $2c
-
-Erreur2:
-	; Chaine RES trop longue
-	lda #$02
-	.byte $2c
-
-Erreur:
-	; Caractère incorrect
-	lda #$01
-
-	; ldy #$00
-
-	;sec
-	rts
-.endif
-;Fin:
+;    cmp #'A'
+;    bcc Erreur
+;    cmp #'Z'+1
+;    bcs Erreur
+;    ora #$20
+;    bne Ok
 
 ; Ajoute le caractère au tampon
 Ok:
-	sta TR0
-	sty TR1
-	txa
-	tay
-	lda TR0
-	sta (RESB),y
-	ldy TR1
+    sta TR0
+    sty TR1
+    txa
+    tay
+    lda TR0
+    sta (RESB),y
+    ldy TR1
 
 ; Incrémente les index
 ; Ajouter test X=09 -> erreur3?
 Question:
-	inx
-	iny
-	bne Suivant
-	beq Erreur2
+    inx
+    iny
+    bne Suivant
+    beq Erreur2
 
 ExtensionFill:
-	;Cas de la chaîne vide
-	cpx #$00
-	beq ExtensionFin
+    ;Cas de la chaîne vide
+    cpx #$00
+    beq ExtensionFin
 
-	; Complète l'extension avec des ' '
-	txa
-	tay
-	lda #' '
-@loop:
-	cpy #$0c-1
-	beq ExtensionFin
-	sta (RESB),y
-	iny
-	bne @loop
+    ; Complète l'extension avec des ' '
+    txa
+    tay
+    lda #' '
+  @loop:
+    cpy #$0c-1
+    beq ExtensionFin
+    sta (RESB),y
+    iny
+    bne @loop
 
 ExtensionFin:
-	; Place le '.' de séparation
-	;lda #'.'
-	;ldy #$08
-	;sta (RESB),y
+    ; Place le '.' de séparation
+    ;lda #'.'
+    ;ldy #$08
+    ;sta (RESB),y
 
-	;Cherche si on a utilisé des wildcards
-	ldy #$0B-1
-	lda #'?'
-@loop:
-	cmp (RESB),Y
-	beq @fin
-	dey
-	bpl @loop
-	; On peut supprimer le clc
-	; dans ce cas, il faudra tester Y=$FF ou Y+1=0 pour savoir
-	; si il y a des caractères '?'
-	clc
+    ;Cherche si on a utilisé des wildcards
+    ldy #$0B-1
+    lda #'?'
+  @loop:
+    cmp (RESB),Y
+    beq @fin
+    dey
+    bpl @loop
+    ; On peut supprimer le clc
+    ; dans ce cas, il faudra tester Y=$FF ou Y+1=0 pour savoir
+    ; si il y a des caractères '?'
+    clc
 
-@fin:
-	lda #$00
-	;tay
+  @fin:
+    lda #$00
+    ;tay
 
-	rts
+    rts
 
 Erreur4:
-	; Extension trop longue
-	lda #$04
-	.byte $2c
+    ; Extension trop longue
+    lda #$04
+    .byte $2c
 
 Erreur3:
-	;Nom trop long
-	lda #$03
-	.byte $2c
+    ;Nom trop long
+    lda #$03
+    .byte $2c
 
 Erreur2:
-	; Chaine RES trop longue
-	lda #$02
-	.byte $2c
+    ; Chaine RES trop longue
+    lda #$02
+    .byte $2c
 
 Erreur:
-	; Caractère incorrect
-	lda #$01
+    ; Caractère incorrect
+    lda #$01
 
-	; ldy #$00
+    ; ldy #$00
 
-	;sec
-	rts
+    ;sec
+    rts
 
 Star:
-	ldx #$0c-1
-@loop:
-	iny
-	beq Erreur2
-	lda (RES),y
-	beq ExtensionFill
-	cmp #'.'
-	bne @loop
-	ldx #$08-1
-	bne ExtensionQuestion
+    ldx #$0c-1
+  @loop:
+    iny
+    beq Erreur2
+    lda (RES),y
+    beq ExtensionFill
+
+    cmp #'.'
+    bne @loop
+    ldx #$08-1
+    bne ExtensionQuestion
 
 Extension:
-	cpx #$08
-	beq ExtensionQuestion
+    cpx #$08
+    beq ExtensionQuestion
 
-	sty TR1
-	txa
-	tay
-	lda #' '
-@loop:
-	sta (RESB),y
-	iny
-	cpy #$08
-	bne @loop
+    sty TR1
+    txa
+    tay
 
-	ldy TR1
-	ldx #$08-1
+    lda #' '
+  @loop:
+    sta (RESB),y
+    iny
+    cpy #$08
+    bne @loop
+
+    ldy TR1
+    ldx #$08-1
 
 ExtensionQuestion:
-	inx
-	iny
-	beq Erreur2
+    inx
+    iny
+    beq Erreur2
 
-	lda (RES),y
-	beq ExtensionFill
+    lda (RES),y
+    beq ExtensionFill
 
-	cpx #$0C-1
-	beq Erreur4
+    cpx #$0C-1
+    beq Erreur4
 
-	cmp #'?'
-	beq ExtensionQuestion
+    cmp #'?'
+    beq ExtensionQuestion
 
-	cmp #'*'
-	beq ExtensionFin
+    cmp #'*'
+    beq ExtensionFin
 
-	cmp #'0'
-	bcc Erreur
-	cmp #'9'+1
-	bcc ExtensionOk
+    cmp #'0'
+    bcc Erreur
+    cmp #'9'+1
+    bcc ExtensionOk
 
 ; Pour forcer le masque en majuscules
-	cmp #'A'
-	bcc Erreur
-	cmp #'Z'+1
-	bcc ExtensionOk
+    cmp #'A'
+    bcc Erreur
+    cmp #'Z'+1
+    bcc ExtensionOk
 
-	cmp #'a'
-	bcc Erreur
-	cmp #'z'+1
-	bcs Erreur
-	and #$DF
-	;bne Ok
+    cmp #'a'
+    bcc Erreur
+    cmp #'z'+1
+    bcs Erreur
+    and #$DF
+    ;bne Ok
 
 ExtensionOk:
-	sta TR0
-	sty TR1
-	txa
-	tay
-	lda TR0
-	sta (RESB),y
-	ldy TR1
-	bne ExtensionQuestion
+    sta TR0
+    sty TR1
+    txa
+    tay
+    lda TR0
+    sta (RESB),y
+    ldy TR1
+    bne ExtensionQuestion
 
 .endproc
 
 ;
 ; Entrée:
-;	RES : Chaine
-;	RESB: Masque
+;    TR2 : Chaine
+;    RESB: Masque
 ;
 ; Sortie:
-;	Z = 1 -> Ok
-;	Y: Offset du dernier caractère testé
-;	A: Dernier caractère testé (0 si fin du masque atteinte)
+;    Z = 1 -> Ok
+;    Y: Offset du dernier caractère testé
+;    A: Dernier caractère testé (0 si fin du masque atteinte)
 ;
 ; Note: ne vérifie pas si la longueur de la chaîne est > à celle du masque
+;       - RES ne peut être utilisé à la place de TR2 (le XCRLF modifie RES)
 ;
 .proc Match
-	ldy #$ff
+    ldy #$ff
 
-@loop:
-	iny
+  @loop:
+    iny
 
-	; Fin du masque?
-	lda (RESB),y
-	beq @fin
+    ; Fin du masque?
+    lda (RESB),y
+    beq @fin
 
-	; Caractères identiques?
-	cmp (RES),y
-	beq @loop
+    ; Caractères identiques?
+    cmp (TR2),y
+    beq @loop
 
-	; Note: ls z?? affiche un fichier 'zx' si il existe
-	cmp #'?'
-	beq @loop
+    ; Note: ls z?? affiche un fichier 'zx' si il existe
+    cmp #'?'
+    beq @loop
 
-	; Si on veut vérifier que la chaîne fait la même longueur que le masque
-	; (pas valable ici, les noms de fichiers sont complétés avec des ' ')
-	; rts
+    ; Si on veut vérifier que la chaîne fait la même longueur que le masque
+    ; (pas valable ici, les noms de fichiers sont complétés avec des ' ')
+    ; rts
 
-@fin:
-	; Si on veut vérifier que la chaîne fait la même longueur que le masque
-	; (pas valable ici, les noms de fichiers sont complétés avec des ' ')
-	; lda (RES),y
+  @fin:
+    ; Si on veut vérifier que la chaîne fait la même longueur que le masque
+    ; (pas valable ici, les noms de fichiers sont complétés avec des ' ')
+    ; lda (RES),y
 
-	rts
+    rts
 .endproc
-
-EndOfModule:
 
