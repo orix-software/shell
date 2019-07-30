@@ -1,3 +1,70 @@
+; MODULE = 'y'
+
+.ifdef MODULE
+	.include "telestrat.inc"
+
+	.include "../dependencies/kernel/src/include/kernel.inc"
+	.include "../dependencies/kernel/src/include/memory.inc"
+	.include "../dependencies/kernel/src/include/process.inc"
+
+	.include "../include/bash.inc"
+	.include "../include/orix.inc"
+
+	; .code nécessaire parce que le dernier segment de orix.inc est .bss
+	.code
+
+	.macro MODULE start, end, exec
+	        .byte $01,$00               ; non-C64 marker like o65 format
+	        .byte "o", "r", "i"      ; "ori" MAGIC number :$6f, $36, $35 like o65 format
+	        .byte $01                ; version of this header
+	cpu_mode:
+	        .byte $00                ; CPU see below for description
+	language_type:
+	        .byte $00                   ; reserved in the future, it will define if it's a Hyperbasic file, teleass file, forth file
+	        .byte $00                ; reserved
+	        .byte $00                       ; reserved
+	        .byte $00
+	        .byte $00                   ; reserved
+	        .byte $00                ; reserved
+	type_of_file:
+	        .byte $00
+	        .word start ; loading adress
+	        .word end   ; end of loading adress
+	        .word exec ; starting adress
+	.endmacro
+
+	MODULE StartOfModule, EndOfModule, _ls
+
+	StartOfModule:
+
+	.include "../lib/ch376.s"
+	.include "../lib/ch376_verify.s"
+
+	.include "../lib/get_opt.asm"
+	.include "../lib/strcpy.asm"
+
+	txt_file_not_found:
+	    .asciiz "File not found :"
+
+	.proc _cd_to_current_realpath_new
+	    lda #<shell_bash_variables+shell_bash_struct::path_current
+	    ldy #>(shell_bash_variables+shell_bash_struct::path_current+1)
+	    BRK_TELEMON XOPENRELATIVE
+	    rts
+	.endproc
+
+;	.proc _lowercase_char
+;			cmp     #'A'
+;			bcc     @skip
+;			cmp     #'Z'+1
+;			bcs     @skip
+;			adc     #'a'-'A'
+;		@skip:
+;			rts
+;	.endproc
+
+.endif
+
 NUMBER_OF_COLUMNS_LS = 3
 
 .proc _ls
@@ -208,14 +275,45 @@ display_catalog:
                 sta NUMBER_OF_COLUMNS
             @ZZ0016:
 
-            PRINT BUFNOM
+            ; PRINT BUFNOM
+		ldy #$ff
+		ldx #$00
+	@loop:
+		iny
+		lda BUFNOM,y
+		beq @end
+		cmp#' '
+		beq @loop
+		cpy #$09
+		bne @suite
+		pha
+		CPUTC '.'
+		pla
+		inx
+
+	@suite:
+		; jsr _lowercase_char
+;.proc _lowercase_char
+		cmp     #'A'
+		bcc     @skip
+		cmp     #'Z'+1
+		bcs     @skip
+		adc     #'a'-'A'
+	@skip:
+;.endproc
+
+
+		BRK_TELEMON XWR0
+		inx
+		bne @loop
+	@end:
 
             ;ldy TEMP_ORIX_1
 
             @ZZ0017:
-                cpy #13
+                cpx #13
                 beq @ZZ0018
-                    iny
+                    inx
                     CPUTC ' '
             jmp @ZZ0017
 
@@ -243,7 +341,7 @@ optstring:
 ;	Z = 1 -> OK , C=1 -> '?' ou '*' utilisés dans le masque, (C=0 & Y=$FF -> pas de '?' ni de '*')
 ;	Z = 0 -> Nok, ACC=Erreur, Y=Offset dans RES, X=Offset dans RESB
 ;
-; Prepare le buffer: "????????.??"
+; Prepare le buffer: "????????.???"
 ;
 .proc WildCard
 	lda #'?'
@@ -433,6 +531,7 @@ Star:
 	cmp #'.'
 	bne @loop
 	ldx #$08-1
+	bne ExtensionQuestion
 
 Extension:
 	cpx #$08
@@ -539,4 +638,6 @@ ExtensionOk:
 
 	rts
 .endproc
+
+;EndOfModule:
 
