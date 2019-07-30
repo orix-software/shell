@@ -1,4 +1,5 @@
-; MODULE = 'y'
+;MODULE = 'y'
+;WITH_SDCARD_FOR_ROOT = 'y'
 
 .ifdef MODULE
 	.include "telestrat.inc"
@@ -14,6 +15,11 @@
 	.code
 
 	.macro MODULE start, end, exec
+		.org $0000
+		.code
+		;.segment "ORIXHDR"
+		;__ORIXHDR__:
+		;.export __ORIXHDR__
 	        .byte $01,$00               ; non-C64 marker like o65 format
 	        .byte "o", "r", "i"      ; "ori" MAGIC number :$6f, $36, $35 like o65 format
 	        .byte $01                ; version of this header
@@ -34,6 +40,11 @@
 	.endmacro
 
 	MODULE StartOfModule, EndOfModule, _ls
+	;.segment "STARTUP"
+	;.segment "INIT"
+	;.segment "ONCE"
+	.org $0801
+	.code
 
 	StartOfModule:
 
@@ -46,12 +57,13 @@
 	txt_file_not_found:
 	    .asciiz "File not found :"
 
-	.proc _cd_to_current_realpath_new
-	    lda #<shell_bash_variables+shell_bash_struct::path_current
-	    ldy #>(shell_bash_variables+shell_bash_struct::path_current+1)
-	    BRK_TELEMON XOPENRELATIVE
-	    rts
-	.endproc
+	.import _cd_to_current_realpath_new
+;	.proc _cd_to_current_realpath_new
+;	    lda #<shell_bash_variables+shell_bash_struct::path_current
+;	    ldy #>(shell_bash_variables+shell_bash_struct::path_current+1)
+;	    BRK_TELEMON XOPENRELATIVE
+;	    rts
+;	.endproc
 
 ;	.proc _lowercase_char
 ;			cmp     #'A'
@@ -639,5 +651,5 @@ ExtensionOk:
 	rts
 .endproc
 
-;EndOfModule:
+EndOfModule:
 
