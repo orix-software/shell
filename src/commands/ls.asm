@@ -134,20 +134,17 @@ display_catalog:
     lda #COLOR_FOR_FILES
     sta BUFNOM
     ldy #$01
-    ldx #$01
 
   @ZZ0007:
     lda CH376_DATA
     sta BUFNOM,y
     iny
-    inx
-    cpx #12
+    cpy #12
     bne @ZZ0007
 
     lda CH376_DATA
     cmp #$10
     bne @ZZ0012
-
     lda #COLOR_FOR_DIRECTORY
     sta BUFNOM
 
