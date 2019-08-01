@@ -36,42 +36,45 @@ cat_file:
     jsr _ch376_set_bytes_read
     ; Renvoie CH376_USB_INT_SUCCESS ($14) si le fichier est vide, CH376_USB_INT_DISK_READ ($1D) si ok
 
-    continue:
-        cmp #CH376_USB_INT_DISK_READ
-        bne finished
+  @loop:
+    cmp #CH376_USB_INT_DISK_READ
+    bne @finished
 
-            lda #CH376_RD_USB_DATA0
-            sta CH376_COMMAND
-            lda CH376_DATA
-            sta userzp
-            ; Tester si userzp == 0?
+    lda #CH376_RD_USB_DATA0
+    sta CH376_COMMAND
+    lda CH376_DATA
+    sta userzp
+    ; Tester si userzp == 0?
 
-            read_byte:
-                lda CH376_DATA
-                cmp #$0A
-                bne autre
-                    BRK_TELEMON XCRLF
-                    bne next                    ; ACC n'est pas modifié par XCRLF, donc saut inconditionnel
-            autre:
-                cmp #$0D
-                beq next
-                    BRK_TELEMON XWR0
-            next:
-                dec userzp
+  @read_byte:
+    lda CH376_DATA
+    cmp #$0A
+    bne @autre
 
-            bne read_byte
+    BRK_TELEMON XCRLF
+    bne @next    ; ACC n'est pas modifié par XCRLF, donc saut inconditionnel
 
-            lda #CH376_BYTE_RD_GO
-            sta CH376_COMMAND
-            jsr _ch376_wait_response
-            ; _ch376_wait_response renvoie 1 en cas d'erreur et le CH376 ne renvoie pas de valeur 0
-            ; donc le bne devient un saut inconditionnel!
+  @autre:
+    cmp #$0D
+    beq @next
 
-    bne continue
+    BRK_TELEMON XWR0
+
+  @next:
+    dec userzp
+    bne @read_byte
+
+    lda #CH376_BYTE_RD_GO
+    sta CH376_COMMAND
+    jsr _ch376_wait_response
+
+    ; _ch376_wait_response renvoie 1 en cas d'erreur et le CH376 ne renvoie pas de valeur 0
+    ; donc le bne devient un saut inconditionnel!
+    bne @loop
 
     ; Tester si ACC==1 pour détecter une éventuelle erreur?
 
-    finished:
+  @finished:
     BRK_TELEMON XCRLF
 rts
 
