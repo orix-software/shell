@@ -28,15 +28,6 @@ start_sh:
     and     #%00111111 ; b7 : lowercase, b6 : no sound
     sta     FLGKBD
 
-  ; Init PID tables
-  
-    lda     #$00
-    ldx     #ORIX_MAX_PROCESS
-  @loop:
-    sta     LIST_PID,x
-    dex
-    bpl     @loop
-  
     
     ; Setting the current path to "/",0
     lda     #'/'
