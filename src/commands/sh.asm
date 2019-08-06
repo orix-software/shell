@@ -76,7 +76,6 @@ end:
     ldy     #>BUFEDT
     jsr     _bash             ; launch interpreter
   ; Free the process 
-    UNREGISTER_PROCESS 
   
 skipme:
     ldy     TEMP_SH_COMMAND

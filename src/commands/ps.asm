@@ -1,38 +1,55 @@
 .proc _ps
-
     PRINT str_ps_title
 
-    ;PRINT(str_init)
+ptr_kernel_process          :=userzp ; 2 bytes
+ptr_kernel_process_current  :=userzp+2
+ps_tmp1                      :=userzp+3
+ps_tmp2                      :=userzp+6
+ptr_one_process             :=userzp+4 ; 2 bytes
+    ldx #$00 ; Get Kernel adress
+    BRK_ORIX XVARS
+    sta     ptr_kernel_process
+    sty     ptr_kernel_process+1
 
-    
-    ldx #$00
-loop:
-    stx TR7
-    lda LIST_PID,x
-    beq next_process
-
-    LDY #$00
+    ; Displays init process
+    ldy     #(kernel_process_struct::kernel_pid_list+1)
+    lda     (ptr_kernel_process),y
+    ldy     #$00
     PRINT_BINARY_TO_DECIMAL_16BITS 1
+    CPUTC   ' '
+
+    ldy     #(kernel_process_struct::kernel_one_process_struct_ptr_low+1)
+    sty     ps_tmp1
     
-    CPUTC ' '
+    ldy     #(kernel_process_struct::kernel_one_process_struct_ptr_high+1)
+    sty     ps_tmp2
 
-    ldx TR7
-    lda orix_command_table_low,x
-    ldy orix_command_table_high,x
-    BRK_TELEMON XWSTR0
-    BRK_TELEMON XCRLF
-next_process:
-    ldx TR7
-    inx
+    ldy     ps_tmp1
+    lda     (ptr_kernel_process),y
+    sta     ptr_one_process
 
-    cpx #ORIX_MAX_PROCESS
-    bne loop
-exit:
+
+    ldy     ps_tmp2
+    lda     (ptr_kernel_process),y
+       
+    sta     ptr_one_process+1
+
+
+    ldy     #kernel_one_process_struct::process_name
+@L1:    
+    lda     (ptr_one_process),y
+
+    beq     @S1
+    BRK_ORIX XWR0
+    iny
+    bne     @L1
+@S1:    
+
+
+    RETURN_LINE
     rts
-str_ps_title:
-    .byte "PID CMD",$0D,$0A,0
-str_init:
-   .byte  "  1 init",$0D,$0A
-   .byte  "  2 bash",$0D,$0A,0
-.endproc
 
+str_ps_title:
+    .byte "PID CMD",$0D,$0A
+    .byte "  1 init",$0D,$0A,$00
+.endproc

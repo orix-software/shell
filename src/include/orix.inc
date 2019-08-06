@@ -174,8 +174,7 @@ ORIX_ARGV:
 volatile_str:
     .res SIZE_OF_VOLATILE_STR
 
-LIST_PID:
-    .res ORIX_MAX_PROCESS
+
 LIST_NAME_PID:
     .res 9*ORIX_MAX_PROCESS
 

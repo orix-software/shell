@@ -3,10 +3,11 @@
 .include   "errno.inc"              ; from cc65
 .include   "cpu.mac"                ; from cc65
 
+.include   "dependencies/kernel/src/include/kernel.inc"
 .include   "dependencies/kernel/src/include/process.inc"
+.include   "dependencies/kernel/src/include/process_bss.inc"
 .include   "dependencies/kernel/src/include/process.mac"
 .include   "dependencies/kernel/src/include/keyboard.inc"
-.include   "dependencies/kernel/src/include/kernel.inc"
 .include   "dependencies/kernel/src/include/memory.inc"
 .include   "build.inc"
 .include   "include/bash.inc"
@@ -37,63 +38,6 @@ start_sh:
     dex
     bpl     @loop
   
-
-
-
-  ; register kernel
-
-  ; 
-
-;**************************************************************************************************************************/
-;*                                                     Register in process list 'init' process                            */
-;**************************************************************************************************************************/
-  
-    ldx     #$00              ; PID father
-    REGISTER_PROCESS process_init
-
-    tax                    ; get init PID for PID father 
-
-;**************************************************************************************************************************/
-;*                                                     Register in process list 'bash' process                            */
-;**************************************************************************************************************************/    
-    
-    REGISTER_PROCESS process_bash
-
-;**************************************************************************************************************************/
-;*                                                     init malloc table in memory                                        */
-;**************************************************************************************************************************/    
-  
-; new init malloc table 
-    lda     #<orix_end_memory_kernel              ; First byte available when Orix Kernel has started
-    sta     ORIX_MALLOC_FREE_BEGIN_LOW_TABLE      ; store it malloc table (low)
-    lda     #>orix_end_memory_kernel
-    sta     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE     ; and High
-    
-    lda     #<ORIX_MALLOC_MAX_MEM_ADRESS          ; Get the max memory adress (in oric.h)
-    sta     ORIX_MALLOC_FREE_END_LOW_TABLE        ; store it (low)
-    lda     #>ORIX_MALLOC_MAX_MEM_ADRESS
-    sta     ORIX_MALLOC_FREE_END_HIGH_TABLE       ; store it high
-;-orix_end_memory_kernel
-    lda     #<(ORIX_MALLOC_MAX_MEM_ADRESS-orix_end_memory_kernel) ; Get the size (free)
-    sta     ORIX_MALLOC_FREE_SIZE_LOW_TABLE                       ; and store
-    
-    lda     #>(ORIX_MALLOC_MAX_MEM_ADRESS-orix_end_memory_kernel) 
-    sta     ORIX_MALLOC_FREE_SIZE_HIGH_TABLE
-  
-    lda     #$00 ; 0 means One chunk
-    sta     ORIX_MALLOC_FREE_TABLE_NUMBER
- 
-
-; init the malloc pid busy table
-; FIXME 65C02
-init_malloc_busy_table:
-    ldx     #ORIX_MALLOC_FREE_FRAGMENT_MAX
-    lda     #$00
-
-@loop:
-    sta     ORIX_MALLOC_BUSY_TABLE_PID,x
-    dex
-    bpl     @loop
     
     ; Setting the current path to "/",0
     lda     #'/'
@@ -173,7 +117,7 @@ start_commandline:
     jsr     _bash                ; and launch interpreter
     lda     ORIX_CURRENT_PROCESS_FOREGROUND
     beq     start_prompt
-    jsr     _orix_unregister_process
+
     jmp     start_prompt
 next_key:
     cmp     #KEY_DEL             ; is it del pressed ?
@@ -332,19 +276,6 @@ command_found:
     lda     list_command_low,x              ; get the name of the command
     ldy     list_command_high,x             ; and high
     ; get PID father
-    ldx     ORIX_CURRENT_PROCESS_FOREGROUND
-    jsr     _orix_register_process          ; register process
-    bne     register_process_valid          ; if it return's 0 then there is an error
-
-    ; we manage only max process here, but it could be also a out of memory error
-    ; but here we are in a command in ROM, ooe will not arrive except if command do a malloc exception
-    ; display maxProcessReached
-    PRINT   strMaxProcessReached
-    ; at this step we reach the max process 
-    rts 
-
-register_process_valid:         ; if we are here, it means that register_process_valid returns a PID
-    sta     ORIX_CURRENT_PROCESS_FOREGROUND
     
     ldx     TR7
     lda     commands_low,x
@@ -724,16 +655,6 @@ is_an_orix_file:
     
     ldx     #$00
     jsr     _orix_get_opt
-    
-    REGISTER_PROCESS ORIX_ARGV
-    
-    bne register_process_valid ; if it's return 0 then there is an error
-    PRINT strMaxProcessReached
-    ; at this step we reach the max process 
-    rts 
-
-register_process_valid:        ; if we are here, it means that register_process_valid returns a PID
-    sta     ORIX_CURRENT_PROCESS_FOREGROUND
 
 is_not_encapsulated:
 	
@@ -2074,6 +1995,7 @@ str_6502:                           ; use for lscpu
     .asciiz "6502"
 str_65C02:                          ; use for lscpu
     .asciiz "65C02"
+
 strMaxProcessReached:
     .byte "Max Process reached : "
     .byt ORIX_MAX_PROCESS+32+8+8
@@ -2100,79 +2022,7 @@ str_max_malloc_reached:
 
 
 
-; [IN] X the id of_orix_register_process the command
-process_init:
-    .asciiz "init"
-process_bash:
-    .asciiz "bash"
 
-_orix_register_process:
-
-    ; IN X contains the pid father
-    ; IN [A & Y] the string of the command
-    ; OUT [A contains the PID]
-    ; get available PID
-    sta     RES ; save A
-    sty     RES+1
-    stx     TR5     ; save PPID
-; get the next PID available    
-
-    ldx     #$00
-@loop:
-    lda     LIST_PID,x
-    beq     @isFree
-    inx     
-    cpx     #ORIX_MAX_PROCESS
-    bne     @loop
-
-    lda     #$00                 ; Error 
-    rts
-
-@isFree:
-    ; looking for the next PID
-    txa
-    pha
-
-
-    lda     #$01
-    sta     TR4
-    
-; get  next PID number available
-get_next_pid_number:
-    ldx     #$00
-@loop:
-    lda     LIST_PID,x
-    cmp     TR4
-    bne     @next
-    inc     TR4
-
-@next:
-    inx     
-    cpx     #ORIX_MAX_PROCESS
-    bne     @loop    
-
-  
-    pla
-    tax
-  
-    ; Register process into ps table  
-   
-
-    lda     orix_command_table_low,x  ;store in process list
-    sta     RESB
-    lda     orix_command_table_high,x
-    sta     RESB+1
-    jsr     _strcpy
-    
-    stx     RES ; save the position     
-
-    lda     TR4
-    ldx     RES
-    sta     LIST_PID,x ; register 
-    ldx     TR4
-
- 
-    rts
 
 orix_command_table_low:
     .byt <LIST_NAME_PID
@@ -2206,100 +2056,10 @@ cpu_build_:
     .include "tables/text_first_line_adress.asm"  
 ; .include "tables/malloc_table.asm"  
 
-_orix_unregister_process:
-
-; [A] id of the process
-
-  ldx     #$00
-@loop: 
-  cmp     LIST_PID,x               ; looking un ps table where the PID is
-  beq     @found
-  inx
-  cpx     #ORIX_MAX_PROCESS 
-  bne     @loop
-  ; not found
-  rts
-  
-  ; at this step X contains the position of the ps list    
-@found:
-  pha                           ; save PID
-  lda     #$00  ; FIXME 65C02  
-  sta     LIST_PID,x                ; destroy the PID in ps table
-  ; destroy busy chunks of this process
- 
-  
-  ; let's trying to find malloc done for this process
-  pla ; get PID
-
-  ldx #$00
-loop_free_process:
-  cmp     ORIX_MALLOC_BUSY_TABLE_PID,x
-  bne     next_chunk
-free_chunk:
-.ifdef WITH_DEBUG
-; in debug mode we keep malloc table
-.else  
-  ; save A, X and call XFREE
-  pha
-  txa
-  pha
-
-  lda     ORIX_MALLOC_BUSY_TABLE_BEGIN_LOW,x
-  ldy     ORIX_MALLOC_BUSY_TABLE_BEGIN_HIGH,x
-  BRK_TELEMON XFREE
-  ; and flush
-
-  pla
-  tax
-  ; and clean pid 
-  lda     #$00
-  sta     ORIX_MALLOC_BUSY_TABLE_PID,x
-  pla
-.endif 
-
-next_chunk:
-  inx
-  cpx     #ORIX_NUMBER_OF_MALLOC
-  bne     loop_free_process
-  rts
- ; TODO destroy fp from this process
 
 
-_orix_init_filehandle:
-    lda     #$02 ; stdin/stdout/sderr
-    sta     NUMBER_OPENED_FILES
-    rts
 
 
-; [out] A=#ff if error, else X contains the id of the filehandle
-_orix_register_filehandle:
-
-
-    ldx     NUMBER_OPENED_FILES
-    cpx     #ORIX_MAX_OPEN_FILES
-    beq     @error
-    inc     NUMBER_OPENED_FILES
-    lda     #$00
-    rts
-@error:
-    lda     #$00
-    rts
-
-
-_orix_unregister_filehandle:
-    rts
-
-
-ORIX_ROUTINES_TABLE:
-ORIX_ROUTINES_TABLE_LOW:
-    .byt    <_orix_register_filehandle ;0
-    .byt    <_orix_register_process    ;1 
-    .byt    <_orix_unregister_process  ;2
-
-ORIX_ROUTINES_TABLE_HIGH:
-    .byt    >_orix_register_filehandle
-    .byt    >_orix_register_process
-    .byt    >_orix_unregister_process
 
 .proc _commandline_parse
 
@@ -2323,7 +2083,7 @@ next_char:
     lda     (RES),y
     cmp     (RESB),y        ; same character?
     beq     no_space
-    cmp     #' '             ; space?
+    cmp     #' '            ; space?
     bne     command_not_found
     lda     (RESB),Y        ; Last character of the command name?
 no_space:                   ; FIXME
@@ -2351,19 +2111,7 @@ command_found:
     lda     list_command_low,x              ; get the name of the command
     ldy     list_command_high,x             ; and high
     ; get PID father
-    ldx     ORIX_CURRENT_PROCESS_FOREGROUND
-    jsr     _orix_register_process          ; register process
-    bne     register_process_valid          ; if it return's 0 then there is an error
-
-    ; we manage only max process here, but it could be also a out of memory error
-    ; but here we are in a command in ROM, ooe will not arrive except if command do a malloc exception
-    ; display maxProcessReached
-    PRINT   strMaxProcessReached
-    ; at this step we reach the max process 
-    rts 
-
-register_process_valid:         ; if we are here, it means that register_process_valid returns a PID
-    sta     ORIX_CURRENT_PROCESS_FOREGROUND
+    
     
     ldx     TR7
     lda     commands_low,x
@@ -2384,33 +2132,20 @@ register_process_valid:         ; if we are here, it means that register_process
     rts
 .endproc
 
-
-    .res    $FFE0-*
-    .org    $FFE0
-
-_call_orix_routine:
-    ldx     TR0
-    lda     ORIX_ROUTINES_TABLE_LOW,x
-    sta     RES
-    lda     ORIX_ROUTINES_TABLE_HIGH,x
-    sta     RES+1
-    jmp     (RES)
-
-
-      .res $FFF1-*
-      .org $FFF1
+    .res $FFF1-*
+    .org $FFF1
 ; $fff1
 parse_vector:
-        .addr exec_commandline     
+    .addr exec_commandline     
 ; fff3
 adress_commands:
-        .addr parse_vector
+    .addr parse_vector
 ; fff5        
 list_commands:
         .addr list_of_commands_bank
 ; $fff7
 number_of_commands:
-        .byt 1
+    .byt 1
 ; fffa
 
 copyright:
