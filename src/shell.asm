@@ -5,7 +5,6 @@
 
 .include   "dependencies/kernel/src/include/kernel.inc"
 .include   "dependencies/kernel/src/include/process.inc"
-.include   "dependencies/kernel/src/include/process_bss.inc"
 .include   "dependencies/kernel/src/include/process.mac"
 .include   "dependencies/kernel/src/include/keyboard.inc"
 .include   "dependencies/kernel/src/include/memory.inc"
