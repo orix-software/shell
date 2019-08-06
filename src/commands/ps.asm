@@ -1,11 +1,16 @@
+
+.export  _ps
+
 .proc _ps
+
+    ptr_kernel_process           :=userzp ; 2 bytes
+    ptr_kernel_process_current   :=userzp+2
+    ps_tmp1                      :=userzp+3
+    ps_tmp2                      :=userzp+6
+    ptr_one_process              :=userzp+4 ; 2 bytes
+
     PRINT str_ps_title
 
-ptr_kernel_process          :=userzp ; 2 bytes
-ptr_kernel_process_current  :=userzp+2
-ps_tmp1                      :=userzp+3
-ps_tmp2                      :=userzp+6
-ptr_one_process             :=userzp+4 ; 2 bytes
     ldx #$00 ; Get Kernel adress
     BRK_ORIX XVARS
     sta     ptr_kernel_process
@@ -50,6 +55,6 @@ ptr_one_process             :=userzp+4 ; 2 bytes
     rts
 
 str_ps_title:
-    .byte "PID CMD",$0D,$0A
-    .byte "  1 init",$0D,$0A,$00
+    .byte   "PID CMD",$0D,$0A
+    .byte   "  1 init",$0D,$0A,$00
 .endproc

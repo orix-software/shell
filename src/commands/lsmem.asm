@@ -16,8 +16,6 @@
    sta lsmem_ptr_malloc_pid
    sty lsmem_ptr_malloc_pid+1
 
-
-
    PRINT str_column
     
    ldx #$00
@@ -106,7 +104,8 @@ myloop2:
     ; at this step we found the PID and his position un process list : X contains the position of the process list
   
 	; display process now
-        
+    lda     #'A'       
+    BRK_ORIX XWR0
 
 
     BRK_TELEMON XCRLF
