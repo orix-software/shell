@@ -516,6 +516,10 @@ str_root_bin:
 .include "commands/sh.asm"
 .endif
 
+.ifdef WITH_SETFONT
+.include "commands/setfont.asm"
+.endif
+
 .ifdef WITH_WATCH
 .include "commands/watch.asm"
 .endif
@@ -986,6 +990,10 @@ commands_low:
     .byt <_sh
 .endif 
 
+.ifdef WITH_SETFONT
+    .byt <_setfont
+.endif
+
 .ifdef WITH_TELNETD
     .byt <_telnetd
 .endif
@@ -1171,6 +1179,10 @@ commands_high:
     .byt >_sh
 .endif  
 
+.ifdef WITH_SETFONT
+    .byt <_setfont
+.endif
+
 .ifdef WITH_TELNETD
     .byt >_telnetd
 .endif
@@ -1354,6 +1366,10 @@ list_command_low:
     
 .ifdef WITH_SH
     .byt <sh
+.endif
+
+.ifdef WITH_SETFONT
+    .byt <setfont
 .endif
 
 .ifdef WITH_TELNETD
@@ -1541,6 +1557,10 @@ list_command_high:
     .byt >sh
 .endif
 
+.ifdef WITH_SETFONT
+    .byt >setfont
+.endif
+
 .ifdef WITH_TELNETD
     .byt >telnetd
 .endif
@@ -1725,6 +1745,10 @@ commands_length:
 .ifdef WITH_SH
     .byt 2 ; sh
 .endif   
+
+.ifdef WITH_SETFONT
+    .byt 7
+.endif
 
 .ifdef WITH_TELNETD
     .byt 7 ; telnetd
@@ -1936,6 +1960,11 @@ sedoric:
     .asciiz "sedoric"
 .endif
 
+.ifdef WITH_SETFONT
+setfont:
+    .asciiz "setfont"
+.endif
+
 .ifdef WITH_SH
 sh:
     .asciiz "sh"
@@ -2019,26 +2048,6 @@ str_out_of_memory:
     .asciiz "Out of Memory"      
 str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
-
-
-
-
-
-orix_command_table_low:
-    .byt <LIST_NAME_PID
-    .byt <LIST_NAME_PID+9
-    .byt <LIST_NAME_PID+9*2
-    .byt <LIST_NAME_PID+9*3
-    .byt <LIST_NAME_PID+9*4
-    .byt <LIST_NAME_PID+9*5
-orix_command_table_high:
-    .byt >LIST_NAME_PID
-    .byt >LIST_NAME_PID+9  
-    .byt >LIST_NAME_PID+9*2   
-    .byt >LIST_NAME_PID+9*3
-    .byt >LIST_NAME_PID+9*4
-    .byt >LIST_NAME_PID+9*5
-
 
 
 signature:

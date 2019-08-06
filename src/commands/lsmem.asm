@@ -1,10 +1,22 @@
+.export _lsmem
+
 .proc _lsmem
 
    lsmem_ptr_malloc_pid := userzp
+   lsmem_ptr_pid_table  := userzp+2	 ; Get struct
+
+   lda #$00
+   BRK_ORIX(XVARS)
+   sta lsmem_ptr_pid_table
+   sty lsmem_ptr_pid_table+1
+
+
    lda #$01
    BRK_ORIX(XVARS)
    sta lsmem_ptr_malloc_pid
    sty lsmem_ptr_malloc_pid+1
+
+
 
    PRINT str_column
     
@@ -76,7 +88,7 @@ myloop2:
 
     CPUTC ' '
 
-        ; looking for PID
+    ; looking for PID
 
     ;ldy     #$00
 ;@loop:
@@ -93,7 +105,7 @@ myloop2:
         
     ; at this step we found the PID and his position un process list : X contains the position of the process list
   
-
+	; display process now
         
 
 
