@@ -512,12 +512,12 @@ str_root_bin:
 .include "commands/uname.asm"
 .endif
 
-.ifdef WITH_SH
-.include "commands/sh.asm"
-.endif
-
 .ifdef WITH_SETFONT
 .include "commands/setfont.asm"
+.endif
+
+.ifdef WITH_SH
+.include "commands/sh.asm"
 .endif
 
 .ifdef WITH_WATCH
@@ -986,13 +986,13 @@ commands_low:
     .byt <_sedsd
 .endif     
     
-.ifdef WITH_SH
-    .byt <_sh
-.endif 
-
 .ifdef WITH_SETFONT
     .byt <_setfont
 .endif
+
+.ifdef WITH_SH
+    .byt <_sh
+.endif 
 
 .ifdef WITH_TELNETD
     .byt <_telnetd
@@ -1174,14 +1174,14 @@ commands_high:
 .ifdef WITH_SEDSD
     .byt >_sedsd
 .endif  
-    
+
+.ifdef WITH_SETFONT
+    .byt >_setfont
+.endif
+
 .ifdef WITH_SH
     .byt >_sh
 .endif  
-
-.ifdef WITH_SETFONT
-    .byt <_setfont
-.endif
 
 .ifdef WITH_TELNETD
     .byt >_telnetd
@@ -1364,12 +1364,12 @@ list_command_low:
     .byt <sedoric
 .endif     
     
-.ifdef WITH_SH
-    .byt <sh
-.endif
-
 .ifdef WITH_SETFONT
     .byt <setfont
+.endif
+
+.ifdef WITH_SH
+    .byt <sh
 .endif
 
 .ifdef WITH_TELNETD
@@ -1553,12 +1553,12 @@ list_command_high:
     .byt >sedoric
 .endif 
 
-.ifdef WITH_SH
-    .byt >sh
-.endif
-
 .ifdef WITH_SETFONT
     .byt >setfont
+.endif
+
+.ifdef WITH_SH
+    .byt >sh
 .endif
 
 .ifdef WITH_TELNETD
@@ -1741,14 +1741,14 @@ commands_length:
 .ifdef WITH_SEDSD
     .byt 7
 .endif     
-    
-.ifdef WITH_SH
-    .byt 2 ; sh
-.endif   
 
 .ifdef WITH_SETFONT
     .byt 7
-.endif
+.endif    
+
+.ifdef WITH_SH
+    .byt 2 ; sh
+.endif   
 
 .ifdef WITH_TELNETD
     .byt 7 ; telnetd
