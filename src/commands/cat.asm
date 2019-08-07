@@ -1,97 +1,84 @@
 .proc _cat
+    ldx #$01
+    jsr _orix_get_opt
+    bcc print_usage
 
-    ; TODO : use XOPEN
-    ldx     #$01
-    jsr     _orix_get_opt
-    bcc     print_usage
-	
-    jsr     _ch376_verify_SetUsbPort_Mount
-    cmp     #$01
-    beq     cat_error_param
+    jsr _ch376_verify_SetUsbPort_Mount
+    ;cmp #$01
+    ;BEQ cat_error_param
+    ; Suppose que _ch376_verify_SetUsbPort_Mount renvoie C=1 si tout va bien
+    bcc cat_error_param
 
-    jsr     _cd_to_current_realpath_new
+    jsr _cd_to_current_realpath_new
 
-    ldx     #$01
-    jsr     _orix_get_opt
+    ldx #$01
+    jsr _orix_get_opt
+
     STRCPY  ORIX_ARGV,BUFNOM
-	
-    jsr     _ch376_set_file_name
-    jsr     _ch376_file_open
-    cmp     #CH376_ERR_MISS_FILE
-    bne     read_byte
-  
-    PRINT   BUFNOM
-    PRINT   str_not_found
+    jsr _ch376_set_file_name
 
-    rts
-read_byte:
-    lda     #$FF
-    tay  ; earn 1 byte instead of doing ldy #$ff
-    jsr     _ch376_set_bytes_read
-continue:
-    cmp     #$1D ; something to read FIXME REPLACE for a label
-    beq     we_read
-    cmp     #$14 ; finished FIXME REPLACE for a label
-    beq     finished 
+    jsr _ch376_file_open
+    cmp #CH376_ERR_MISS_FILE
+    bne cat_file
 
-end_cat:
-    rts
-print_usage:	
+    PRINT BUFNOM
+    PRINT str_not_found
+rts
+
+print_usage:
 cat_error_param:
-    PRINT   txt_usage
-	rts  
- 
-we_read:
-    lda     #CH376_RD_USB_DATA0
-    sta     CH376_COMMAND
+    PRINT txt_usage
+rts
 
-    lda     CH376_DATA ; contains length read
-	sta	    userzp
-loop9:
-    lda     CH376_DATA ; read the data
-    cmp     #$0A
-    bne     @S3
+cat_file:
+    lda #$FF
+    tay
+    jsr _ch376_set_bytes_read
+    ; Renvoie CH376_USB_INT_SUCCESS ($14) si le fichier est vide, CH376_USB_INT_DISK_READ ($1D) si ok
 
-    RETURN_LINE
-.ifdef CPU_65C02 ; FIXME
-.pc02
-    bra     @S4
-.p02    
-.else
-    jmp     @S4
-.endif
-@S3:
-    cmp     #$0D
-    bne     @S1
+  @loop:
+    cmp #CH376_USB_INT_DISK_READ
+    bne @finished
+
+    lda #CH376_RD_USB_DATA0
+    sta CH376_COMMAND
+    lda CH376_DATA
+    sta userzp
+    ; Tester si userzp == 0?
+
+  @read_byte:
+    lda CH376_DATA
+    cmp #$0A
+    bne @autre
+
     BRK_TELEMON XCRLF
-.ifdef CPU_65C02
-.pc02
-    bra     @S4
-.p02    
-.else
-    jmp     @S4
-.endif
-@S1:
+    bne @next    ; ACC n'est pas modifié par XCRLF, donc saut inconditionnel
+
+  @autre:
+    cmp #$0D
+    beq @next
+
     BRK_TELEMON XWR0
-@S4:
 
+  @next:
+    dec userzp
+    bne @read_byte
 
-    dec	    userzp
-    bne     loop9
-    lda     #CH376_BYTE_RD_GO
-    sta     CH376_COMMAND
-    jsr     _ch376_wait_response
-.ifdef CPU_65C02
-.pc02
-    bra     continue
-.p02    
-.else
-    jmp     continue
-.endif
-finished:
+    lda #CH376_BYTE_RD_GO
+    sta CH376_COMMAND
+    jsr _ch376_wait_response
+
+    ; _ch376_wait_response renvoie 1 en cas d'erreur et le CH376 ne renvoie pas de valeur 0
+    ; donc le bne devient un saut inconditionnel!
+    bne @loop
+
+    ; Tester si ACC==1 pour détecter une éventuelle erreur?
+
+  @finished:
     BRK_TELEMON XCRLF
-    rts  
-txt_usage:
-    .byte "usage: cat FILE",$0D,$0A,0
-.endproc
+rts
 
+txt_usage:
+    .BYT "usage: cat FILE",$0D,$0A,0
+
+.endproc
