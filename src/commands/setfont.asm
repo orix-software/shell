@@ -24,8 +24,8 @@
     MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
     TEST_OOM_AND_MAX_MALLOC
 
-    sta VARLNG
-    sty VARLNG+1
+    sta userzp
+    sty userzp+1
 
     ; Destination du _strcpy
     sta RESB
@@ -46,8 +46,8 @@
     sty RESB+1
 
     ; Destination
-    lda VARLNG
-    ldy VARLNG+1
+    lda userzp
+    ldy userzp+1
     sta RES
     sty RES+1
 
@@ -63,8 +63,8 @@
     jsr _strcat
 
     ;FOPEN fontpath, O_RDONLY
-    lda VARLNG
-    ldx VARLNG+1
+    lda userzp
+    ldx userzp+1
     ldy #O_RDONLY
     BRK_ORIX XOPEN
 
@@ -78,9 +78,9 @@
     ; FCLOSE 0
     BRK_ORIX XCLOSE
 
-    ; mfree (VARLNG)
-    lda VARLNG
-    ldy VARLNG+1
+    ; mfree (userzp)
+    lda userzp
+    ldy userzp+1
     BRK_ORIX XFREE
 
     BRK_ORIX XCRLF
@@ -121,15 +121,15 @@
     ldy #>txt_file_not_found
     BRK_ORIX XWSTR0
 
-    ;print (VARLNG), NOSAVE
-    lda VARLNG
-    ldy VARLNG+1
+    ;print (userzp), NOSAVE
+    lda userzp
+    ldy userzp+1
     BRK_ORIX XWSTR0
 
     BRK_ORIX XCRLF
-    ; mfree VARLNG
-    lda VARLNG
-    ldy VARLNG+1
+    ; mfree userzp
+    lda userzp
+    ldy userzp+1
     BRK_ORIX XFREE
 
     ; Code de retour
