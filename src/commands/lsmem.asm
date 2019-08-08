@@ -2,30 +2,31 @@
 
 .proc _lsmem
 
-   lsmem_ptr_malloc_pid := userzp
+   lsmem_ptr_malloc     := userzp
    lsmem_ptr_pid_table  := userzp+2	 ; Get struct
+   lsmem_ptr            := userzp+4 
 
-   lda #$00
+   ldx     #XVARS_KERNEL_PROCESS  ; Get adress struct of process from kernel
    BRK_ORIX(XVARS)
-   sta lsmem_ptr_pid_table
-   sty lsmem_ptr_pid_table+1
+   sta     lsmem_ptr_pid_table
+   sty     lsmem_ptr_pid_table+1
 
 
-   lda #$01
+   ldx     #XVARS_KERNEL_MALLOC ; Get adress struct of malloc from kernel
    BRK_ORIX(XVARS)
-   sta lsmem_ptr_malloc_pid
-   sty lsmem_ptr_malloc_pid+1
+   sta     lsmem_ptr_malloc
+   sty     lsmem_ptr_malloc+1
 
-   PRINT str_column
+   PRINT   str_column
     
    ldx #$00
     
 myloop:
     txa
     pha
-    PRINT str_FREE
-    lda ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
-    jsr _print_hexa
+    PRINT   str_FREE
+    lda     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
+    jsr     _print_hexa
         
     lda ORIX_MALLOC_FREE_BEGIN_LOW_TABLE,x
     jsr _print_hexa_no_sharp
@@ -104,6 +105,35 @@ myloop2:
     ; at this step we found the PID and his position un process list : X contains the position of the process list
   
 	; display process now
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_pid_list
+    ;sta     $7000
+    tay
+
+    lda     (lsmem_ptr_malloc),y
+
+    ; we get the process position, now let's get it's name
+
+    pha
+    clc
+    adc     #kernel_process_struct::kernel_one_process_struct_ptr_low
+    tay
+
+    lda     (lsmem_ptr_pid_table),y
+    sta     lsmem_ptr
+    sta     $5000
+    pla
+
+    clc
+    adc     #kernel_process_struct::kernel_one_process_struct_ptr_high
+    tay
+    lda     (lsmem_ptr_pid_table),y
+    sta     lsmem_ptr+1
+    sta     $5001
+
+
+
     lda     #'A'       
     BRK_ORIX XWR0
 

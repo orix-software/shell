@@ -1,5 +1,6 @@
 .proc _banks
     current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
+    
     tmp2         := userzp+2    ; 1 bytes
     ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     ptr2         := userzp    ; 2 bytes
