@@ -1,8 +1,10 @@
+.export _man
+
 .proc _man
     MAN_SAVE_MALLOC_PTR:=userzp
     MAN_SAVE_MALLOC_FP :=userzp+2
-    ;
-    MALLOC  .strlen("/usr/share/man/")+FNAME_LEN+1+1              ; length of /usr/share/man/ + 8 + .hlp + \0
+    ; 
+    MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+1)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
     TEST_OOM_AND_MAX_MALLOC
    
@@ -76,15 +78,11 @@ next:
     lda     #$01 ; 1 is the fd id of the file opened
     sta     TR0
   ; define target address
-    lda     #<SCREEN
-    sta     PTR_READ_DEST
-    lda     #>SCREEN
-    sta     PTR_READ_DEST+1
+
   ; We read 1080 bytes
-    lda     #<1080      ; FIXME  size from parameters
-    ldy     #>1080
-  ; reads byte 
-    BRK_ORIX  XFREAD
+    FREAD   SCREEN, 1080, 1, 0
+
+
     BRK_ORIX  XCLOSE
 cget_loop:
     BRK_ORIX  XRDW0

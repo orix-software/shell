@@ -88,23 +88,6 @@ myloop2:
 
     CPUTC ' '
 
-    ; looking for PID
-
-    ;ldy     #$00
-;@loop:
-    ;lda     (lsmem_ptr_malloc_pid),y
-    ;cmp     ORIX_MALLOC_BUSY_TABLE_PID,x
-    ;beq     @found
-    ;iny     
-    ;cpy     #KERNEL_MAX_PROCESS
-    ;bne     @loop
-    ;rts
-          ; at this step, we did not found the process, we should send an exception
-;@found:
-   
-        
-    ; at this step we found the PID and his position un process list : X contains the position of the process list
-  
 	; display process now
     txa
     clc
