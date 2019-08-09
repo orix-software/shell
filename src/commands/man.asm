@@ -94,7 +94,10 @@ out:
     
     SWITCH_ON_CURSOR
 
-    FREE MAN_SAVE_MALLOC_PTR
+    lda MAN_SAVE_MALLOC_PTR
+    ldy MAN_SAVE_MALLOC_PTR+1
+    BRK_ORIX XFREE
+
     rts
 
 str_man_error:

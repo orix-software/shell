@@ -20,7 +20,7 @@
 
    PRINT   str_column
     
-   ldx #$00
+   ldx     #$00
     
 myloop:
     txa
@@ -115,6 +115,7 @@ myloop2:
     lda     (lsmem_ptr_pid_table),y
     sta     lsmem_ptr+1
 
+    ; At this step lsmem_ptr is the first char of the name of the command
     ldy     #$00
 @L1:
     lda     (lsmem_ptr),y
@@ -133,8 +134,8 @@ myloop2:
     tax
 busy_chunk_is_empty:
     inx
-    cpx #KERNEL_NUMBER_OF_MALLOC
-    bne myloop2
+    cpx     #KERNEL_NUMBER_OF_MALLOC
+    bne     myloop2
 
 
 skip:
