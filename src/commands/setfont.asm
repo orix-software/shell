@@ -67,9 +67,14 @@
     ldx userzp+1
     ldy #O_RDONLY
     BRK_ORIX XOPEN
-
-    bne error
-
+    
+    cmp #NULL
+    bne @S1
+    cpy #NULL
+    bne @S1
+    beq error
+    
+@S1:
     ; Chargement du fichier
     ; Destination
     ; count = 1, fp = 0?
