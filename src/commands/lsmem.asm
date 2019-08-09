@@ -5,6 +5,7 @@
    lsmem_ptr_malloc     := userzp
    lsmem_ptr_pid_table  := userzp+2	 ; Get struct
    lsmem_ptr            := userzp+4 
+   lsmem_savey          := userzp+6  ; 1 byte
 
    ldx     #XVARS_KERNEL_PROCESS  ; Get adress struct of process from kernel
    BRK_ORIX(XVARS)
@@ -122,7 +123,7 @@ myloop2:
 
     lda     (lsmem_ptr_pid_table),y
     sta     lsmem_ptr
-    sta     $5000
+
     pla
 
     clc
@@ -130,13 +131,18 @@ myloop2:
     tay
     lda     (lsmem_ptr_pid_table),y
     sta     lsmem_ptr+1
-    sta     $5001
 
-
-
-    lda     #'A'       
+    ldy     #$00
+@L1:
+    lda     (lsmem_ptr),y
+    beq     @S1
+    sty     lsmem_savey
     BRK_ORIX XWR0
+    ldy     lsmem_savey
+    iny
+    bne     @L1
 
+@S1:
 
     BRK_TELEMON XCRLF
     ; save X
