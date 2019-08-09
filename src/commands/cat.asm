@@ -1,3 +1,5 @@
+.export _cat
+
 .proc _cat
     ldx #$01
     jsr _orix_get_opt

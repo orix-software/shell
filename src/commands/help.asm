@@ -1,3 +1,5 @@
+.export _help
+
 .proc _help
 
     ; This command works if commands have not a length greater than 8

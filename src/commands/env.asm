@@ -1,3 +1,5 @@
+.export _env
+
 .proc _env
     PRINT str_PATH
     BRK_ORIX XCRLF

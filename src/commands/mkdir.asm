@@ -1,7 +1,12 @@
+.export _mkdir
+
+
 mkdir_length_to_malloc := userzp
 mkdir_temp := userzp+3
 mkdir_malloc_ptr       := userzp+1 ; .word
 ; LIMIT : can't malloc more than 255 for the path
+
+
 .proc _mkdir
     ldx     #$01
     jsr     _orix_get_opt

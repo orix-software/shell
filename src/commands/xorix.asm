@@ -1,4 +1,4 @@
-
+.export _xorix
 
 
 

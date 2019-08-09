@@ -1,3 +1,5 @@
+.export _watch
+
 save_mainargs_ptr:=userzp
 
 

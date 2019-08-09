@@ -1,3 +1,5 @@
+.export _touch
+
 .proc _touch
   ldx #$01
   jsr _orix_get_opt

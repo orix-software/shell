@@ -1,4 +1,4 @@
-
+.export _meminfo
 
 .proc _meminfo
 MALLOC_TABLE=48

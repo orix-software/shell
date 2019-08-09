@@ -1,3 +1,6 @@
+
+.export _exec
+
 .proc _exec
     ; Now we remove exec word from BUFEDT
      ldx     #$00

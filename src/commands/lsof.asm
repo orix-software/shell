@@ -1,3 +1,5 @@
+.export _lsof
+
 .proc _lsof
 
   PRINT str_nb_of_opened_files

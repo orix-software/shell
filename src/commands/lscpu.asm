@@ -1,3 +1,6 @@
+.export _lscpu
+
+
 .proc _lscpu
     PRINT   str_architecture
     jsr     _getcpu

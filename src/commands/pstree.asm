@@ -1,4 +1,4 @@
-
+.export _pstree
 
 .proc _pstree
     jmp newpstree

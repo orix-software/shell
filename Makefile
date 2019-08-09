@@ -32,6 +32,8 @@ test:
 	#xa tests/xmkdir.asm -o xmkdir
 	#cp src/include/orix.h build/usr/include/orix/
 	mkdir -p build/usr/src/orix-source-1.0/src/
+	mkdir -p build/usr/share/man/
+	mkdir -p build/usr/share/fonts/
 	sh tools/builddocs.sh
 	cp Makefile build/usr/src/orix-source-1.0/
 	cp README.md build/usr/src/orix-source-1.0/

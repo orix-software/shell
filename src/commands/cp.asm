@@ -2,6 +2,8 @@
 
 CP_SIZE_OF_BUFFER=40000
 
+.export _mv,_cp
+
 ;.proc
 .proc _mv
   lda   #$01 ; don't Delete param1 file

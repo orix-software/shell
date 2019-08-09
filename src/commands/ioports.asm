@@ -1,3 +1,5 @@
+.export _ioports
+
 .proc _ioports
     PRINT ioports_via1
 	PRINT ioports_acia
@@ -14,5 +16,4 @@ ioports_ch376:
 ioports_acia:	
 	.byte "$31C-$31F : 6551",$0D,$0A,0
 .endproc	
-
 

@@ -1,3 +1,6 @@
+
+.export _banks
+
 .proc _banks
     current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
     
@@ -10,17 +13,17 @@
     bcc     displays_all_banks      ; if there is no args, let's displays all banks
     lda     ORIX_ARGV
     sec
-	sbc     #$30
-	tax
-	stx     VAPLIC
-	lda     #<$C000
-	ldy     #>$C000
+    sbc     #$30
+    tax
+    stx     VAPLIC
+    lda     #<$C000
+    ldy     #>$C000
     sta     VAPLIC+1
-	sty     VAPLIC+2
-	sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
-	sty     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
-	stx     BNKCIB
-	jmp     EXBNK
+    sty     VAPLIC+2
+    sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
+    sty     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
+    stx     BNKCIB
+    jmp     EXBNK
 	
 ; displays all bank	
 displays_all_banks:   

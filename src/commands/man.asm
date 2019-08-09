@@ -1,6 +1,6 @@
 .proc _man
-    MAN_SAVE_MALLOC_PTR:=VARLNG
-    MAN_SAVE_MALLOC_FP :=VARLNG+2
+    MAN_SAVE_MALLOC_PTR:=userzp
+    MAN_SAVE_MALLOC_FP :=userzp+2
     ;
     MALLOC  .strlen("/usr/share/man/")+FNAME_LEN+1+1              ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM

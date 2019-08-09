@@ -1,3 +1,5 @@
+.export _rm
+
 .proc _rm
   ldx   #$01               ; get the fiest arg
   jsr   _orix_get_opt      ; 

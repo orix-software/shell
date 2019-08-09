@@ -1,3 +1,7 @@
+.export _clear
+
+.import _clrscr
+
 .proc _clear
 	; Use FILLM instead or CLS FIXME
 	BRK_ORIX XHIRES ; Hires

@@ -1,3 +1,4 @@
+.export _cd
 
 .define OLD_PATH_MANAGEMENT 1
 .proc _cd

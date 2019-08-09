@@ -1,5 +1,7 @@
+.export _viewhrs
+
 .proc _viewhrs
-    VIEWHRS_SAVE_FP:=VARLNG
+    VIEWHRS_SAVE_FP:=userzp
     ; get the first parameter
     ldx     #$01
     jsr     _orix_get_opt

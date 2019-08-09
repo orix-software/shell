@@ -1,3 +1,5 @@
+.export _basic11
+
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
     sei
@@ -18,7 +20,7 @@ loop:
     dex
     bne loop
     lda #$00                                    ; FIXME 65C02
-    sta $2df ; Flush keyboard for atmos rom
+    sta $2DF ; Flush keyboard for atmos rom
     jmp COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
 copy:
     sei
