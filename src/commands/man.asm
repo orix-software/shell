@@ -1,5 +1,7 @@
 .export _man
 
+; TODO : move MALLOC macro after arg test : it avoid a malloc if there is no parameter on command line
+
 .proc _man
     MAN_SAVE_MALLOC_PTR:=userzp
     MAN_SAVE_MALLOC_FP :=userzp+2
@@ -7,7 +9,7 @@
     MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+1)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
     TEST_OOM_AND_MAX_MALLOC
-   
+
 start_man:   
     sta     MAN_SAVE_MALLOC_PTR
     sta     RESB
@@ -74,15 +76,8 @@ not_found:
 next:
     CLS
     SWITCH_OFF_CURSOR
-    ; now we read
-    lda     #$01 ; 1 is the fd id of the file opened
-    sta     TR0
-  ; define target address
-
   ; We read 1080 bytes
     FREAD   SCREEN, 1080, 1, 0
-
-
     BRK_ORIX  XCLOSE
 cget_loop:
     BRK_ORIX  XRDW0

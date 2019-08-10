@@ -18,8 +18,8 @@ CP_SIZE_OF_BUFFER=40000
 .endproc
 
 .proc _cp_mv_execute
-  ptr1:=userzp
-  MALLOC_PTR1:=userzp+2
+  ptr1         :=userzp
+  MALLOC_PTR1  :=userzp+2
   ;ptr2 will be used to save fp
   lda   #$00
   sta   ptr1_32         ; FIXME 65C02
@@ -40,7 +40,7 @@ CP_SIZE_OF_BUFFER=40000
   
   ldy   #O_RDONLY ; Open in readonly
   BRK_TELEMON XOPEN
-  cmp   #$ff
+  cmp   #$FF
   beq   no_such_file
 
   ; Let's copy

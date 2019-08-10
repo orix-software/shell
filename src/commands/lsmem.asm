@@ -6,6 +6,7 @@
    lsmem_ptr_pid_table  := userzp+2	 ; Get struct
    lsmem_ptr            := userzp+4 
    lsmem_savey          := userzp+6  ; 1 byte
+   lsmem_savex          := userzp+7  ; 1 byte
 
    ldx     #XVARS_KERNEL_PROCESS  ; Get adress struct of process from kernel
    BRK_ORIX(XVARS)
@@ -19,60 +20,81 @@
    sty     lsmem_ptr_malloc+1
 
    PRINT   str_column
-    
+
+
+; Displays all free chunk 
+
    ldx     #$00
     
-myloop:
-    txa
-    pha
+@L1:
+    stx     lsmem_savex
+    ; looking if there is free chunk set
+    lda     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
+    bne     @S4
+    lda     ORIX_MALLOC_FREE_BEGIN_LOW_TABLE,x
+    bne     @S4
+    beq     @S5
+
+@S4:
     PRINT   str_FREE
     lda     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
     jsr     _print_hexa
         
-    lda ORIX_MALLOC_FREE_BEGIN_LOW_TABLE,x
-    jsr _print_hexa_no_sharp
+    lda     ORIX_MALLOC_FREE_BEGIN_LOW_TABLE,x
+    jsr     _print_hexa_no_sharp
         
-    CPUTC ':'
+    CPUTC   ':'
       
-    lda ORIX_MALLOC_FREE_END_HIGH_TABLE,x
-    jsr _print_hexa
+    lda     ORIX_MALLOC_FREE_END_HIGH_TABLE,x
+    jsr     _print_hexa
      
         
-    lda ORIX_MALLOC_FREE_END_LOW_TABLE,x
-    jsr _print_hexa_no_sharp
+    lda     ORIX_MALLOC_FREE_END_LOW_TABLE,x
+    jsr     _print_hexa_no_sharp
         
-    CPUTC ' '
+    CPUTC   ' '
         
-    lda  ORIX_MALLOC_FREE_SIZE_HIGH_TABLE,x
-    jsr _print_hexa
+    lda     ORIX_MALLOC_FREE_SIZE_HIGH_TABLE,x
+    jsr    _print_hexa
         
-    lda  ORIX_MALLOC_FREE_SIZE_LOW_TABLE,x
-    jsr _print_hexa_no_sharp
+    lda    ORIX_MALLOC_FREE_SIZE_LOW_TABLE,x
+    jsr    _print_hexa_no_sharp
     
     BRK_ORIX XCRLF
         
-    pla
-    tax
- 
+@S5:
+    ldx     lsmem_savex
+    inx 
+    cpx     #KERNEL_MALLOC_FREE_FRAGMENT_MAX
+    bne     @L1
+
+; Displays all busy chunk 
+
     ldx #$00
 
+
 myloop2:
+
     lda ORIX_MALLOC_BUSY_TABLE_PID,x
-    beq busy_chunk_is_empty
+
+    beq busy_chunk_is_empty             ; If malloc pid table is equal to 0 at position X, then there is nothing allocated
     
-    ; at this step X contains 
-    txa
-    pha
+    ; at this step X contains the first busy chunck    
+    stx lsmem_savex
+
         
         
     PRINT str_BUSY
+
+    ; Get start adress of busy chunk
+    ldx lsmem_savex
     lda ORIX_MALLOC_BUSY_TABLE_BEGIN_HIGH,x
     jsr _print_hexa
     lda ORIX_MALLOC_BUSY_TABLE_BEGIN_LOW,x
     jsr _print_hexa_no_sharp
         
     CPUTC ' '
-        
+
     lda ORIX_MALLOC_BUSY_TABLE_END_HIGH,x
     jsr _print_hexa
     lda ORIX_MALLOC_BUSY_TABLE_END_LOW,x
@@ -130,8 +152,8 @@ myloop2:
 
     BRK_TELEMON XCRLF
     ; save X
-    pla 
-    tax
+    ldx     lsmem_savex
+
 busy_chunk_is_empty:
     inx
     cpx     #KERNEL_NUMBER_OF_MALLOC
