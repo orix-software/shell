@@ -10,6 +10,9 @@
     ; FIXME test OOM
     TEST_OOM_AND_MAX_MALLOC
 
+
+
+
 start_man:   
     sta     MAN_SAVE_MALLOC_PTR
     sta     RESB
@@ -51,29 +54,43 @@ start_man:
     sta     RES+1
     jsr     _strcat
 
+
+
     lda     MAN_SAVE_MALLOC_PTR
     ldx     MAN_SAVE_MALLOC_PTR+1
     ldy     #O_RDONLY
     BRK_ORIX XOPEN
-    sta     MAN_SAVE_MALLOC_FP
-    
-    cpx     #$FF
+
+
+    cmp     #NULL
     bne     next
-    cmp     #$FF
+    cpy     #NULL
     bne     next
-    beq     not_found
-    rts
-error:
-    PRINT   str_man_error
-    rts
-not_found:
+
+    ; Not found
+    ; Free memory for path
+    lda     MAN_SAVE_MALLOC_PTR
+    ldy     MAN_SAVE_MALLOC_PTR+1
+    BRK_ORIX XFREE
+
     PRINT   txt_file_not_found
     ldx     #$01
     jsr     _orix_get_opt
     PRINT   BUFNOM
     RETURN_LINE
-    rts 
+
+    rts
+error:
+    ; Free memory for path
+    lda     MAN_SAVE_MALLOC_PTR
+    ldy     MAN_SAVE_MALLOC_PTR+1
+    BRK_ORIX XFREE
+    PRINT   str_man_error
+    rts
+
 next:
+    sta     MAN_SAVE_MALLOC_FP
+    sty     MAN_SAVE_MALLOC_FP+1
     CLS
     SWITCH_OFF_CURSOR
   ; We read 1080 bytes
@@ -92,6 +109,12 @@ out:
     lda MAN_SAVE_MALLOC_PTR
     ldy MAN_SAVE_MALLOC_PTR+1
     BRK_ORIX XFREE
+
+    lda MAN_SAVE_MALLOC_FP
+    ldy MAN_SAVE_MALLOC_FP+1
+    BRK_ORIX XFREE
+
+    
 
     rts
 
