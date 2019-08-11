@@ -1,45 +1,45 @@
 .export _meminfo
 
 .proc _meminfo
-MALLOC_TABLE=48
+
     PRINT strMemTotal 
     
-    lda MEMTOTAL
-    sta RES
-    lda MEMTOTAL+1
-    sta RES+1
-    lda MEMTOTAL+2
-    sta RESB  
-    lda MEMTOTAL+3
-    sta RESB+1
+    lda     MEMTOTAL
+    sta     RES
+    lda     MEMTOTAL+1
+    sta     RES+1
+    lda     MEMTOTAL+2
+    sta     RESB  
+    lda     MEMTOTAL+3
+    sta     RESB+1
     BRK_ORIX XDIVIDE_INTEGER32_BY_1024
     
 
 
-    lda RES
-    LDY RES+1
-    LDX #$20 ;
-    STX DEFAFF
-    LDX #$03
+    lda     RES
+    LDY     RES+1
+    LDX     #$20 ;
+    STX     DEFAFF
+    LDX     #$03
     BRK_ORIX XDECIM
-    PRINT strKB 
+    PRINT     strKB 
     
-    PRINT strMemFree
+    PRINT     strMemFree
     
-    lda ORIX_MALLOC_FREE_SIZE_LOW_TABLE
-    sta RES
-    lda ORIX_MALLOC_FREE_SIZE_HIGH_TABLE
-    sta RES+1
-    lda #$00
-    sta RESB  
-    sta RESB+1
+    lda     ORIX_MALLOC_FREE_SIZE_LOW_TABLE
+    sta     RES
+    lda     ORIX_MALLOC_FREE_SIZE_HIGH_TABLE
+    sta     RES+1
+    lda     #$00
+    sta     RESB  
+    sta     RESB+1
     BRK_ORIX XDIVIDE_INTEGER32_BY_1024
     
-    lda RES
-    LDY RES+1
-    LDX #$20 ;
-    STX DEFAFF
-    LDX #$04
+    lda     RES
+    ldy     RES+1
+    ldx     #$20 ;
+    stx     DEFAFF
+    ldx     #$04
     BRK_ORIX XDECIM
     
     PRINT strKB
