@@ -109,8 +109,6 @@ TERM:
     .res 1
 TEMP_SH_COMMAND: ; For sh command only
     .res 2
-ORIX_CURRENT_PROCESS_FOREGROUND:
-    .res 1
 MEMTOTAL:
     .res 4 ; Store the length of the RAM in bytes
 

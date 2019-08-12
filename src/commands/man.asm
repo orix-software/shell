@@ -10,9 +10,6 @@
     ; FIXME test OOM
     TEST_OOM_AND_MAX_MALLOC
 
-
-
-
 start_man:   
     sta     MAN_SAVE_MALLOC_PTR
     sta     RESB
@@ -22,7 +19,7 @@ start_man:
     sta     RES
     lda     #>man_path
     sta     RES+1
-    jsr     _strcpy             ; MAN_SAVE_MALLOC_PTR contains adress of a new string
+    jsr     _strcpy               ; MAN_SAVE_MALLOC_PTR contains adress of a new string
  
     ; get the first parameter
     ldx     #$01
@@ -66,6 +63,7 @@ start_man:
     bne     next
     cpy     #NULL
     bne     next
+
 
     ; Not found
     ; Free memory for path
@@ -113,8 +111,6 @@ out:
     lda MAN_SAVE_MALLOC_FP
     ldy MAN_SAVE_MALLOC_FP+1
     BRK_ORIX XFREE
-
-    
 
     rts
 

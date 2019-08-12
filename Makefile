@@ -38,7 +38,7 @@ test:
 	cp Makefile build/usr/src/orix-source-1.0/
 	cp README.md build/usr/src/orix-source-1.0/
 	cp src/* build/usr/src/orix-source-1.0/src/ -adpR
-	cp data/* build/
+	#cp data/* build/ -adpR
 	#cp README.md build/usr/share/doc/$(ORIX_ROM)/
 	#ls -l $(HOMEDIR)
 	export ORIX_PATH=`pwd`

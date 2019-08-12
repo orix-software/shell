@@ -22,9 +22,9 @@
     STX     DEFAFF
     LDX     #$03
     BRK_ORIX XDECIM
-    PRINT     strKB 
+    PRINT   strKB 
     
-    PRINT     strMemFree
+    PRINT   strMemFree
     
     lda     ORIX_MALLOC_FREE_SIZE_LOW_TABLE
     sta     RES

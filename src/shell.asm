@@ -61,7 +61,6 @@ start_prompt:
     stz     BUFEDT
     stz     ORIX_ARGV
     stz     ERRNO
-    stz     ORIX_CURRENT_PROCESS_FOREGROUND
 .p02    
 .else
     lda     #$00
@@ -69,7 +68,6 @@ start_prompt:
     sta     BUFEDT               ; command line buffer
     sta     ORIX_ARGV            ; argv buffer
     sta     ERRNO                ; errno : last error from command, not managed everywhere
-    sta     ORIX_CURRENT_PROCESS_FOREGROUND
 .endif	
 
 display_prompt:
@@ -105,10 +103,8 @@ start_commandline:
     lda     #<BUFEDT             ; register command line buffer
     ldy     #>BUFEDT
     jsr     _bash                ; and launch interpreter
-    lda     ORIX_CURRENT_PROCESS_FOREGROUND
-    beq     start_prompt
-
     jmp     start_prompt
+    
 next_key:
     cmp     #KEY_DEL             ; is it del pressed ?
     beq     key_del_routine      ; yes let's remove the char in the BUFEDT buffer
@@ -517,7 +513,6 @@ str_root_bin:
 .ifdef WITH_VI
 .include "commands/vi.asm"
 .endif
-; Functions
 
 .ifdef WITH_VIEWHRS
 .include "commands/viewhrs.asm"
@@ -526,6 +521,8 @@ str_root_bin:
 .ifdef WITH_XORIX
 .include "commands/xorix.asm"
 .endif
+
+; Functions
 
 .include "lib/strcpy.asm"
 .include "lib/strcat.asm"
@@ -829,6 +826,201 @@ _print_hexa_no_sharp:
 
 
 ;*****************************************************
+fork_mode:
+; 0 fork process
+; 1 generate pid but don't malloc a struct for child
+; 2 no fork no pid
+.define NOFORK_NOPID 2
+
+
+.ifdef WITH_BASIC11
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_BANK    
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_CAT
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_CA65
+    .byt NOFORK_NOPID
+.endif    	
+
+.ifdef WITH_CD
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_CLEAR    
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_CP
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_DATE
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_DEBUG
+    .byt NOFORK_NOPID
+.endif    	
+
+.ifdef WITH_DF
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_DIR
+    .byt NOFORK_NOPID ; dir (alias)
+.endif    
+
+.ifdef WITH_ECHO
+    .byt NOFORK_NOPID ; 
+.endif    
+
+.ifdef WITH_ENV    
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_EXEC
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_FORTH
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_HELP
+    .byt NOFORK_NOPID ;
+.endif    
+	
+.ifdef WITH_HISTORY
+    .byt NOFORK_NOPID
+.endif   
+
+.ifdef WITH_IOPORT	
+    .byt NOFORK_NOPID ;    
+.endif	
+
+.ifdef WITH_KILL
+    .byt NOFORK_NOPID ;    
+.endif	
+
+.ifdef WITH_LESS
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_LS   
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_LSCPU
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_LSMEM
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_LSOF
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_MAN
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_MEMINFO
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_MKDIR
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_MONITOR
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_MV   
+    .byt NOFORK_NOPID
+.endif    
+    
+.ifdef WITH_MOUNT
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_OCONFIG
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_PS
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_PSTREE
+    .byt NOFORK_NOPID
+.endif   
+
+.ifdef WITH_PWD    
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_RM
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_SEDSD
+    .byt NOFORK_NOPID
+.endif     
+    
+.ifdef WITH_SETFONT
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_SH
+    .byt NOFORK_NOPID
+.endif 
+
+.ifdef WITH_TELNETD
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_TOUCH
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_TREE
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_UNAME
+    .byt NOFORK_NOPID
+.endif    
+    
+.ifdef WITH_VI
+    .byt NOFORK_NOPID
+.endif
+
+.ifdef WITH_VIEWHRS
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_WATCH
+    .byt NOFORK_NOPID
+.endif    
+
+.ifdef WITH_REBOOT
+    .byt NOFORK_NOPID
+.endif
+    
+.ifdef WITH_XORIX
+    .byt NOFORK_NOPID
+.endif
+
 
 commands_low:
 
