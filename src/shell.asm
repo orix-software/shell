@@ -29,18 +29,7 @@ start_sh:
     sta     FLGKBD
 
     
-    ; Setting the current path to "/",0
-    lda     #'/'
-    sta     shell_bash_variables+shell_bash_struct::path_current
 
-.IFPC02
-.pc02
-    stz     shell_bash_variables+(shell_bash_struct::path_current+1)
-.p02    
-.else
-    lda     #$00
-    sta     shell_bash_variables+shell_bash_struct::path_current+1 
-.endif
 
     ; if it's hot reset, then don't initialize current path.
     BIT     FLGRST ; COLD RESET ?
@@ -79,7 +68,10 @@ display_prompt:
     lda     #$00
     sta     ORIX_GETOPT_PTR      ; init the PTR of the command line
 .endif
-    PRINT   shell_bash_variables+shell_bash_struct::path_current     ; Display current path in the prompt
+    ; Displays current path
+    BRK_ORIX XGETCWD_ROUTINE
+    BRK_ORIX XWSTR0
+    
     BRK_TELEMON XECRPR           ; display prompt (# char)
     SWITCH_ON_CURSOR
 
@@ -525,6 +517,7 @@ str_root_bin:
 ; Functions
 
 .include "lib/strcpy.asm"
+.include "lib/trim.asm"
 .include "lib/strcat.asm"
 .include "lib/strlen.asm"
 .include "lib/fread.asm"

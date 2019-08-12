@@ -1,7 +1,15 @@
 .export _cd
 
-.define OLD_PATH_MANAGEMENT 1
+
 .proc _cd
+    jmp     cd_2
+    cd_path := userzp
+    ; Let's malloc
+    MALLOC(KERNEL_MAX_PATH_LENGTH)
+    sta     cd_path
+    sty     cd_path+1
+
+
     ldx     #$01
     jsr     _orix_get_opt
     STRCPY ORIX_ARGV, BUFNOM
@@ -14,15 +22,21 @@
   
     lda     #$01
     sta     ORIX_PATH_CURRENT_POSITION
-.IFPC02
-.pc02
-    stz     shell_bash_variables+shell_bash_struct::path_current+1
-.p02    
-.else
-    lda     #$00 
-    sta     shell_bash_variables+shell_bash_struct::path_current+1
-.endif
-    rts
+
+    ldy     #$00
+    lda     #'/'
+    sta     (cd_path),y
+    iny
+    lda     #$00
+    sta     (cd_path),y
+
+
+    lda     cd_path
+    ldy     cd_path+1
+    BRK_KERNEL   XPUTCWD_ROUTINE
+
+    jmp     free
+
 	
 	; Here we return to /
 not_root:
@@ -49,81 +63,81 @@ pull_last_directory:
     bne     don_t_inx
     inx
 don_t_inx:	
-    lda #$00 ; FIXME 65C02
-    sta shell_bash_variables+shell_bash_struct::path_current,x
+    lda     #$00 ; FIXME 65C02
+    sta     shell_bash_variables+shell_bash_struct::path_current,x
 end:
-    rts
+    jmp     free
 	
 not_dot:
 		; if we are here, we are in /
 ;
-    ldx ORIX_PATH_CURRENT_POSITION
-    cpx #ORIX_MAX_PATH_LENGTH
-    bne we_don_t_reach_the_max_folder_level_for_oric
-    PRINT str_max_level  ; MACRO
+    ldx     ORIX_PATH_CURRENT_POSITION
+    cpx     #ORIX_MAX_PATH_LENGTH
+    bne     we_don_t_reach_the_max_folder_level_for_oric
+    PRINT   str_max_level  ; MACRO
 end2:
-	rts
+    jmp     free
 
 we_don_t_reach_the_max_folder_level_for_oric:
 
-    lda ORIX_PATH_CURRENT_POSITION
-    cmp #$01
-    beq don_t_concat_slash
-    lda #'/'
-    sta shell_bash_variables+shell_bash_struct::path_current,x
+    lda     ORIX_PATH_CURRENT_POSITION
+    cmp     #$01
+    beq     don_t_concat_slash
+    lda     #'/'
+    sta     shell_bash_variables+shell_bash_struct::path_current,x
     inx
 don_t_concat_slash:
-    ldy #$00
+    ldy     #$00
 loop5:
-    lda BUFNOM,y ; FIXME 65C02
-    beq launch
+    lda     BUFNOM,y ; FIXME 65C02
+    beq     launch
   ; if it's '/' and it's the first char we don't copy /
-    cpy #$00
-    bne store_char
-    cmp #'\'
-    beq end2  
-    cmp #'/'
-    bne store_char
+    cpy     #$00
+    bne     store_char
+    cmp     #'\'
+    beq     end2  
+    cmp     #'/'
+    bne     store_char
     iny
 .IFPC02
 .pc02
-    bra loop5
+    bra     loop5
 .p02    
 .else
-    jmp loop5
+    jmp     loop5
 .endif  
 store_char:
-    sta shell_bash_variables+shell_bash_struct::path_current,x
+    sta     shell_bash_variables+shell_bash_struct::path_current,x
     inx
     iny
 .IFPC02
 .pc02
-    bra loop5
+    bra     loop5
 .p02    
 .else
-    jmp loop5
+    jmp     loop5
 .endif  
 
 	; storing to the array
 	; let's go storing it
 launch:
-    sta shell_bash_variables+shell_bash_struct::path_current,x
-    stx ORIX_PATH_CURRENT_POSITION
+    sta     shell_bash_variables+shell_bash_struct::path_current,x
+    stx     ORIX_PATH_CURRENT_POSITION
 
-    jsr _ch376_verify_SetUsbPort_Mount
-    cmp #$01
-    beq cd_error_param
-    lda #<shell_bash_variables+shell_bash_struct::path_current
-    ldy #>(shell_bash_variables+shell_bash_struct::path_current+1)
+    jsr     _ch376_verify_SetUsbPort_Mount
+    cmp     #$01
+    beq     cd_error_param
+    lda     #<shell_bash_variables+shell_bash_struct::path_current
+    ldy     #>(shell_bash_variables+shell_bash_struct::path_current+1)
     BRK_KERNEL XOPENRELATIVE
 
-    beq no_error
+    beq     no_error
     ; error here, pop
-    ldx #$00
-    jsr _orix_get_opt
-    PRINT BUFNOM
+    ldx     #$00
+    jsr     _orix_get_opt
+    PRINT   BUFNOM
 	
-    PRINT str_not_found ; MACRO	
+    PRINT   str_not_found ; MACRO	
 
 .IFPC02
 .pc02 ; ???? FIXME bra ?
@@ -137,18 +151,75 @@ no_error:
     cmp     #CH376_ERR_OPEN_DIR
     bne     it_is_not_a_folder
 cd_error_param:
-	rts	
+    jmp     free
+
 it_is_not_a_folder:
     PRINT str_not_a_directory
-.IFPC02
+
     jmp pull_last_directory ; too away from label 
-.else
-    jmp pull_last_directory
-.endif
+
+free:
+    lda     cd_path
+    ldy     cd_path+1
+    BRK_KERNEL XFREE
     rts
+
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
 str_max_level:
     .byte "Limit is ",$30+(ORIX_MAX_PATH_LENGTH-1)," chars",0
+str_root:
+    .asciiz "/"
+cd_2:
+    MALLOC(KERNEL_MAX_PATH_LENGTH)
+    sta     cd_path
+    ;sta     RES
+    sty     cd_path+1
+    ;sty     RES+1
+    ;jsr     _trim
+
+
+    ldx     #$01
+    jsr     _orix_get_opt
+
+    ; copy in malloc
+    ldy     #$00
+@L1:
+    lda     ORIX_ARGV,y
+    beq     @S1
+    sta     (cd_path),y
+    iny
+    bne     @L1
+@S1:    
+    sta     (cd_path),y
+
+    
+
+    lda     cd_path
+    ldx     cd_path+1
+    ldy     #O_RDONLY
+
+    BRK_KERNEL XOPEN
+
+    cmp     #NULL
+    bne     @not_null
+    cpy     #NULL
+    bne     @not_null
+
+    PRINT str_not_a_directory
+    ; Error
+    jmp     free_cd_memory
+
+@not_null:
+    lda     cd_path
+    ldy     cd_path+1
+    BRK_KERNEL   XPUTCWD_ROUTINE
+
+
+free_cd_memory:
+    lda     cd_path
+    ldy     cd_path+1
+    BRK_KERNEL XFREE
+    rts    
 .endproc
 
