@@ -173,16 +173,12 @@ str_root:
 cd_2:
     MALLOC(KERNEL_MAX_PATH_LENGTH)
     sta     cd_path
-    ;sta     RES
     sty     cd_path+1
-    ;sty     RES+1
-    ;jsr     _trim
-
 
     ldx     #$01
     jsr     _orix_get_opt
 
-    ; copy in malloc
+    ; copy in malloc args
     ldy     #$00
 @L1:
     lda     ORIX_ARGV,y
@@ -193,8 +189,58 @@ cd_2:
 @S1:    
     sta     (cd_path),y
 
+    ; check if it's . or ..
+    ; FIXME : add trim
     
+    ldy     #$00
+    lda     (cd_path),y
+    cmp     #'.'
+    bne     @not_dot
+    iny
+    lda     (cd_path),y
+    beq     @only_one_dot
+    cmp     #'.'
+    bne     free_cd_memory ; it's  'cd .' only then, jump. 
+    ; Here we have 'cd ..'
+    ; let's pull folder
+    BRK_ORIX XGETCWD_ROUTINE  ; Get A & Y 
+    sta     cd_path
+    sty     cd_path+1
+    ; loop until we reach 0
+    ldy     #$00
+@L2:    
+    lda     (cd_path),y
+    beq     @end_of_string_found
+    iny
+    bne     @L2
+    rts     ; Error overflow return with no error
+@end_of_string_found:
+    ; now let's find last '/'
+    dey
+@L3:    
+    lda     (cd_path),y
+    cmp     #'/'
+    beq     @slash_found
+    dey
+    bne     @L3
+    ; We reached 0 : then we are in "/" root
+@only_one_dot:    
+    rts
 
+
+@slash_found:
+    lda     #$00
+    sta     (cd_path),y
+    
+    ; modify path now
+    lda     cd_path
+    ldy     cd_path+1
+    BRK_KERNEL   XPUTCWD_ROUTINE
+    ; and free
+    jmp     free_cd_memory
+
+
+@not_dot:
     lda     cd_path
     ldx     cd_path+1
     ldy     #O_RDONLY
