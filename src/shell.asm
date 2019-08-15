@@ -618,6 +618,12 @@ not_a_tape_file:
     ; FIXME close the opened file here
 
     BRK_TELEMON XCLOSE
+
+    lda     ptr_header
+    ldy     ptr_header+1
+    BRK_TELEMON XFREE
+
+
     rts 
 is_an_orix_file:
     RETURN_LINE	
@@ -657,6 +663,10 @@ is_not_encapsulated:
    
     lda     #$00 ; don't update length
     BRK_TELEMON XCLOSE
+
+    lda     ptr_header
+    ldy     ptr_header+1
+    BRK_TELEMON XFREE
 
     jmp     (VARAPL+2) ; jmp : it means that if program launched do an rts, it returns to interpreter
 
