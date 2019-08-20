@@ -720,9 +720,6 @@ next:
   rts
 .endproc
 
-
-
-
 .proc _getcpu
     lda     #$00
     .byt    $1A        ; .byte $1A ; nop on nmos, "inc A" every cmos
@@ -823,7 +820,9 @@ fork_mode:
 ; 0 fork process
 ; 1 generate pid but don't malloc a struct for child
 ; 2 no fork no pid
-.define NOFORK_NOPID 2
+.define NOFORK_NOPID   2
+.define NOFORK_WITHPID 1
+.define FORK_WITHPID   0
 
 
 .ifdef WITH_BASIC11
