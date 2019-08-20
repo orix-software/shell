@@ -32,18 +32,7 @@ start_sh:
     sta     FLGKBD
 
     
-    ; Setting the current path to "/",0
-    lda     #'/'
-    sta     shell_bash_variables+shell_bash_struct::path_current
 
-.IFPC02
-.pc02
-    stz     shell_bash_variables+(shell_bash_struct::path_current+1)
-.p02    
-.else
-    lda     #$00
-    sta     shell_bash_variables+shell_bash_struct::path_current+1 
-.endif
 
     ; if it's hot reset, then don't initialize current path.
     BIT     FLGRST ; COLD RESET ?
@@ -82,7 +71,10 @@ display_prompt:
     lda     #$00
     sta     ORIX_GETOPT_PTR      ; init the PTR of the command line
 .endif
-    PRINT   shell_bash_variables+shell_bash_struct::path_current     ; Display current path in the prompt
+    ; Displays current path
+    BRK_ORIX XGETCWD_ROUTINE
+    BRK_ORIX XWSTR0
+    
     BRK_TELEMON XECRPR           ; display prompt (# char)
     SWITCH_ON_CURSOR
 
@@ -236,15 +228,20 @@ orix_try_to_find_command_in_bin_path:
     jsr     _orix_get_opt
 
     jsr     _start_from_root_bin
+    ; If it return NULL then it's not found.
 
-    cmp     #$ff ; if it return x=$ff a=$ff (it's not open)
-    beq     even_in_slash_bin_command_not_found
+    cmp     #NULL ; if it return y=$ff a=$ff (it's not open)
+    bne     @found_in_bin_folder
+    cpy     #NULL ; if it return y=$ff a=$ff (it's not open)
+    bne     @found_in_bin_folder
+    beq     @even_in_slash_bin_command_not_found
+@found_in_bin_folder:    
     ; we should start code here
-    lda     #$00
-    sta     ERRNO ; FIXME 65C02
-    jsr     _orix_load_and_start_app_xopen_done
-    rts
-even_in_slash_bin_command_not_found:
+    jmp     _orix_load_and_start_app_xopen_done
+
+@even_in_slash_bin_command_not_found:
+    ; At this step A & Y still contains FP then free
+    BRK_ORIX(XFREE)
     RETURN_LINE
     PRINT   ORIX_ARGV
     PRINT   str_command_not_found
@@ -343,8 +340,10 @@ loop20:
     ; now copy argv[0]
 @end2:
     sta     volatile_str,x
-
-    FOPEN volatile_str, O_RDONLY
+    ldy     #O_RDONLY
+    lda     #<volatile_str
+    ldx     #>volatile_str
+    BRK_KERNEL XOPEN
 
     rts
 str_root_bin:
@@ -528,6 +527,7 @@ str_root_bin:
 ; Functions
 
 .include "lib/strcpy.asm"
+.include "lib/trim.asm"
 .include "lib/strcat.asm"
 .include "lib/strlen.asm"
 .include "lib/fread.asm"
@@ -556,24 +556,21 @@ _cd_to_current_realpath_new:
     rts
 .endproc    
 
-end_crap:       ; FIXME
-    rts
+    ptr_header   :=userzp+2
+    fp_exec      :=userzp+4
+    exec_address :=userzp+6
 	
 _orix_load_and_start_app:
-    fp_exec_program:= userzp ; 2 bytes
 
-    jsr     _ch376_verify_SetUsbPort_Mount          ; Mount card
-    cmp     #$01
-    beq     end_crap
-	
+
     ;       let's cd
     BRK_ORIX    $48   ; XGETCWD
     ; A & Y contains ptr
     ldy     #O_RDONLY
     BRK_ORIX XOPEN
     ; save ptr
-    sta     fp_exec_program
-    sty     fp_exec_program+1   
+    sta     fp_exec
+    sty     fp_exec+1   
     ;jsr     _cd_to_current_realpath_new
     ldx     #$00
     jsr     _orix_get_opt                           ; get first parameter
@@ -581,7 +578,7 @@ _orix_load_and_start_app:
  	
     jsr     _ch376_set_file_name
     jsr     _ch376_file_open
-    cmp     #CH376_ERR_MISS_FILE                    ; File is missling ?
+    cmp     #CH376_ERR_MISS_FILE                    ; File is missing ?
     bne     skip_and_malloc_header
     RETURN_LINE                                     
     PRINT   ORIX_ARGV                               ; Yes file is missing displays error
@@ -591,12 +588,14 @@ _orix_load_and_start_app:
   
 _orix_load_and_start_app_xopen_done:
 skip_and_malloc_header:
+    
 
+    ; Save pointer
+    sta    fp_exec     
+    sty    fp_exec+1
     MALLOC 20 ; Malloc 20 bytes (20 bytes for header)
     
     TEST_OOM_AND_MAX_MALLOC
-
-    ptr_header:=userzp+2
     
     sta     ptr_header
     sty     ptr_header+1
@@ -607,16 +606,13 @@ skip_and_malloc_header:
     lda     #20
     ldy     #$00
     BRK_TELEMON XFREAD
-    
+   
     
     ldy     #$00
     lda     (ptr_header),y ; fixme 65c02
 
-;******************************************** END Manage starting tap file*/	
-
-not_a_tape_file:
     cmp     #$01
-    beq     is_an_orix_file
+    beq     @is_an_orix_file
     RETURN_LINE
     
     BRK_TELEMON XCLOSE
@@ -631,12 +627,9 @@ not_a_tape_file:
 
     BRK_TELEMON XCLOSE
 
-    lda     ptr_header
-    ldy     ptr_header+1
-    BRK_TELEMON XFREE
+    jmp     @free_exec
 
-    rts 
-is_an_orix_file:
+@is_an_orix_file:
     RETURN_LINE	
 
   	; Switch off cursor
@@ -656,35 +649,43 @@ is_an_orix_file:
 
     ldy     #18
     lda     (ptr_header),y ; fixme 65c02
-    sta     VARAPL+2
+    sta     exec_address
+
     ldy     #19
     lda     (ptr_header),y ; fixme 65c02    
-    sta     VARAPL+3
+    sta     exec_address+1
     
     ldx     #$00
     jsr     _orix_get_opt
-
-is_not_encapsulated:
 	
     lda     #$FF ; read all the binary
     ldy     #$FF
     BRK_TELEMON XFREAD
-
-    ; These nops are used because on real hardware, CLOSE refuse to close
+    ; FIXME return nb_bytes read malloc must be done
    
     lda     #$00 ; don't update length
     BRK_TELEMON XCLOSE
+
+    jsr     @free_exec
+
+    jmp     (exec_address) ; jmp : it means that if program launched do an rts, it returns to interpreter
+
+@free_exec:
+    lda     fp_exec     
+    ldy     fp_exec+1
+    BRK_KERNEL XFREE
 
     lda     ptr_header
     ldy     ptr_header+1
     BRK_TELEMON XFREE
 
-    lda     fp_exec_program
-    ldy     fp_exec_program+1
- 
-    BRK_TELEMON XFREE
 
-    jmp     (VARAPL+2) ; jmp : it means that if program launched do an rts, it returns to interpreter
+
+    rts
+
+
+
+
 
 .proc _XREAD
 	
@@ -752,9 +753,6 @@ next:
   sta     PTR_READ_DEST
   rts
 .endproc
-
-
-
 
 .proc _getcpu
     lda     #$00
@@ -856,7 +854,9 @@ fork_mode:
 ; 0 fork process
 ; 1 generate pid but don't malloc a struct for child
 ; 2 no fork no pid
-.define NOFORK_NOPID 2
+.define NOFORK_NOPID   2
+.define NOFORK_WITHPID 1
+.define FORK_WITHPID   0
 
 
 .ifdef WITH_BASIC11
