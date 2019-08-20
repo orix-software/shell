@@ -15,6 +15,7 @@
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
+exec_address :=userzp
 
 
 .org        $C000
@@ -141,8 +142,9 @@ no_action:
     jmp     start_commandline    ; and restart 
 
 send_oups_and_loop:
-    BRK_TELEMON XOUPS
+    BRK_KERNEL XOUPS
     jmp     start_commandline
+
 
 
 .proc _bash
@@ -167,25 +169,7 @@ no_command:
 no_more_space:
     cmp     #$00
     beq     no_command   ;  "     ",0 on command line
-    cmp     #'.'
-    bne     find_command
-    iny
-    lda     (RES),y
-    cmp     #'/'
-    bne     find_command
-    
-    ; switch off timiers on via2
-    lda     #0+32+64
-    sta     VIA2::IER
-    
-    ; here we jump to command because we founded "./"
-    jsr     _orix_load_and_start_app
-    ; switch on timers en via2
-    lda     #128+32+64
-    sta     VIA2::IER
-    ; switch on the cursor
-    SWITCH_ON_CURSOR
-    rts
+
 
 find_command:
     ; Search command
@@ -220,35 +204,8 @@ command_not_found:
     inx
     cpx     #BASH_NUMBER_OF_COMMANDS 
     bne     mloop
-
-orix_try_to_find_command_in_bin_path:
-	; here we found no command, let's go trying to find it in /bin
-
-    ldx     #$00
-    jsr     _orix_get_opt
-
-    jsr     _start_from_root_bin
-    ; If it return NULL then it's not found.
-
-    cmp     #NULL ; if it return y=$ff a=$ff (it's not open)
-    bne     @found_in_bin_folder
-    cpy     #NULL ; if it return y=$ff a=$ff (it's not open)
-    bne     @found_in_bin_folder
-    beq     @even_in_slash_bin_command_not_found
-@found_in_bin_folder:    
-    ; we should start code here
-    jmp     _orix_load_and_start_app_xopen_done
-
-@even_in_slash_bin_command_not_found:
-    ; At this step A & Y still contains FP then free
-    BRK_ORIX(XFREE)
-    RETURN_LINE
-    PRINT   ORIX_ARGV
-    PRINT   str_command_not_found
-    lda     #$01
-    sta     ERRNO
-    rts
-
+    ; at this step we did not found the command in the rom
+    jmp     orix_try_to_find_command_in_bin_path
 command_found:
     ; at this step we found the command from a rom
 	; X contains ID of the command
@@ -265,19 +222,15 @@ command_found:
     
     ldx     TR7
     lda     commands_low,x
-    sta     RES
+    sta     exec_address
 	
     lda     commands_high,x
-    sta     RES+1
+    sta     exec_address+1
     
-    JMP     (RES)               ; be careful with 6502 bug (jmp xxFF)
-	
-end_string:
-
-end:
-
-	rts
+    JMP     (exec_address)               ; be careful with 6502 bug (jmp xxFF)
 .endproc
+
+
 
 ; [IN] X get the id of the parameter
 ; [ IN] Y contains the index in BUFEDT
@@ -313,42 +266,7 @@ trimme:
 .endproc
 ; This routine is used to read into /bin directory, and tries to open a binary, if it's Not ok it return in A and X $ffff
 
-.proc _start_from_root_bin
 
-	
-    ; copy /bin
-    ; do a strcat
-    ldx     #$00
-loop30:
-    lda     str_root_bin,x
-    beq     @end
-	
-    sta     volatile_str,x
-    inx
-    cpx     #SIZE_OF_VOLATILE_STR
-    bne     loop30
-@end:
-    ldy     #$00
-loop20:
-    lda     ORIX_ARGV,y
-    beq     @end2
-    sta     volatile_str,x
-    inx
-    iny
-    cpx     #SIZE_OF_VOLATILE_STR
-    bne     loop20
-    ; now copy argv[0]
-@end2:
-    sta     volatile_str,x
-    ldy     #O_RDONLY
-    lda     #<volatile_str
-    ldx     #>volatile_str
-    BRK_KERNEL XOPEN
-
-    rts
-str_root_bin:
-    .asciiz "/bin/"
-.endproc
 
 
 ; Commands
@@ -524,6 +442,8 @@ str_root_bin:
 .include "commands/xorix.asm"
 .endif
 
+.include "_exec_from_sdcard.asm"
+
 ; Functions
 
 .include "lib/strcpy.asm"
@@ -555,133 +475,6 @@ _cd_to_current_realpath_new:
 @skip:
     rts
 .endproc    
-
-    ptr_header   :=userzp+2
-    fp_exec      :=userzp+4
-    exec_address :=userzp+6
-	
-_orix_load_and_start_app:
-
-
-    ;       let's cd
-    BRK_ORIX    $48   ; XGETCWD
-    ; A & Y contains ptr
-    ldy     #O_RDONLY
-    BRK_ORIX XOPEN
-    ; save ptr
-    sta     fp_exec
-    sty     fp_exec+1   
-    ;jsr     _cd_to_current_realpath_new
-    ldx     #$00
-    jsr     _orix_get_opt                           ; get first parameter
-    STRCPY ORIX_ARGV+2,BUFNOM
- 	
-    jsr     _ch376_set_file_name
-    jsr     _ch376_file_open
-    cmp     #CH376_ERR_MISS_FILE                    ; File is missing ?
-    bne     skip_and_malloc_header
-    RETURN_LINE                                     
-    PRINT   ORIX_ARGV                               ; Yes file is missing displays error
-    PRINT   str_command_not_found ; MACRO
-    
-    rts	
-  
-_orix_load_and_start_app_xopen_done:
-skip_and_malloc_header:
-    
-
-    ; Save pointer
-    sta    fp_exec     
-    sty    fp_exec+1
-    MALLOC 20 ; Malloc 20 bytes (20 bytes for header)
-    
-    TEST_OOM_AND_MAX_MALLOC
-    
-    sta     ptr_header
-    sty     ptr_header+1
-    
-    sta     PTR_READ_DEST
-    sty     PTR_READ_DEST+1
-
-    lda     #20
-    ldy     #$00
-    BRK_TELEMON XFREAD
-   
-    
-    ldy     #$00
-    lda     (ptr_header),y ; fixme 65c02
-
-    cmp     #$01
-    beq     @is_an_orix_file
-    RETURN_LINE
-    
-    BRK_TELEMON XCLOSE
-    ; not found it means that we display error message
-    ldx     #$00
-    jsr     _orix_get_opt
-    PRINT   ORIX_ARGV
-
-    PRINT   str_cant_execute
-    RETURN_LINE
-    ; FIXME close the opened file here
-
-    BRK_TELEMON XCLOSE
-
-    jmp     @free_exec
-
-@is_an_orix_file:
-    RETURN_LINE	
-
-  	; Switch off cursor
-    ldx     #$00
-    BRK_TELEMON XCOSCR
-    ; Storing address to load it
-
-    ldy     #14
-    lda     (ptr_header),y ; fixme 65c02
-    sta     PTR_READ_DEST
-
-    ldy     #15
-    lda     (ptr_header),y ; fixme 65c02
-    sta     PTR_READ_DEST+1
-		
-    ; init RES to start code
-
-    ldy     #18
-    lda     (ptr_header),y ; fixme 65c02
-    sta     exec_address
-
-    ldy     #19
-    lda     (ptr_header),y ; fixme 65c02    
-    sta     exec_address+1
-    
-    ldx     #$00
-    jsr     _orix_get_opt
-	
-    lda     #$FF ; read all the binary
-    ldy     #$FF
-    BRK_TELEMON XFREAD
-    ; FIXME return nb_bytes read malloc must be done
-   
-    lda     #$00 ; don't update length
-    BRK_TELEMON XCLOSE
-
-    jsr     @free_exec
-
-    jmp     (exec_address) ; jmp : it means that if program launched do an rts, it returns to interpreter
-
-@free_exec:
-    lda     fp_exec     
-    ldy     fp_exec+1
-    BRK_KERNEL XFREE
-
-    lda     ptr_header
-    ldy     ptr_header+1
-    BRK_TELEMON XFREE
-
-
-
-    rts
 
 
 
