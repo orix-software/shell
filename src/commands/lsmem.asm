@@ -156,7 +156,7 @@ myloop2:
 
 busy_chunk_is_empty:
     inx
-    cpx     #KERNEL_NUMBER_OF_MALLOC
+    cpx     #KERNEL_MAX_NUMBER_OF_MALLOC
     bne     myloop2
 
 
