@@ -1,7 +1,12 @@
 .export _pwd
 
+
+  XGETCWD_ROUTINE=$48
+  XPUTCWD_ROUTINE=$49
+
 .proc _pwd
-    PRINT shell_bash_variables+shell_bash_struct::path_current
+    BRK_ORIX XGETCWD_ROUTINE
+    BRK_ORIX XWSTR0
     BRK_ORIX XCRLF
     rts
 .endproc
