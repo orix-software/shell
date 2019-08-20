@@ -21,6 +21,9 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 .code
 start_orix:
 start_sh:
+
+
+
     lda     #$00
     sta     STACK_BANK
     ; set lowercase keyboard should be move in telemon bank
@@ -557,12 +560,21 @@ end_crap:       ; FIXME
     rts
 	
 _orix_load_and_start_app:
+    fp_exec_program:= userzp ; 2 bytes
 
     jsr     _ch376_verify_SetUsbPort_Mount          ; Mount card
     cmp     #$01
     beq     end_crap
 	
-    jsr     _cd_to_current_realpath_new
+    ;       let's cd
+    BRK_ORIX    $48   ; XGETCWD
+    ; A & Y contains ptr
+    ldy     #O_RDONLY
+    BRK_ORIX XOPEN
+    ; save ptr
+    sta     fp_exec_program
+    sty     fp_exec_program+1   
+    ;jsr     _cd_to_current_realpath_new
     ldx     #$00
     jsr     _orix_get_opt                           ; get first parameter
     STRCPY ORIX_ARGV+2,BUFNOM
@@ -584,7 +596,7 @@ skip_and_malloc_header:
     
     TEST_OOM_AND_MAX_MALLOC
 
-    ptr_header:=VARLNG
+    ptr_header:=userzp+2
     
     sta     ptr_header
     sty     ptr_header+1
@@ -623,7 +635,6 @@ not_a_tape_file:
     ldy     ptr_header+1
     BRK_TELEMON XFREE
 
-
     rts 
 is_an_orix_file:
     RETURN_LINE	
@@ -655,8 +666,8 @@ is_an_orix_file:
 
 is_not_encapsulated:
 	
-    lda     #$ff ; read all the binary
-    ldy     #$ff
+    lda     #$FF ; read all the binary
+    ldy     #$FF
     BRK_TELEMON XFREAD
 
     ; These nops are used because on real hardware, CLOSE refuse to close
@@ -666,6 +677,11 @@ is_not_encapsulated:
 
     lda     ptr_header
     ldy     ptr_header+1
+    BRK_TELEMON XFREE
+
+    lda     fp_exec_program
+    ldy     fp_exec_program+1
+ 
     BRK_TELEMON XFREE
 
     jmp     (VARAPL+2) ; jmp : it means that if program launched do an rts, it returns to interpreter
@@ -797,7 +813,7 @@ next:
   
     BRK_TELEMON XMALLOC
     ; A & Y are the ptr here
-    ; BRK_TELEMON XFREE)
+    BRK_TELEMON XFREE
     
     rts
 

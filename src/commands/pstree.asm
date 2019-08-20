@@ -10,7 +10,7 @@ str_init:
 .endproc
 
 .proc newpstree
-ptr_kernel_process         :=userzp
+ptr_kernel_process          :=userzp
 ptr_kernel_process_current  :=userzp+2
     ldx #$00 ; Get Kernel adress
     BRK_ORIX XVARS
