@@ -16,6 +16,8 @@
 ;
 ;----------------------------------------------------------------------
 .proc _setfont
+	setfont_fp :=userzp+2 ; 2 bytes
+
     ldx #$01
     jsr _orix_get_opt
     bcs *+5
@@ -75,6 +77,9 @@
     beq error
     
 @S1:
+	sta	setfont_fp
+	sty setfont_fp+1
+
     ; Chargement du fichier
     ; Destination
     ; count = 1, fp = 0?
@@ -82,6 +87,15 @@
 
     ; FCLOSE 0
     BRK_ORIX XCLOSE
+
+	; free fp, it should be done with XCLOSE
+
+    ; mfree (setfont_fp)
+    lda setfont_fp
+    ldy setfont_fp+1
+    BRK_ORIX XFREE
+
+
 
     ; mfree (userzp)
     lda userzp
