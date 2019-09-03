@@ -22,7 +22,8 @@ exec_address :=userzp
 .code
 start_orix:
 start_sh:
-
+    lda     #'Z'
+    sta     $bb80+39
 
 
     lda     #$00
@@ -32,13 +33,16 @@ start_sh:
     and     #%00111111 ; b7 : lowercase, b6 : no sound
     sta     FLGKBD
 
-    
+    lda     #'Y'
+    sta     $bb80+38
 
 
     ; if it's hot reset, then don't initialize current path.
     BIT     FLGRST ; COLD RESET ?
     bpl     start_prompt	; yes
 
+    lda     #'W'
+    sta     $bb80+37
 
     lda     #$01                 
     sta     ORIX_PATH_CURRENT_POSITION
@@ -82,6 +86,8 @@ display_prompt:
 start_commandline:
     lda     #$05    ; Kernel bank
     sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
+    lda     #'V'
+    sta     $bb80+36
     BRK_TELEMON XRDW0            ; read keyboard
     bmi     start_commandline    ; don't receive any specials chars (that is the case when funct key is used : it needs to be fixed in bank 7 in keyboard management
     cmp     #KEY_LEFT
@@ -408,6 +414,10 @@ trimme:
 
 .ifdef WITH_MONITOR
 .include "commands/monitor.asm"
+.endif
+
+.ifdef WITH_TWILIGHT
+.include "commands/twil.asm"
 .endif
 
 .ifdef WITH_TREE
@@ -816,6 +826,10 @@ fork_mode:
     .byt NOFORK_NOPID
 .endif
 
+.ifdef WITH_TWILIGHT
+    .byt NOFORK_NOPID
+.endif
+
 .ifdef WITH_UNAME
     .byt NOFORK_NOPID
 .endif    
@@ -1007,6 +1021,10 @@ commands_low:
     .byt <_tree
 .endif
 
+.ifdef WITH_TWILIGHT
+    .byt <_twil
+.endif
+
 .ifdef WITH_UNAME
     .byt <_uname
 .endif    
@@ -1194,6 +1212,10 @@ commands_high:
 
 .ifdef WITH_TREE
     .byt >_tree
+.endif
+
+.ifdef WITH_TWILIGHTE
+    .byt >_twil
 .endif
 
 .ifdef WITH_UNAME
@@ -1385,6 +1407,10 @@ list_command_low:
     .byt <tree
 .endif    
 
+.ifdef WITH_TWILIGHT
+    .byt <twilight
+.endif    
+
 .ifdef WITH_UNAME
     .byt <uname
 .endif    
@@ -1574,6 +1600,10 @@ list_command_high:
     .byt >tree
 .endif
 
+.ifdef WITH_TWILIGHT
+    .byt >twilight
+.endif
+
 .ifdef WITH_UNAME
     .byt >uname
 .endif
@@ -1761,6 +1791,10 @@ commands_length:
 
 .ifdef WITH_TREE
     .byt 4 ; tree
+.endif
+
+.ifdef WITH_TWILIGHT
+    .byt 4 ; touch
 .endif
 
 .ifdef WITH_UNAME
@@ -1971,11 +2005,6 @@ sh:
     .asciiz "sh"
 .endif
 
-.ifdef WITH_TREE
-tree:
-    .asciiz "tree"
-.endif    
-
 .ifdef WITH_TELNETD
 telnetd:
     .asciiz "telnetd"
@@ -1985,6 +2014,16 @@ telnetd:
 touch:
     .asciiz "touch"
 .endif    
+
+.ifdef WITH_TREE
+tree:
+    .asciiz "tree"
+.endif    
+
+.ifdef WITH_TWILIGHT
+twilight:
+    .asciiz "twil"
+.endif   
 
 .ifdef WITH_UNAME
 uname:
@@ -2152,10 +2191,10 @@ adress_commands:
     .addr parse_vector
 ; fff5        
 list_commands:
-        .addr list_of_commands_bank
+    .addr list_of_commands_bank
 ; $fff7
 number_of_commands:
-    .byt 1
+    .byt BASH_NUMBER_OF_COMMANDS
 ; fffa
 
 copyright:
