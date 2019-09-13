@@ -8,6 +8,7 @@
 .include   "dependencies/kernel/src/include/process.mac"
 .include   "dependencies/kernel/src/include/keyboard.inc"
 .include   "dependencies/kernel/src/include/memory.inc"
+.include   "dependencies/twilighte/src/include/io.inc"
 .include   "build.inc"
 .include   "include/bash.inc"
 .include   "include/orix.inc"
@@ -798,6 +799,10 @@ fork_mode:
     .byt NOFORK_NOPID
 .endif    
 
+.ifdef WITH_REBOOT
+    .byt NOFORK_NOPID
+.endif    
+
 .ifdef WITH_RM
     .byt NOFORK_NOPID
 .endif    
@@ -845,10 +850,6 @@ fork_mode:
 .ifdef WITH_WATCH
     .byt NOFORK_NOPID
 .endif    
-
-.ifdef WITH_REBOOT
-    .byt NOFORK_NOPID
-.endif
     
 .ifdef WITH_XORIX
     .byt NOFORK_NOPID
@@ -993,6 +994,10 @@ commands_low:
     .byt <_pwd
 .endif    
 
+.ifdef WITH_REBOOT
+    .byt <_reboot	
+.endif
+
 .ifdef WITH_RM
     .byt <_rm
 .endif    
@@ -1040,10 +1045,6 @@ commands_low:
 .ifdef WITH_WATCH
     .byt <_watch
 .endif    
-
-.ifdef WITH_REBOOT
-    .byt <_reboot	
-.endif
     
 .ifdef WITH_XORIX
     .byt <_xorix
@@ -1186,6 +1187,10 @@ commands_high:
     .byt >_pwd
 .endif    
 
+.ifdef WITH_REBOOT
+    .byt >_reboot
+.endif
+
 .ifdef WITH_RM    
     .byt >_rm
 .endif    
@@ -1214,7 +1219,7 @@ commands_high:
     .byt >_tree
 .endif
 
-.ifdef WITH_TWILIGHTE
+.ifdef WITH_TWILIGHT
     .byt >_twil
 .endif
 
@@ -1234,9 +1239,7 @@ commands_high:
     .byt >_watch
 .endif    
 
-.ifdef WITH_REBOOT
-    .byt >_reboot
-.endif
+
     
 .ifdef WITH_XORIX
     .byt >_xorix
@@ -1379,6 +1382,10 @@ list_command_low:
     .byt <pwd
 .endif    
 
+.ifdef WITH_REBOOT    
+    .byt <reboot
+.endif
+
 .ifdef WITH_RM
     .byt <rm
 .endif
@@ -1427,10 +1434,7 @@ list_command_low:
     .byt <watch
 .endif    
 
-.ifdef WITH_REBOOT    
-    .byt <reboot
-.endif
-  
+
 .ifdef WITH_XORIX
     .byt <xorix
 .endif	
@@ -1572,6 +1576,10 @@ list_command_high:
     .byt >pwd
 .endif    
 
+.ifdef WITH_REBOOT    
+    .byt >reboot
+.endif
+
 .ifdef WITH_RM
     .byt >rm
 .endif    
@@ -1620,10 +1628,6 @@ list_command_high:
     .byt >watch
 .endif    
 
-.ifdef WITH_REBOOT    
-    .byt >reboot
-.endif
-   
 .ifdef WITH_XORIX
     .byt >xorix
 .endif	
@@ -1765,6 +1769,10 @@ commands_length:
     .byt 3 ; _pwd
 .endif    
 
+.ifdef WITH_REBOOT    
+    .byt 6 ;_reboot	
+.endif
+
 .ifdef WITH_RM
     .byt 2 ; rm
 .endif    
@@ -1813,9 +1821,6 @@ commands_length:
     .byt 5  ; viewhrs
 .endif    
 
-.ifdef WITH_REBOOT    
-    .byt 6 ;_reboot	
-.endif
 
 .ifdef WITH_XORIX
     .byt 5 ;xorix

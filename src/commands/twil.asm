@@ -1,3 +1,7 @@
+ 
+
+.export _twil
+
 .proc _twil
     ldx     #$01
     jsr     _orix_get_opt           ; get arg 
@@ -9,10 +13,11 @@
     ldx     #$01
     lda     ORIX_ARGV,x
     cmp     #'f'
-    bne     usage
+    bne     check_next_parameter_s
     PRINT   str_version
-    lda     $343 ; get Twilighte register
-    cmp     #$09
+    lda     TWILIGHTE_REGISTER       ; get Twilighte register
+    and     #%00001111 ; Select last 4 bits
+    cmp     #15        ; Max version #15 
     bcc     error
     sec
     adc     #48
@@ -27,10 +32,31 @@ usage:
     PRINT   str_usage
     RETURN_LINE
     rts
+; twil -s0 -r     
+check_next_parameter_s:
+    cmp     #'s'       ; Swap
+    bne     usage
+    inx
+    lda     ORIX_ARGV,x  ; Get set
+    cmp     #4
+    bcc     error_overflowbanking
+    sec
+    sbc     #48
+    ; FIXME bug
+    sta     TWILIGHTE_BANKING_REGISTER ; and switch
+    rts
+    ;cmp     #'s'       ; Swap    
+error_overflowbanking:
+    PRINT   str_usage
+    RETURN_LINE
+    rts
+
 str_version: 
   	.asciiz "Version : "    
 str_unknown:    
 	.asciiz "Unknown version"
+str_overflow_banking:    
+	.asciiz "This version of board can only manage 4 sets"    
 str_usage:    
 	.asciiz "Usage: twil -f"
 .endproc 
