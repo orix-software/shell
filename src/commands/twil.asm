@@ -18,7 +18,7 @@
     lda     TWILIGHTE_REGISTER       ; get Twilighte register
     and     #%00001111 ; Select last 4 bits
     cmp     #15        ; Max version #15 
-    bcc     error
+    bcs     error
     sec
     adc     #48
     BRK_KERNEL XWR0
@@ -40,7 +40,7 @@ check_next_parameter_s:
     lda     ORIX_ARGV,x  ; Get set
     cmp     #4
     bcc     error_overflowbanking
-    sec
+    clc
     sbc     #48
     ; FIXME bug
     sta     TWILIGHTE_BANKING_REGISTER ; and switch
@@ -58,7 +58,11 @@ str_unknown:
 str_overflow_banking:    
 	.asciiz "This version of board can only manage 4 sets"    
 str_usage:    
-	.asciiz "Usage: twil -f"
+	.byte "Usage: twil -f",$0A,$0D
+    .byte "       twil -s[idbank]",$0A,$0D
+    .byte "       twil -r",$0A,$0D
+    .byte "       twil -w",$0A,$0D
+    .byte "       twil -l",$0A,$0D,$00
 .endproc 
 
 

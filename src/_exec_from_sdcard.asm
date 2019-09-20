@@ -1,8 +1,8 @@
 
     ptr_header   :=userzp+2
     fp_exec      :=userzp+4
-    copy_str:= userzp+8
-    temp:= userzp+10
+    copy_str     :=userzp+8
+    temp         :=userzp+10
 
 orix_try_to_find_command_in_bin_path:
 	; here we found no command, let's go trying to find it in /bin
@@ -10,30 +10,8 @@ orix_try_to_find_command_in_bin_path:
     ldx     #$00
     jsr     _orix_get_opt
 
-    jsr     _start_from_root_bin
-    ; If it return NULL then it's not found.
-
-    cmp     #NULL ; if it return y=$ff a=$ff (it's not open)
-    bne     @found_in_bin_folder
-    cpy     #NULL ; if it return y=$ff a=$ff (it's not open)
-    bne     @found_in_bin_folder
-    beq     @even_in_slash_bin_command_not_found
-@found_in_bin_folder:    
-    ; we should start code here
-    jmp     _orix_load_and_start_app_xopen_done
-
-@even_in_slash_bin_command_not_found:
-    ; At this step A & Y still contains FP then free
-    BRK_ORIX(XFREE)
-    RETURN_LINE
-    PRINT   ORIX_ARGV
-    PRINT   str_command_not_found
-    rts
-
-
-.proc _start_from_root_bin
     ; Malloc
-    MALLOC (5+8)
+    MALLOC (5+8+1) ; 5 because /bin/ & 8 because length can't be greater than 8 for the command
     ; FIX ME test OOM
     sta copy_str
     sty copy_str+1
@@ -79,14 +57,32 @@ orix_try_to_find_command_in_bin_path:
     lda     temp
     ldy     temp+1
 
+
+
+
+    ; If it return NULL then it's not found.
+
+    cmp     #NULL ; if it return y=$ff a=$ff (it's not open)
+    bne     @found_in_bin_folder
+    cpy     #NULL ; if it return y=$ff a=$ff (it's not open)
+    bne     @found_in_bin_folder
+    beq     @even_in_slash_bin_command_not_found
+@found_in_bin_folder:    
+    ; we should start code here
+    jmp     _orix_load_and_start_app_xopen_done
+
+@even_in_slash_bin_command_not_found:
+    ; At this step A & Y still contains FP then free
+    BRK_ORIX(XFREE)
+    RETURN_LINE
+    PRINT   ORIX_ARGV
+    PRINT   str_command_not_found
     rts
 str_root_bin:
     ; If you change this path, you need to change .strlen("/bin/") above
     .asciiz "/bin/"
-.endproc    
 
 
-	
   
 _orix_load_and_start_app_xopen_done:
 

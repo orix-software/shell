@@ -5,6 +5,9 @@
 	PRINT ioports_acia
     PRINT ioports_via2
     PRINT ioports_ch376
+.ifdef WITH_TWILIGHTE_BOARD    
+    PRINT ioports_twil
+.endif    
     rts
 ; TODO : replace by defines
 ioports_via1:
@@ -15,5 +18,9 @@ ioports_ch376:
     .byte "$340-$341 : CH376",$0D,$0A,0
 ioports_acia:	
 	.byte "$31C-$31F : 6551",$0D,$0A,0
+.ifdef WITH_TWILIGHTE_BOARD    
+ioports_twil:    
+    .byte "$342-$343 : TWILIGHTE BOARD",$0D,$0A,0
+.endif    
 .endproc	
 

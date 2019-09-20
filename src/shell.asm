@@ -11,6 +11,13 @@
 .include   "dependencies/twilighte/src/include/io.inc"
 .include   "build.inc"
 .include   "include/bash.inc"
+
+.ifdef RELEASE_VERSION
+.include   "include/release.inc"
+.else
+.include   "include/dev.inc"
+.endif
+
 .include   "include/orix.inc"
 
 
