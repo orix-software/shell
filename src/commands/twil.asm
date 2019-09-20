@@ -35,7 +35,7 @@ usage:
 ; twil -s0 -r     
 check_next_parameter_s:
     cmp     #'s'       ; Swap
-    bne     usage
+    bne     check_next_parameter_r
     inx
     lda     ORIX_ARGV,x  ; Get set
     cmp     #4
@@ -50,6 +50,20 @@ error_overflowbanking:
     PRINT   str_usage
     RETURN_LINE
     rts
+check_next_parameter_r:
+    cmp     #'r'       ; Swap
+    bne     check_next_parameter_w
+    lda     TWILIGHTE_REGISTER
+    AND     #%11011111
+    sta     TWILIGHTE_REGISTER
+    rts
+check_next_parameter_w:
+    cmp     #'w'       ; Swap
+    bne     usage
+    lda     TWILIGHTE_REGISTER
+    ora     #%00100000
+    sta     TWILIGHTE_REGISTER
+    rts
 
 str_version: 
   	.asciiz "Version : "    
@@ -62,7 +76,9 @@ str_usage:
     .byte "       twil -s[idbank]",$0A,$0D
     .byte "       twil -r",$0A,$0D
     .byte "       twil -w",$0A,$0D
-    .byte "       twil -l",$0A,$0D,$00
+    .byte "       twil -u",$0A,$0D   ; update main rom (kernel)
+    .byte "       twil -e",$0A,$0D   ; EEPROM informations
+    .byte "       twil -l[file64KB]",$0A,$0D,$00
 .endproc 
 
 
