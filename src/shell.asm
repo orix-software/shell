@@ -30,9 +30,6 @@ exec_address :=userzp
 .code
 start_orix:
 start_sh:
-    lda     #'Z'
-    sta     $bb80+39
-
 
     lda     #$00
     sta     STACK_BANK
@@ -41,23 +38,13 @@ start_sh:
     and     #%00111111 ; b7 : lowercase, b6 : no sound
     sta     FLGKBD
 
-    lda     #'Y'
-    sta     $bb80+38
-
-
     ; if it's hot reset, then don't initialize current path.
     BIT     FLGRST ; COLD RESET ?
     bpl     start_prompt	; yes
 
-    lda     #'W'
-    sta     $bb80+37
-
-    lda     #$01                 
-    sta     ORIX_PATH_CURRENT_POSITION
 
 ;****************************************************************************/
 start_prompt_and_jump_a_line:
-    RETURN_LINE
 start_prompt:
   
 .IFPC02
