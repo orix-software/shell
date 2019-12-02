@@ -19,11 +19,11 @@
     and     #%00001111 ; Select last 4 bits
     cmp     #15        ; Max version #15 
     bcs     error
-    sec
+    clc
     adc     #48
     BRK_KERNEL XWR0
     RETURN_LINE
-    rts
+    jmp     print_registers 
 error:
     PRINT   str_unknown
     RETURN_LINE
@@ -38,37 +38,70 @@ check_next_parameter_s:
     bne     check_next_parameter_r
     inx
     lda     ORIX_ARGV,x  ; Get set
-    cmp     #4
-    bcc     error_overflowbanking
-    clc
+    sta     $5000
+    cmp     #48+08
+    bcs     error_overflowbanking
+    sec
     sbc     #48
     ; FIXME bug
     sta     TWILIGHTE_BANKING_REGISTER ; and switch
-    rts
+    jmp     print_registers 
     ;cmp     #'s'       ; Swap    
 error_overflowbanking:
     PRINT   str_usage
     RETURN_LINE
-    rts
+    jmp     print_registers 
 check_next_parameter_r:
     cmp     #'r'       ; Swap
     bne     check_next_parameter_w
     lda     TWILIGHTE_REGISTER
     AND     #%11011111
     sta     TWILIGHTE_REGISTER
-    rts
+    PRINT   str_swap_to_bank_rom
+    RETURN_LINE    
+    jmp     print_registers 
 check_next_parameter_w:
     cmp     #'w'       ; Swap
     bne     usage
     lda     TWILIGHTE_REGISTER
     ora     #%00100000
     sta     TWILIGHTE_REGISTER
+    PRINT   str_swap_to_bank_sram
+    RETURN_LINE
+print_registers:
+    PRINT   str_twilighte_register
+    lda     TWILIGHTE_REGISTER
+    LDY     #$00
+    LDX     #$20 ;
+    STX     DEFAFF
+    LDX     #$03
+    BRK_ORIX XDECIM
+    RETURN_LINE
+    PRINT   str_twilighte_banking_register
+    lda     TWILIGHTE_BANKING_REGISTER
+    LDY     #$00
+    LDX     #$20 ;
+    STX     DEFAFF
+    LDX     #$03
+    BRK_ORIX XDECIM
+    RETURN_LINE
+
     rts
+str_twilighte_register:
+    .asciiz "Twilighte register : "
+str_twilighte_banking_register:
+    .asciiz "Twilighte Banking register : "
+
+
 
 str_version: 
   	.asciiz "Version : "    
 str_unknown:    
 	.asciiz "Unknown version"
+str_swap_to_bank_sram:
+    .asciiz "Swapped to RAM banking"    
+str_swap_to_bank_rom:
+    .asciiz "Swapped to EEPROM banking"        
 str_overflow_banking:    
 	.asciiz "This version of board can only manage 4 sets"    
 str_usage:    

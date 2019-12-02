@@ -8,9 +8,10 @@ SET UNITTEST="NO"
 SET ORIGIN_PATH=%CD%
 
 SET ROM=shell
-
+rem -DWITH_SDCARD_FOR_ROOT=1 
+rem 
 %CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -ttelestrat --include-dir %CC65%\asminc\ src/%ROM%.asm -o %ROM%.ld65  --debug-info --verbose
-%CC65%\ld65.exe -tnone -DWITH_SDCARD_FOR_ROOT=1 %ROM%.ld65 -o %ROM%.rom  -Ln shell.sym
+%CC65%\ld65.exe -DWITH_SDCARD_FOR_ROOT=1 -tnone  %ROM%.ld65 -o %ROM%.rom  -Ln shell.sym
 
 
 

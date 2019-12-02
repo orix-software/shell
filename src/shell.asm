@@ -81,8 +81,6 @@ display_prompt:
 start_commandline:
     lda     #$05    ; Kernel bank
     sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
-    lda     #'V'
-    sta     $bb80+36
     BRK_TELEMON XRDW0            ; read keyboard
     bmi     start_commandline    ; don't receive any specials chars (that is the case when funct key is used : it needs to be fixed in bank 7 in keyboard management
     cmp     #KEY_LEFT
