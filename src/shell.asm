@@ -29,8 +29,9 @@ exec_address :=userzp
 .org        $C000
 .code
 start_orix:
-start_sh:
 
+
+start_sh:
     lda     #$00
     sta     STACK_BANK
     ; set lowercase keyboard should be move in telemon bank
@@ -45,8 +46,9 @@ start_sh:
 
 ;****************************************************************************/
 start_prompt_and_jump_a_line:
+
 start_prompt:
-  
+
 .IFPC02
 .pc02
     stz     VARAPL               ; Used to store the length of the command line
@@ -264,6 +266,9 @@ trimme:
     rts
 .endproc
 ; This routine is used to read into /bin directory, and tries to open a binary, if it's Not ok it return in A and X $ffff
+
+
+
 
 
 
@@ -2174,6 +2179,8 @@ command_found:
 
     ;lda    #$14
     ;sta    $BB80+200
+    
+
     jsr    _bash
     rts
 .endproc
