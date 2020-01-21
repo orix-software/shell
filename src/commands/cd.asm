@@ -3,6 +3,8 @@
 
 .proc _cd
     cd_path := userzp
+    cd_fp := userzp+2
+    cd_fp_tmp := userzp+2
     ; Let's malloc
     MALLOC(KERNEL_MAX_PATH_LENGTH)
     sta     cd_path
@@ -90,7 +92,7 @@
     jmp     free_cd_memory
 
 @not_null:
-    BRK_KERNEL XFREE ; Free fp fro XOPEN
+    BRK_KERNEL XFREE
     lda     cd_path
     ldy     cd_path+1
 
