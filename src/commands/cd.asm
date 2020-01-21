@@ -85,15 +85,16 @@
     cpy     #NULL
     bne     @not_null
 
-    PRINT str_not_a_directory
+    PRINT   str_not_a_directory
     ; Error
     jmp     free_cd_memory
 
 @not_null:
+    BRK_KERNEL XFREE ; Free fp fro XOPEN
     lda     cd_path
     ldy     cd_path+1
-    BRK_KERNEL   XPUTCWD_ROUTINE
 
+    BRK_KERNEL   XPUTCWD_ROUTINE
 
 free_cd_memory:
     lda     cd_path
