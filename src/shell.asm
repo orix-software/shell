@@ -8,6 +8,7 @@
 .include   "dependencies/kernel/src/include/process.mac"
 .include   "dependencies/kernel/src/include/keyboard.inc"
 .include   "dependencies/kernel/src/include/memory.inc"
+.include   "dependencies/kernel/src/include/files.inc"
 .include   "dependencies/twilighte/src/include/io.inc"
 .include   "build.inc"
 .include   "include/bash.inc"
@@ -23,8 +24,8 @@
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
-exec_address :=userzp
-
+exec_address   :=userzp
+sh_esc_pressed :=userzp+2
 
 .org        $C000
 .code
@@ -48,6 +49,8 @@ start_sh:
 start_prompt_and_jump_a_line:
 
 start_prompt:
+    lda     #$00
+    sta     sh_esc_pressed
 
 .IFPC02
 .pc02
@@ -73,6 +76,7 @@ display_prompt:
     lda     #$00
     sta     ORIX_GETOPT_PTR      ; init the PTR of the command line
 .endif
+sh_switch_on_prompt:
     ; Displays current path
     BRK_ORIX XGETCWD_ROUTINE
     BRK_ORIX XWSTR0
@@ -84,7 +88,8 @@ start_commandline:
     lda     #$05    ; Kernel bank
     sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
     BRK_TELEMON XRDW0            ; read keyboard
-    bmi     start_commandline    ; don't receive any specials chars (that is the case when funct key is used : it needs to be fixed in bank 7 in keyboard management
+   ; bmi     start_commandline    ; don't receive any specials chars (that is the case when funct key is used : it needs to be fixed in bank 7 in keyboard management
+
     cmp     #KEY_LEFT
     beq     start_commandline    ; left key not managed
     cmp     #KEY_RIGHT
@@ -101,12 +106,13 @@ start_commandline:
     ldy     #>BUFEDT
     jsr     _bash                ; and launch interpreter
     jmp     start_prompt
-    
+@function_key_pressed:
+
 next_key:
     cmp     #KEY_DEL             ; is it del pressed ?
     beq     key_del_routine      ; yes let's remove the char in the BUFEDT buffer
     cmp     #KEY_ESC             ; ESC key not managed, but could do autocompletion (Pressed twice)
-    beq     start_commandline
+    beq     @key_esc_routine 
 
     ldx     VARAPL               ; get the length of the current line
     cpx     #BASH_MAX_BUFEDT_LENGTH-1 ; do we reach the size of command line buffer ?
@@ -127,6 +133,18 @@ next_key:
 .endif		
 
     jmp     start_commandline    ; and loop interpreter
+@key_esc_routine:
+    ldx     sh_esc_pressed
+    bne     @sh_launch_autocompletion
+    inx
+    stx     sh_esc_pressed
+    jmp     start_commandline
+@sh_launch_autocompletion:
+    RETURN_LINE
+    jsr     _ls
+    ldx     #$00
+    stx     sh_esc_pressed
+    jmp     sh_switch_on_prompt
 key_del_routine:
     ldx     VARAPL               ; load the length of the command line buffer
     beq     send_oups_and_loop   ; command line is empty send oups sound
@@ -467,9 +485,12 @@ trimme:
 
 
 _cd_to_current_realpath_new:
-    lda #<shell_bash_variables+shell_bash_struct::path_current
-    ldy #>(shell_bash_variables+shell_bash_struct::path_current+1)
-    BRK_TELEMON XOPENRELATIVE
+    BRK_KERNEL XGETCWD_ROUTINE ; Return X and Y the string
+    sty     TR6
+    ldy     #O_RDONLY
+    ldx     TR6
+    BRK_TELEMON XOPEN
+    BRK_KERNEL  XFREE
     rts
 
 ; FIXME common with telemon
