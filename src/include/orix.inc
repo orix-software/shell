@@ -1,7 +1,3 @@
-
-
-
-
 NULL                          =  $00
 XDIVIDE_INTEGER32_BY_1024     =  $1E
 
@@ -18,8 +14,6 @@ TELEFORTH_ID_BANK     	      = 3
 
 
 ORIX_MAX_OPEN_FILES           = 2
-SIZE_OF_VOLATILE_STR          = 50      ; can't be below 20 because it's used to load Orix header
-
 
 SIZE_OF_STACK_BANK            =  1
 
@@ -44,7 +38,8 @@ READ_BYTE_FROM_OVERLAY_RAM:
 ; could be removed ... when lsof will be finished
 NUMBER_OPENED_FILES: ; ALIAS but in stratsed it's $549
     .res 1
-TEMP_ORIX_2:
+; RemoveME when  ERRNO will move
+REMOVEME2:
     .res 1
     ; not removed because it could be declared too in kernel
     ; It could remove as soon as others variables are checked
@@ -59,16 +54,14 @@ ORIX_ARGC:
 ; could be removed ...  until ERRNO is moved somewhere
 ORIX_GETOPT_PTR:
     .res 1
-ORIX_PATH_CURRENT_POSITION:
+; RemoveME when  ERRNO will move
+REMOVEME3:
     .res 1
-ORIX_CURRENT_PROCESS_MULTITASKING:
+; RemoveME when  ERRNO will move
+REMOVEME4:
     .res 1
 ERRNO:
     .res 1
-TERM:
-    .res 1
-TEMP_SH_COMMAND: ; For sh command only
-    .res 2
 
 .org BUFNOM+14
 .bss
@@ -128,12 +121,6 @@ ORIX_ARGV:
 ; used to check term
 
 
-volatile_str:
-    .res SIZE_OF_VOLATILE_STR
-
-; could be removed ... Not used
-LIST_NAME_PID:
-    .res 9*ORIX_MAX_PROCESS
 
 shell_bash_variables:
     .tag shell_bash_struct    

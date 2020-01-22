@@ -37,10 +37,10 @@ str_function_debug
 #ifdef DEBUG
 print_hex	
 	jsr binhex
-	stx TEMP_ORIX_2
+	stx userzp
 	;txa
 	BRK_TELEMON(XWR0)
-	lda TEMP_ORIX_2
+	lda userzp
 	;txa
 	BRK_TELEMON(XWR0)
 	rts                   ;done	
