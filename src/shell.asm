@@ -26,6 +26,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 exec_address   :=userzp
 sh_esc_pressed :=userzp+2
+sh_length_of_command_line:=userzp+3 ; 
 
 .org        $C000
 .code
@@ -54,17 +55,15 @@ start_prompt:
 
 .IFPC02
 .pc02
-    stz     VARAPL               ; Used to store the length of the command line
+    stz     sh_length_of_command_line               ; Used to store the length of the command line
     stz     BUFEDT
     stz     ORIX_ARGV
-    stz     ERRNO
 .p02    
 .else
     lda     #$00
-    sta     VARAPL               ; Used to store the length of the command line
+    sta     sh_length_of_command_line               ; Used to store the length of the command line
     sta     BUFEDT               ; command line buffer
     sta     ORIX_ARGV            ; argv buffer
-    sta     ERRNO                ; errno : last error from command, not managed everywhere
 .endif	
 
 display_prompt:
@@ -100,7 +99,7 @@ start_commandline:
     beq     start_commandline    ; down key not managed
     cmp     #KEY_RETURN          ; is it enter key ?
     bne     next_key             ; no we display the char
-    lda     VARAPL               ; no command ?
+    lda     sh_length_of_command_line               ; no command ?
     beq     start_prompt_and_jump_a_line ; yes it's an empty line
     lda     #<BUFEDT             ; register command line buffer
     ldy     #>BUFEDT
@@ -114,14 +113,14 @@ next_key:
     cmp     #KEY_ESC             ; ESC key not managed, but could do autocompletion (Pressed twice)
     beq     @key_esc_routine 
 
-    ldx     VARAPL               ; get the length of the current line
+    ldx     sh_length_of_command_line               ; get the length of the current line
     cpx     #BASH_MAX_BUFEDT_LENGTH-1 ; do we reach the size of command line buffer ?
     beq     start_commandline    ; yes restart command line until enter or del keys are pressed, but
     BRK_TELEMON XWR0             ; write key on the screen (it's really a key pressed
-    ldx     VARAPL               ; get the position on the command line
+    ldx     sh_length_of_command_line               ; get the position on the command line
     sta     BUFEDT,x             ; stores the char in command line buffer
     inx                          ; increase by 1 the current position in the command line buffer
-    stx     VARAPL
+    stx     sh_length_of_command_line
   
 .IFPC02
 .pc02         
@@ -146,12 +145,12 @@ next_key:
     stx     sh_esc_pressed
     jmp     sh_switch_on_prompt
 key_del_routine:
-    ldx     VARAPL               ; load the length of the command line buffer
+    ldx     sh_length_of_command_line               ; load the length of the command line buffer
     beq     send_oups_and_loop   ; command line is empty send oups sound
     dex                          ; command line is NOT empty, remove last char in the buffer
     lda     #$00                 ; remove last char FIXME 65c02
     sta     BUFEDT,x
-    stx     VARAPL               ; and store the length
+    stx     sh_length_of_command_line               ; and store the length
     SWITCH_OFF_CURSOR
     dec     SCRX                 ; go one step to the left on the screen
 

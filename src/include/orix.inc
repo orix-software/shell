@@ -35,16 +35,6 @@ READ_BYTE_FROM_OVERLAY_RAM:
 ; 6522
 .org $500
 .bss
-; could be removed ... when lsof will be finished
-NUMBER_OPENED_FILES: ; ALIAS but in stratsed it's $549
-    .res 1
-; RemoveME when  ERRNO will move
-REMOVEME2:
-    .res 1
-    ; not removed because it could be declared too in kernel
-    ; It could remove as soon as others variables are checked
-REMOVEME: 
-    .res 1
 GETOPT_PTR:
     .res 1 ; Store the index of the current opt
 TEMP_ORIX_1:
@@ -53,14 +43,6 @@ ORIX_ARGC:
     .res 1
 ; could be removed ...  until ERRNO is moved somewhere
 ORIX_GETOPT_PTR:
-    .res 1
-; RemoveME when  ERRNO will move
-REMOVEME3:
-    .res 1
-; RemoveME when  ERRNO will move
-REMOVEME4:
-    .res 1
-ERRNO:
     .res 1
 
 .org BUFNOM+14
@@ -134,12 +116,12 @@ orix_end_memory_kernel:
  
 .macro RETURNVAL value
   lda #value
-  sta ERRNO
+  sta KERNEL_ERRNO
 .endmacro
   
 .macro RETURN0
     lda #$00
-    sta ERRNO  
+    sta KERNEL_ERRNO  
 .endmacro
 
 .macro PRINT_BINARY_TO_DECIMAL_16BITS justif
