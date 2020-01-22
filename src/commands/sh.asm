@@ -1,6 +1,7 @@
 .proc _sh
     ptr_file     := userzp ; 2 bytes
     ptr_file_save:= userzp+2
+    TEMP_SH_COMMAND :=userzp+4
 
     ; TODO read file length and malloc
     SH_FILE_LENGTH_MAX = 1000

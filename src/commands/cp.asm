@@ -2,18 +2,20 @@
 
 CP_SIZE_OF_BUFFER=40000
 
+cp_tmp := userzp+4
+
 .export _mv,_cp
 
 ;.proc
 .proc _mv
   lda   #$01 ; don't Delete param1 file
-  sta   TEMP_ORIX_2
+  sta   cp_tmp
   jmp   _cp_mv_execute
 .endproc  
 
 .proc _cp
   lda   #$00 ; don't Delete param1 file FIXME 65c02
-  sta   TEMP_ORIX_2
+  sta   cp_tmp
   jmp   _cp_mv_execute
 .endproc
 
@@ -94,7 +96,7 @@ CP_SIZE_OF_BUFFER=40000
   ldx   #>ORIX_ARGV
   
   ldy   #O_WRONLY ; Open in readonly
-  BRK_TELEMON XOPEN
+  BRK_KERNEL XOPEN
  
   lda   MALLOC_PTR1
   sta   PTR_READ_DEST
@@ -104,19 +106,19 @@ CP_SIZE_OF_BUFFER=40000
   lda   ptr1
   ldy   ptr1+1
 ; reads byte 
-  BRK_TELEMON XFWRITE
+  BRK_KERNEL XFWRITE
 
-  BRK_TELEMON XCLOSE
+  BRK_KERNEL XCLOSE
   ; and we write the file
   
-  lda   TEMP_ORIX_2
+  lda   cp_tmp
   beq   @out
   
   ldx   #$01
   jsr   _orix_get_opt
   lda   #<ORIX_ARGV
   ldx   #>ORIX_ARGV
-  BRK_TELEMON XRM
+  BRK_KERNEL XRM
   ; now remove file
 
 @out:
@@ -135,7 +137,7 @@ no_such_file:
  
   PRINT ORIX_ARGV
   lda     #$27
-  BRK_TELEMON XWR0
+  BRK_KERNEL XWR0
   
   PRINT   str_not_found
   rts
