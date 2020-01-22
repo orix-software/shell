@@ -41,11 +41,14 @@ READ_BYTE_FROM_OVERLAY_RAM:
 ; 6522
 .org $500
 .bss
+; could be removed ... when lsof will be finished
 NUMBER_OPENED_FILES: ; ALIAS but in stratsed it's $549
     .res 1
 TEMP_ORIX_2:
     .res 1
-NUMBER_OF_COLUMNS:
+    ; not removed because it could be declared too in kernel
+    ; It could remove as soon as others variables are checked
+REMOVEME: 
     .res 1
 GETOPT_PTR:
     .res 1 ; Store the index of the current opt
@@ -53,6 +56,7 @@ TEMP_ORIX_1:
     .res 1
 ORIX_ARGC:
     .res 1
+; could be removed ...  until ERRNO is moved somewhere
 ORIX_GETOPT_PTR:
     .res 1
 ORIX_PATH_CURRENT_POSITION:
@@ -65,8 +69,6 @@ TERM:
     .res 1
 TEMP_SH_COMMAND: ; For sh command only
     .res 2
-MEMTOTAL:
-    .res 4 ; Store the length of the RAM in bytes
 
 .org BUFNOM+14
 .bss
@@ -129,7 +131,7 @@ ORIX_ARGV:
 volatile_str:
     .res SIZE_OF_VOLATILE_STR
 
-
+; could be removed ... Not used
 LIST_NAME_PID:
     .res 9*ORIX_MAX_PROCESS
 
