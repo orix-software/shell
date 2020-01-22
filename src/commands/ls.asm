@@ -1,8 +1,10 @@
 NUMBER_OF_COLUMNS_LS = 3
 
+ls_number_of_columns:=    userzp
+
 .proc _ls
     lda #NUMBER_OF_COLUMNS_LS+1
-    sta NUMBER_OF_COLUMNS
+    sta ls_number_of_columns
 
     jsr _ch376_verify_SetUsbPort_Mount
     ;bcc @ZZ0001
@@ -125,7 +127,7 @@ display_one_file_catalog:
     ;FREE RESB
 
     PRINT BUFNOM
-    BRK_ORIX XCRLF
+    BRK_KERNEL XCRLF
     rts
 
 ; ------------------------------------------------------------------------------
@@ -171,13 +173,13 @@ display_catalog:
     cmp #'.'
     beq @ZZ0015
 
-    dec NUMBER_OF_COLUMNS
+    dec ls_number_of_columns
     bne @ZZ0016
 
     ; Attention XCRLF modifie RES
     BRK_ORIX XCRLF
     lda #NUMBER_OF_COLUMNS_LS
-    sta NUMBER_OF_COLUMNS
+    sta ls_number_of_columns
 
   @ZZ0016:
     ; PRINT BUFNOM
@@ -209,7 +211,7 @@ display_catalog:
     adc     #'a'-'A'
 
   @skip:
-    BRK_TELEMON XWR0
+    BRK_KERNEL XWR0
     inx
     bne @loop
   @end:
