@@ -2,6 +2,7 @@ NUMBER_OF_COLUMNS_LS = 3
 
 ls_number_of_columns:=    userzp
 
+
 .proc _ls
     lda     #NUMBER_OF_COLUMNS_LS+1
     sta     ls_number_of_columns
