@@ -1,8 +1,10 @@
 .proc _df
-LSB:=TR0 ; FIXME labels and convd
-NLSB:=TR1
-NMSB:=TR2
-MSB:=TR3
+LSB:=userzp ; FIXME labels and convd
+NLSB:=userzp+1
+NMSB:=userzp+2
+MSB:=userzp+3
+
+df_ptr1:= userzp+4 ; 2 bytes
 
   jsr   _ch376_verify_SetUsbPort_Mount
   cmp   #$01
@@ -14,42 +16,49 @@ no_error_for_mouting:
   PRINT str_df_columns
   ;RETURN_LINE
   jsr   _ch376_disk_capacity
-  lda   TR3
+  lda   MSB
   jsr   _print_hexa
-  lda   TR2
+  lda   NMSB
   jsr   _print_hexa_no_sharp
-  lda   TR1
+  lda   NLSB
   jsr    _print_hexa_no_sharp
-  lda   TR0
+  lda   LSB
   jsr   _print_hexa_no_sharp
   RETURN_LINE
   rts
   
   BRK_TELEMON XCRLF
- 
+  lda  #$50
+  ldy  #$00
+  BRK_KERNEL(XMALLOC) ; Should be reduced
+  sta   df_ptr1
+  sty   df_ptr1+1
 
-  lda   #$d2
-  sta   TR0
+  lda   #$D2
+  sta   LSB
   lda   #$02
-  sta   TR1
+  sta   NLSB
   lda   #$96
-  sta   TR2
+  sta   NMSB
   lda   #$49
-  sta   TR3
+  sta   MSB
   
   jsr     convd
   
-  lda     volatile_str
+
+  ldy     #$00
+  lda     (df_ptr1),y
   AND     #%11110000
   clc
   adc     #$30
-  BRK_TELEMON XWR0
+  BRK_KERNEL XWR0
 
-  lda     volatile_str
+  ldy     #$00
+  lda     (df_ptr1),y
   AND     #%00001111
   clc
   adc     #$30
-  BRK_TELEMON XWR0
+  BRK_KERNEL XWR0
   
   ; Divide
   
@@ -74,7 +83,7 @@ convd:
         ldx #$04          ; Clear BCD accumulator
         lda #$00
     BRM:
-        sta volatile_str,x        ; Zeros into BCD accumulator
+    ;    sta volatile_str,x        ; Zeros into BCD accumulator
         dex
         bpl BRM
 
@@ -91,9 +100,9 @@ convd:
     
         ldx #$fb          ; X will control a five byte addition.
     BRO:
-        lda volatile_str-$fb,x    ; Get least-signficant byte of the BCD accumulator
-        adc volatile_str-$fb,x    ; Add it to itself, then store.
-        sta volatile_str-$fb,x
+    ;    lda volatile_str-$fb,x    ; Get least-signficant byte of the BCD accumulator
+     ;   adc volatile_str-$fb,x    ; Add it to itself, then store.
+      ;  sta volatile_str-$fb,x
         inx               ; Repeat until five byte have been added
         bne BRO
 

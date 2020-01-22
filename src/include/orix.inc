@@ -1,7 +1,3 @@
-
-
-
-
 NULL                          =  $00
 XDIVIDE_INTEGER32_BY_1024     =  $1E
 
@@ -18,8 +14,6 @@ TELEFORTH_ID_BANK     	      = 3
 
 
 ORIX_MAX_OPEN_FILES           = 2
-SIZE_OF_VOLATILE_STR          = 50      ; can't be below 20 because it's used to load Orix header
-
 
 SIZE_OF_STACK_BANK            =  1
 
@@ -125,10 +119,6 @@ ORIX_ARGV_NAME:
 ORIX_ARGV:
 	.res    MAX_LENGTH_OF_FILES*BASH_MAX_ARGS
 ; used to check term
-
-
-volatile_str:
-    .res SIZE_OF_VOLATILE_STR
 
 
 
