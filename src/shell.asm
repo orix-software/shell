@@ -100,7 +100,10 @@ start_commandline:
     cmp     #KEY_RETURN          ; is it enter key ?
     bne     next_key             ; no we display the char
     lda     sh_length_of_command_line               ; no command ?
-    beq     start_prompt_and_jump_a_line ; yes it's an empty line
+    bne     @sh_launch_command ; yes it's an empty line
+    RETURN_LINE
+    jmp     start_prompt
+@sh_launch_command:    
     lda     #<BUFEDT             ; register command line buffer
     ldy     #>BUFEDT
     jsr     _bash                ; and launch interpreter

@@ -11,7 +11,7 @@
 
     PRINT str_ps_title
 
-    ldx #$00 ; Get Kernel adress
+    ldx #XVARS_KERNEL_PROCESS ; Get Kernel adress
     BRK_ORIX XVARS
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1

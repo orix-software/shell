@@ -38,7 +38,6 @@ check_next_parameter_s:
     bne     check_next_parameter_r
     inx
     lda     ORIX_ARGV,x  ; Get set
-    sta     $5000
     cmp     #48+08
     bcs     error_overflowbanking
     sec
