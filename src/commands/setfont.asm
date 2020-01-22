@@ -16,6 +16,8 @@
 ;
 ;----------------------------------------------------------------------
 .proc _setfont
+    setfont_fp :=userzp+2 ; 2 bytes
+
     ldx #$01
     jsr _orix_get_opt
     bcs *+5
@@ -67,8 +69,16 @@
     ldx userzp+1
     ldy #O_RDONLY
     BRK_ORIX XOPEN
-
-    bne error
+    
+    cmp #NULL
+    bne @S1
+    cpy #NULL
+    bne @S1
+    beq error
+    
+@S1:
+	sta	setfont_fp
+	sty setfont_fp+1
 
     ; Chargement du fichier
     ; Destination
@@ -76,7 +86,15 @@
     FREAD $b500, $0300, 1, 0
 
     ; FCLOSE 0
+    ; mfree (setfont_fp)
+    
+    lda setfont_fp
+    ldy setfont_fp+1
     BRK_ORIX XCLOSE
+
+	
+
+
 
     ; mfree (userzp)
     lda userzp
