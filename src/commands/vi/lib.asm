@@ -71,6 +71,14 @@ interpret_commandline:
   jmp     command_edition
   
 quit:
+  lda     vi_struct
+  ldy     vi_struct+1
+
+  BRK_KERNEL XFREE
+
+  lda     vi_ptr_edition_buffer
+  ldy     vi_ptr_edition_buffer+1
+  BRK_KERNEL XFREE
   CLS
   ;jsr     restore_old_screen
   rts
