@@ -24,8 +24,6 @@ build: $(SOURCE)
 	$(LD) -vm -m map7banks.txt -Ln memorymap.txt  -tnone $(ROM).ld65 -o $(ROM).rom
 	$(AS) $(CFLAGS) $(SOURCE) -DWITH_SDCARD_FOR_ROOT=1 -o $(ROM)sd.ld65 --debug-info
 	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)sd.rom
-	$(AS) $(CFLAGS) $(SOURCE) -DWITH_32BANKS -o $(ROM)a.ld65
-	$(LD) -tnone $(ROM)a.ld65 -o $(ROM)a.rom
 
 test:
 	#xa tests/xrm.asm -o xrm
