@@ -27,6 +27,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 exec_address   :=userzp
 sh_esc_pressed :=userzp+2
 sh_length_of_command_line:=userzp+3 ; 
+bash_struct_ptr:= userzp+4 ; 16bits
 
 .org        $C000
 .code
@@ -34,6 +35,23 @@ start_orix:
 
 
 start_sh:
+
+    MALLOC .sizeof(shell_bash_struct)
+    ; FIXME test NULL pointer
+    sta    bash_struct_ptr
+    sty    bash_struct_ptr+1
+
+
+    lda    #$00
+    ldy    #shell_bash_struct::command_line
+    sta    (bash_struct_ptr),y
+    
+    ldy    #shell_bash_struct::pos_command_line
+    sta    (bash_struct_ptr),y
+
+
+
+
     lda     #$00
     sta     STACK_BANK
     ; set lowercase keyboard should be move in telemon bank
@@ -66,6 +84,7 @@ start_prompt:
     sta     ORIX_ARGV            ; argv buffer
 .endif	
 
+
 display_prompt:
 .IFPC02
 .pc02
@@ -75,13 +94,19 @@ display_prompt:
     lda     #$00
     sta     ORIX_GETOPT_PTR      ; init the PTR of the command line
 .endif
+
 sh_switch_on_prompt:
+
+
+
     ; Displays current path
     BRK_ORIX XGETCWD_ROUTINE
     BRK_ORIX XWSTR0
     
-    BRK_TELEMON XECRPR           ; display prompt (# char)
+    BRK_KERNEL XECRPR           ; display prompt (# char)
     SWITCH_ON_CURSOR
+
+
 
 start_commandline:
     lda     #$05    ; Kernel bank
@@ -99,16 +124,20 @@ start_commandline:
     beq     start_commandline    ; down key not managed
     cmp     #KEY_RETURN          ; is it enter key ?
     bne     next_key             ; no we display the char
+
     lda     sh_length_of_command_line               ; no command ?
     bne     @sh_launch_command ; yes it's an empty line
     RETURN_LINE
     jmp     start_prompt
+
 @sh_launch_command:    
     lda     #<BUFEDT             ; register command line buffer
     ldy     #>BUFEDT
     jsr     _bash                ; and launch interpreter
     jmp     start_prompt
-@function_key_pressed:
+
+@function_key:
+
 
 next_key:
     cmp     #KEY_DEL             ; is it del pressed ?
@@ -135,6 +164,8 @@ next_key:
 .endif		
 
     jmp     start_commandline    ; and loop interpreter
+
+
 @key_esc_routine:
     ldx     sh_esc_pressed
     bne     @sh_launch_autocompletion
@@ -147,6 +178,7 @@ next_key:
     ldx     #$00
     stx     sh_esc_pressed
     jmp     sh_switch_on_prompt
+
 key_del_routine:
     ldx     sh_length_of_command_line               ; load the length of the command line buffer
     beq     send_oups_and_loop   ; command line is empty send oups sound
@@ -287,7 +319,11 @@ trimme:
 .endproc
 ; This routine is used to read into /bin directory, and tries to open a binary, if it's Not ok it return in A and X $ffff
 
-
+.proc sh_function_key
+    lda #$11
+    sta $bb80
+    rts
+.endproc
 
 
 
@@ -480,7 +516,6 @@ trimme:
 .include "lib/strlen.asm"
 .include "lib/fread.asm"
 .include "lib/get_opt.asm"
-.include "lib/getOrixVar.asm"
 ; hardware
 .include "lib/ch376.s"
 .include "lib/ch376_verify.s"

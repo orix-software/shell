@@ -102,10 +102,6 @@ ORIX_ARGV:
 	.res    MAX_LENGTH_OF_FILES*BASH_MAX_ARGS
 ; used to check term
 
-
-
-shell_bash_variables:
-    .tag shell_bash_struct    
 ; ptr of LIST_NAME_PID
 orix_end_memory_kernel:
     .res 1
@@ -157,17 +153,6 @@ orix_end_memory_kernel:
 	BRK_ORIX XHIRES
 .endmacro    
 
-;FIXME   
-.macro GET8_FROM_STRUCT offset, zpaddress
-	ldy #offset
-	lda (zpaddress),y
-.endmacro    
-
-.macro PUT8_FROM_STRUCT offset,zpaddress
-	ldy #offset
-	sta (zpaddress),y
-.endmacro    
-  
 ; O_WRONLY
 ; O_RDONLY   
 .macro FOPEN file, mode
@@ -177,13 +162,7 @@ orix_end_memory_kernel:
   .byte $00,XOPEN
 .endmacro  
  
-.macro FOPEN_INTO_BANK7 file, mode
-  lda   #<file
-  ldx   #>file
-  ldy   #mode
-  jsr   XOPEN_ROUTINE
-.endmacro
- 
+
 .macro MKDIR PATH 
   lda   #<PATH
   ldx   #>PATH
@@ -281,7 +260,7 @@ orix_end_memory_kernel:
 .macro PRINT_NOSAVE_REGISTER str
 	lda #<str
 	ldy #>str
-	BRK_TELEMON XWSTR0
+	BRK_KERNEL XWSTR0
 .endmacro
 
 .macro RETURN_LINE_INTO_TELEMON
@@ -664,7 +643,7 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
 .else
     TWILIGHT=0
 .endif
-;OCONFIG+LSOF+DF+VI+TREE+SH+MORE+LESS+SEDSD+CPUINFO+BANK+KILL+HISTORY+XORIX+MOUNT+MONITOR+CA65+TELEFORTH
+
 BASH_NUMBER_OF_COMMANDS=1+BASIC11+CD+CP+CAT+CLEAR+DEBUG+DF+DATE+ECHO+ENV+EXEC+FORTH+HELP+HISTORY+IOPORT+KILL+LESS+LS+BANK+LSCPU+LSOF+LSMEM+MAN+MOUNT+MEMINFO+MKDIR_COMMAND+MONITOR+MV+PS+PSTREE+PWD+REBOOT+RM+SETFONT+SH+UNAME+VI+VIEWHRS+TELNETD+TOUCH+TWILIGHT+TREE+WATCH+XORIX
 
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 

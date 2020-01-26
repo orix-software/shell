@@ -26,12 +26,12 @@ build: $(SOURCE)
 	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)sd.rom
 
 test:
-	#xa tests/xrm.asm -o xrm
-	#xa tests/xmkdir.asm -o xmkdir
 	#cp src/include/orix.h build/usr/include/orix/
 	mkdir -p build/usr/src/orix-source-1.0/src/
 	mkdir -p build/usr/share/man/
 	mkdir -p build/usr/share/fonts/
+	mkdir -p build/usr/share/shell/
+	cp $(ROM)sd.rom build/usr/share/shell/
 	sh tools/builddocs.sh
 	cp Makefile build/usr/src/orix-source-1.0/
 	cp README.md build/usr/src/orix-source-1.0/

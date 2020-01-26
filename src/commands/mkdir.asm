@@ -8,6 +8,8 @@ mkdir_malloc_ptr       := userzp+1 ; .word
 
 
 .proc _mkdir
+; broken
+    rts
     ldx     #$01
     jsr     _orix_get_opt
     lda     ORIX_ARGV
@@ -22,10 +24,7 @@ mkdir_malloc_ptr       := userzp+1 ; .word
     sty     mkdir_length_to_malloc
     
     ;  compute strlen of cwd
-    lda     #<shell_bash_variables+shell_bash_struct::path_current
-    sta     RES
-    sta     mkdir_temp
-    lda     #<(shell_bash_variables+shell_bash_struct::path_current+1)
+
     sta     RES+1
     sta     mkdir_temp+1
     jsr     _strlen
