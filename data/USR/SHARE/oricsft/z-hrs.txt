@@ -1,0 +1,1 @@
+/usr/share/oricsft/hrs/empty.hrs
