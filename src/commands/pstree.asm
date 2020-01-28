@@ -13,7 +13,7 @@ str_init:
 ptr_kernel_process          :=userzp
 ptr_kernel_process_current  :=userzp+2
     ldx #$00 ; Get Kernel adress
-    BRK_ORIX XVARS
+    BRK_KERNEL XVARS
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
 

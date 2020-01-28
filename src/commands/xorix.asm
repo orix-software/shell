@@ -1,32 +1,50 @@
 .export _xorix
 
-
-
+.struct  xorix_struct
+  xpos_screen       .byte    ; position x of the cursor on the screen
+  ypos_screen       .byte    ; position y of the cursor on the screen
+.endstruct
 
 
 .proc _xorix
 XORIX_BEGIN_MENU                  :=$A000
-XORIX_BEGIN_BACKGROUND_GRID       :=$A000+40*8+(2+2+1)*40
+XORIX_BEGIN_BACKGROUND_GRID       :=$A000+40*8+(3)*40
 XORIX_BEGIN_BACKGROUND_GRID_EVEN  :=XORIX_BEGIN_BACKGROUND_GRID
 XORIX_BEGIN_BACKGROUND_GRID_ODD   :=XORIX_BEGIN_BACKGROUND_GRID+40
-XORIX_STRUCT:=userzp
+
+XORIX_STRUCT_ptr:=userzp 
 ;XORIX struct
 ;unsigned char posx;
 ;unsigned char posy;
 
 
 
-  BRK_TELEMON XHIRES
-  MALLOC 2
-  sta XORIX_STRUCT
-  sty XORIX_STRUCT+1
+  BRK_KERNEL XHIRES
+  MALLOC .sizeof(xorix_struct)
+  sta XORIX_STRUCT_ptr
+  sty XORIX_STRUCT_ptr+1
   ; init pos
   ldy #$00
   lda #$00
-  sta (XORIX_STRUCT),y
+  sta (XORIX_STRUCT_ptr),y
   iny
-  sta (XORIX_STRUCT),y
+  sta (XORIX_STRUCT_ptr),y
  
+  lda #$17
+  sta $A000   ; empty
+  
+  sta $A000+40
+  sta $A000+80  
+  sta $A000+120
+  sta $A000+160
+
+  sta $A000+200
+  sta $A000+240
+  sta $A000+280  
+  sta $A000+320
+
+  sta $A000+360 ; empty
+
   jsr _blit_menu
   jsr _blit_background
 
@@ -131,7 +149,8 @@ str_file:
           ldy   RES+1    
           BRK_ORIX XSCHAR
           rts
-
+filename_menu:
+    .asciiz "/usr/share/xorix/menu.lst"
 
 
  .endproc

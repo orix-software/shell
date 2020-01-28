@@ -10,6 +10,9 @@
 .include   "dependencies/kernel/src/include/memory.inc"
 .include   "dependencies/kernel/src/include/files.inc"
 .include   "dependencies/twilighte/src/include/io.inc"
+
+.include   "dependencies/orix-sdk/macros/strnxxx.mac"
+
 .include   "build.inc"
 .include   "include/bash.inc"
 
@@ -97,16 +100,12 @@ display_prompt:
 
 sh_switch_on_prompt:
 
-
-
     ; Displays current path
     BRK_ORIX XGETCWD_ROUTINE
     BRK_ORIX XWSTR0
     
     BRK_KERNEL XECRPR           ; display prompt (# char)
     SWITCH_ON_CURSOR
-
-
 
 start_commandline:
     lda     #$05    ; Kernel bank
@@ -434,6 +433,10 @@ trimme:
 .include "commands/oconfig.asm"
 .endif
 
+.ifdef WITH_ORICSOFT
+.include "commands/oricsoft.asm"
+.endif
+
 .ifdef WITH_PS
 .include "commands/ps.asm"
 .endif
@@ -526,8 +529,8 @@ _cd_to_current_realpath_new:
     sty     TR6
     ldy     #O_RDONLY
     ldx     TR6
-    BRK_TELEMON XOPEN
-    BRK_KERNEL  XFREE
+    BRK_KERNEL XOPEN
+    BRK_KERNEL XFREE
     rts
 
 ; FIXME common with telemon
@@ -842,6 +845,10 @@ fork_mode:
     .byt NOFORK_NOPID
 .endif
 
+.ifdef WITH_ORICSOFT
+    .byt NOFORK_NOPID
+.endif
+
 .ifdef WITH_PS
     .byt NOFORK_NOPID
 .endif
@@ -1037,6 +1044,10 @@ commands_low:
     .byt <_oconfig
 .endif
 
+.ifdef WITH_ORICSOFT
+    .byt <_oricsoft
+.endif
+
 .ifdef WITH_PS
     .byt <_ps
 .endif
@@ -1228,6 +1239,10 @@ commands_high:
 
 .ifdef WITH_OCONFIG
     .byt >_oconfig
+.endif
+
+.ifdef WITH_ORICSOFT
+    .byt >_oricsoft
 .endif
 
 .ifdef WITH_PS    
@@ -1425,6 +1440,10 @@ list_command_low:
     .byt <oconfig
 .endif
 
+.ifdef WITH_ORICSOFT
+    .byt <oricsoft
+.endif
+
 .ifdef WITH_PS       
     .byt <ps
 .endif    
@@ -1619,6 +1638,10 @@ list_command_high:
     .byt >oconfig
 .endif 
 
+.ifdef WITH_ORICSOFT
+    .byt >oricsoft
+.endif 
+
 .ifdef WITH_PS
     .byt >ps
 .endif    
@@ -1810,6 +1833,10 @@ commands_length:
 
 .ifdef WITH_OCONFIG
     .byt 7 ; oconfig
+.endif
+
+.ifdef WITH_ORICSOFT
+    .byt 7 ; oricsoft
 .endif
 
 .ifdef WITH_PS
@@ -2023,7 +2050,12 @@ mv:
 .ifdef WITH_OCONFIG
 oconfig:
     .asciiz "oconfig"
-.endif           
+.endif     
+
+.ifdef WITH_ORICSOFT
+oricsoft:
+    .asciiz "oricsft"
+.endif      
 
 .ifdef WITH_RM
 rm:
@@ -2171,8 +2203,6 @@ cpu_build_:
 
 
 .proc _commandline_parse
-
-
 find_command:
     ; Search command
     ; Insert each command pointer in zpTemp02Word
