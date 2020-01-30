@@ -1,6 +1,6 @@
 [submodule "src/dependencies/kernel"]
 	path = src/dependencies/kernel
-	url = git://github.com/orix-software/kernel.git
+	url = https://github.com/orix-software/kernel.git
 [submodule "src/dependencies/orix-sdk"]
 	path = src/dependencies/orix-sdk
 	url = https://github.com/assinie/orix-sdk.git

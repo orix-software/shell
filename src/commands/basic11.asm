@@ -4,6 +4,16 @@ basic11_tmp := userzp
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
+
+    ldx     #$01
+    jsr     _orix_get_opt
+    ; get parameter
+    bcc     @noparam      ; if there is no args, let's displays all banks
+
+    
+    jmp     @start
+
+@noparam:
     ; Get current pwd and open
     BRK_KERNEL XGETCWD_ROUTINE  ; Get A & Y 
     sty     basic11_tmp
@@ -12,6 +22,7 @@ basic11_tmp := userzp
 
     BRK_KERNEL XOPEN ; open current
 
+@start:
     sei
     
 
