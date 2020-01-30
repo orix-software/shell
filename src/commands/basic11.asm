@@ -1,8 +1,20 @@
 .export _basic11
 
+basic11_tmp := userzp
+
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
+    ; Get current pwd and open
+    BRK_KERNEL XGETCWD_ROUTINE  ; Get A & Y 
+    sty     basic11_tmp
+    ldx     basic11_tmp
+    ldy     #O_RDONLY
+
+    BRK_KERNEL XOPEN ; open current
+
     sei
+    
+
     ; stop t2 from via1
     lda #0+32
     sta VIA::IER

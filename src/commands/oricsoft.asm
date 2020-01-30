@@ -40,7 +40,7 @@ oricsoft_ptr2:= userzp+5 ;
 
      ldy  #oricsft_struct::path
      lda  oricsoft_struct_ptr+1
-     oricsoft_ptr1       
+     ;oricsoft_ptr1       
 
 
 

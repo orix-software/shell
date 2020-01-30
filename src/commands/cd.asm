@@ -38,7 +38,7 @@
     bne     free_cd_memory ; it's  'cd .' only then, jump. 
     ; Here we have 'cd ..'
     ; let's pull folder
-    BRK_ORIX XGETCWD_ROUTINE  ; Get A & Y 
+    BRK_KERNEL XGETCWD_ROUTINE  ; Get A & Y 
     sta     cd_path
     sty     cd_path+1
     ; loop until we reach 0
