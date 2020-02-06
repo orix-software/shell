@@ -154,7 +154,7 @@ myloop2:
 
     jsr     _print_hexa_no_sharp
         
-    CPUTC ' '
+    CPUTC ':'
 
     ldx     lsmem_savex
 
@@ -274,11 +274,8 @@ str_empty_program:
     .asciiz "       "
 str_FREE:
     .asciiz "Free  "
-
-
 str_BUSY:
     .asciiz "Busy  "
-str_SIZE:
-    .asciiz "Size:"
+
 .endproc
 
