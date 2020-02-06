@@ -6,10 +6,10 @@
     ; TODO read file length and malloc
     SH_FILE_LENGTH_MAX = 1000
 
-;    MALLOC  SH_FILE_LENGTH_MAX
+   ; MALLOC  SH_FILE_LENGTH_MAX
     ; FIXME test OOM
  ;   TEST_OOM_AND_MAX_MALLOC
-    ;sta     ptr_file
+;    sta     ptr_file
     ;sta     ptr_file_save
     ;sty     ptr_file+1
     ;sty     ptr_file_save+1
@@ -23,7 +23,10 @@
     ;lda     ORIX_ARGV
     ;bne     thereis_a_script_to_execute
     ; Let's start a prompt
-    jmp     start_sh
+    ;lda     ptr_file
+    ;ldy     ptr_file+1
+    ;BRK_KERNEL XFREE
+    jmp     start_sh_interactive
 
 
 thereis_a_script_to_execute:    
@@ -33,6 +36,7 @@ thereis_a_script_to_execute:
     sta     TR0
   ; define target address
     lda     ptr_file
+    
     sta     PTR_READ_DEST
     lda     ptr_file+1
     sta     PTR_READ_DEST+1

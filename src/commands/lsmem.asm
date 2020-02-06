@@ -7,15 +7,17 @@
    lsmem_ptr            := userzp+4 
    lsmem_savey          := userzp+6  ; 1 byte
    lsmem_savex          := userzp+7  ; 1 byte
+   lsmem_save2y          := userzp+8  ; 1 byte
+   lsmem_savey_kernel_malloc_busy_pid_list := userzp+9
 
    ldx     #XVARS_KERNEL_PROCESS  ; Get adress struct of process from kernel
-   BRK_ORIX(XVARS)
+   BRK_KERNEL XVARS
    sta     lsmem_ptr_pid_table
    sty     lsmem_ptr_pid_table+1
 
 
    ldx     #XVARS_KERNEL_MALLOC ; Get adress struct of malloc from kernel
-   BRK_ORIX(XVARS)
+   BRK_KERNEL XVARS
    sta     lsmem_ptr_malloc
    sty     lsmem_ptr_malloc+1
 
@@ -24,40 +26,82 @@
 
 ; Displays all free chunk 
 
-   ldx     #$00
+    ldx     #$00
     
 @L1:
     stx     lsmem_savex
     ; looking if there is free chunk set
-    lda     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_high
+    tay
+    lda     (lsmem_ptr_malloc),y
+
+    ;lda     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
     bne     @S4
-    lda     ORIX_MALLOC_FREE_BEGIN_LOW_TABLE,x
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_low
+    tay
+    lda     (lsmem_ptr_malloc),y
+    
     bne     @S4
     beq     @S5
 
 @S4:
     PRINT   str_FREE
-    lda     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_high
+    tay
+    lda     (lsmem_ptr_malloc),y
+
     jsr     _print_hexa
-        
-    lda     ORIX_MALLOC_FREE_BEGIN_LOW_TABLE,x
+
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_low
+    tay
+    lda     (lsmem_ptr_malloc),y
+
+
+
     jsr     _print_hexa_no_sharp
         
     CPUTC   ':'
-      
-    lda     ORIX_MALLOC_FREE_END_HIGH_TABLE,x
+
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_end_high
+    tay
+    lda     (lsmem_ptr_malloc),y
+    
     jsr     _print_hexa
-     
-        
-    lda     ORIX_MALLOC_FREE_END_LOW_TABLE,x
+
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_end_low
+    tay
+    lda     (lsmem_ptr_malloc),y
+       
     jsr     _print_hexa_no_sharp
         
     CPUTC   ' '
-        
-    lda     ORIX_MALLOC_FREE_SIZE_HIGH_TABLE,x
+
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_size_high
+    tay
+    lda     (lsmem_ptr_malloc),y
+
     jsr    _print_hexa
-        
-    lda    ORIX_MALLOC_FREE_SIZE_LOW_TABLE,x
+
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_free_chunk_size_low
+    tay
+    lda     (lsmem_ptr_malloc),y
+
     jsr    _print_hexa_no_sharp
     
     BRK_ORIX XCRLF
@@ -69,56 +113,129 @@
     bne     @L1
 
 ; Displays all busy chunk 
+; ******************************************************************************************
+; ******************************************************************************************
+    ldx     #$00
 
-    ldx #$00
-
-
+    ldy     #kernel_malloc_struct::kernel_malloc_busy_pid_list
 myloop2:
+    
+    lda     (lsmem_ptr_malloc),y
 
-    lda ORIX_MALLOC_BUSY_TABLE_PID,x
-
-    beq busy_chunk_is_empty             ; If malloc pid table is equal to 0 at position X, then there is nothing allocated
+    beq     busy_chunk_is_empty             ; If malloc pid table is equal to 0 at position X, then there is nothing allocated
     
     ; at this step X contains the first busy chunck    
-    stx lsmem_savex
-
-        
+    stx     lsmem_savex
+    sty     lsmem_savey_kernel_malloc_busy_pid_list     
         
     PRINT str_BUSY
 
     ; Get start adress of busy chunk
-    ldx lsmem_savex
-    lda ORIX_MALLOC_BUSY_TABLE_BEGIN_HIGH,x
-    jsr _print_hexa
-    lda ORIX_MALLOC_BUSY_TABLE_BEGIN_LOW,x
-    jsr _print_hexa_no_sharp
-        
-    CPUTC ' '
 
-    lda ORIX_MALLOC_BUSY_TABLE_END_HIGH,x
-    jsr _print_hexa
-    lda ORIX_MALLOC_BUSY_TABLE_END_LOW,x
-    jsr _print_hexa_no_sharp
-        
-        
-    CPUTC ' '
+    ; Displays the beginning of the Offset (busy)
+    ldx     lsmem_savex
 
-    lda ORIX_MALLOC_BUSY_TABLE_SIZE_HIGH,x
-    jsr _print_hexa
-    lda ORIX_MALLOC_BUSY_TABLE_SIZE_LOW,x
-    jsr _print_hexa_no_sharp
-
-    CPUTC ' '
-
-	; display process now
     txa
     clc
-    adc     #kernel_malloc_struct::kernel_malloc_pid_list
-    ;sta     $7000
+    adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_high
     tay
-
     lda     (lsmem_ptr_malloc),y
 
+    jsr     _print_hexa
+    ; Displays the low Offset (busy)
+
+
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_low
+    tay
+    lda     (lsmem_ptr_malloc),y
+
+
+    jsr     _print_hexa_no_sharp
+        
+    CPUTC ' '
+
+    ldx     lsmem_savex
+
+
+    
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_end_high
+    tay
+    lda     (lsmem_ptr_malloc),y
+
+
+    jsr     _print_hexa
+
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_end_low
+    tay
+    lda     (lsmem_ptr_malloc),y
+
+
+
+    jsr _print_hexa_no_sharp
+        
+        
+    CPUTC ' '
+
+    ldx     lsmem_savex
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_size_high
+    tay
+    lda     (lsmem_ptr_malloc),y
+
+    jsr     _print_hexa
+    
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_size_low
+    tay
+    lda     (lsmem_ptr_malloc),y
+
+  ;  lda ORIX_MALLOC_BUSY_TABLE_SIZE_LOW,x
+    jsr     _print_hexa_no_sharp
+
+    CPUTC ' '
+    ; There is a bug here if kernel_malloc_struct::kernel_malloc_busy_pid_list + x are greater than 255
+	; display process now
+    txa     ; X contains the index of the process
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_busy_pid_list
+
+    tay
+
+.if     KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list > 255
+  .error  "[lsmem] KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list greater than 255 : overflow in lsmem_ptr_malloc ..."
+.endif
+  
+
+
+    jsr display_process
+
+@S1:
+
+    BRK_TELEMON XCRLF
+    ; save X
+    ldx     lsmem_savex
+    ldy     lsmem_savey_kernel_malloc_busy_pid_list
+busy_chunk_is_empty:
+    iny
+    inx
+    cpx     #KERNEL_MAX_NUMBER_OF_MALLOC
+    bne     myloop2
+
+
+skip:
+    rts
+
+display_process:
+    lda     (lsmem_ptr_malloc),y
+    ; at this step A contains the id of the pid
     ; we get the process position, now let's get it's name
 
     pha
@@ -147,22 +264,9 @@ myloop2:
     ldy     lsmem_savey
     iny
     bne     @L1
-
 @S1:
+    rts    
 
-    BRK_TELEMON XCRLF
-    ; save X
-    ldx     lsmem_savex
-
-busy_chunk_is_empty:
-    inx
-    cpx     #KERNEL_MAX_NUMBER_OF_MALLOC
-    bne     myloop2
-
-
-skip:
-
-    rts
 str_column:
     .byte "TYPE  START END   SIZE  PROGRAM  CHUNK",$0D,$0A,0    
 
