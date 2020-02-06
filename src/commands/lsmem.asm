@@ -150,23 +150,16 @@ myloop2:
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_low
     tay
     lda     (lsmem_ptr_malloc),y
-
-
     jsr     _print_hexa_no_sharp
         
     CPUTC ':'
 
     ldx     lsmem_savex
-
-
-    
     txa
     clc
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_end_high
     tay
     lda     (lsmem_ptr_malloc),y
-
-
     jsr     _print_hexa
 
     txa
@@ -174,9 +167,6 @@ myloop2:
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_end_low
     tay
     lda     (lsmem_ptr_malloc),y
-
-
-
     jsr _print_hexa_no_sharp
         
         
@@ -197,7 +187,7 @@ myloop2:
     tay
     lda     (lsmem_ptr_malloc),y
 
-  ;  lda ORIX_MALLOC_BUSY_TABLE_SIZE_LOW,x
+
     jsr     _print_hexa_no_sharp
 
     CPUTC ' '
@@ -209,10 +199,9 @@ myloop2:
 
     tay
 
-.if     KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list > 255
-  .error  "[lsmem] KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list greater than 255 : overflow in lsmem_ptr_malloc ..."
-.endif
-  
+;.if     KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list > 255
+  ;.error  "[lsmem] KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list greater than 255 : overflow in lsmem_ptr_malloc ..."
+;.endif
 
 
     jsr display_process
