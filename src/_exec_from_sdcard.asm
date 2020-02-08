@@ -7,11 +7,12 @@
 orix_try_to_find_command_in_bin_path:
 	; here we found no command, let's go trying to find it in /bin
 
+    ; Get command (first param)
     ldx     #$00
     jsr     _orix_get_opt
 
     ; Malloc
-    MALLOC (5+8+1) ; 5 because /bin/ & 8 because length can't be greater than 8 for the command
+    MALLOC .strlen("/bin/")+8+1 ; 5 because /bin/ & 8 because length can't be greater than 8 for the command
     ; FIX ME test OOM
     sta copy_str
     sty copy_str+1
@@ -21,8 +22,10 @@ orix_try_to_find_command_in_bin_path:
     ldy     #$00
 @L1:
     lda     str_root_bin,y
+
     beq     @end
     sta     (copy_str),y
+
     iny
     cpy     #.strlen("/bin/")
     bne     @L1
@@ -31,19 +34,44 @@ orix_try_to_find_command_in_bin_path:
     ldx     #$00
 @L2:
     lda     ORIX_ARGV,x
+
     beq     @end2
     sta     (copy_str),y
     inx
     iny
-    cpx     #8
+    cpx     #$08
     bne     @L2
     ; now copy argv[0]
 @end2:
     sta     (copy_str),y
+    ldy     #$00
+@L5:    
+    lda     (copy_str),y
+    beq     @out
+
+    iny
+    bne     @L5
+
+@out:
     ldy     #O_RDONLY
     lda     copy_str
     ldx     copy_str+1
     BRK_KERNEL XOPEN
+    cmp     #NULL
+    bne     @not_null
+
+    cpy     #NULL
+    bne     @not_null
+
+
+    lda     copy_str
+    ldy     copy_str+1
+
+    jmp     @even_in_slash_bin_command_not_found
+
+    rts
+@not_null:
+
     ; save FP
     sta     temp
     sty     temp+1
@@ -69,22 +97,20 @@ orix_try_to_find_command_in_bin_path:
     beq     @even_in_slash_bin_command_not_found
 @found_in_bin_folder:    
     ; we should start code here
-    jmp     _orix_load_and_start_app_xopen_done
+    jmp     @_orix_load_and_start_app_xopen_done
 
 @even_in_slash_bin_command_not_found:
     ; At this step A & Y still contains FP then free
-    BRK_ORIX(XFREE)
+    BRK_KERNEL XFREE
     RETURN_LINE
     PRINT   ORIX_ARGV
     PRINT   str_command_not_found
     rts
-str_root_bin:
-    ; If you change this path, you need to change .strlen("/bin/") above
-    .asciiz "/bin/"
+
 
 
   
-_orix_load_and_start_app_xopen_done:
+@_orix_load_and_start_app_xopen_done:
 
     ; Save pointer
     sta    fp_exec     
@@ -101,7 +127,7 @@ _orix_load_and_start_app_xopen_done:
     ; read 20 bytes in the header
     lda     #20
     ldy     #$00
-    BRK_TELEMON XFREAD
+    BRK_KERNEL XFREAD
    
     
     ldy     #$00
@@ -111,7 +137,7 @@ _orix_load_and_start_app_xopen_done:
     beq     @is_an_orix_file
     RETURN_LINE
     
-    BRK_TELEMON XCLOSE
+    BRK_KERNEL XCLOSE
     ; not found it means that we display error message
     ldx     #$00
     jsr     _orix_get_opt
@@ -121,7 +147,7 @@ _orix_load_and_start_app_xopen_done:
     RETURN_LINE
     ; FIXME close the opened file here
 
-    BRK_TELEMON XCLOSE
+    BRK_KERNEL XCLOSE
 
     jmp     @free_exec
 
@@ -130,7 +156,7 @@ _orix_load_and_start_app_xopen_done:
 
   	; Switch off cursor
     ldx     #$00
-    BRK_TELEMON XCOSCR
+    BRK_KERNEL XCOSCR
     ; Storing address to load it
 
     ldy     #14
@@ -156,11 +182,11 @@ _orix_load_and_start_app_xopen_done:
 	
     lda     #$FF ; read all the binary
     ldy     #$FF
-    BRK_TELEMON XFREAD
+    BRK_KERNEL XFREAD
     ; FIXME return nb_bytes read malloc must be done
    
     lda     #$00 ; don't update length
-    BRK_TELEMON XCLOSE
+    BRK_KERNEL XCLOSE
 
     jsr     @free_exec
 
@@ -175,3 +201,6 @@ _orix_load_and_start_app_xopen_done:
     ldy     ptr_header+1
     BRK_TELEMON XFREE
     rts
+str_root_bin:
+    ; If you change this path, you need to change .strlen("/bin/") above
+    .asciiz "/bin/"    

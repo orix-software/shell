@@ -27,19 +27,21 @@
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
-exec_address   :=userzp
-sh_esc_pressed :=userzp+2
-sh_length_of_command_line:=userzp+3 ; 
-bash_struct_ptr:= userzp+4 ; 16bits
+exec_address              :=userzp
+sh_esc_pressed            :=userzp+2
+sh_length_of_command_line :=userzp+3 ; 
+bash_struct_ptr           := userzp+4 ; 16bits
+bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 
 .org        $C000
 .code
-start_orix:
+
+start_sh_interactive:
 
 
-start_sh:
 
     MALLOC .sizeof(shell_bash_struct)
+
     ; FIXME test NULL pointer
     sta    bash_struct_ptr
     sty    bash_struct_ptr+1
@@ -49,11 +51,6 @@ start_sh:
     ldy    #shell_bash_struct::command_line
     sta    (bash_struct_ptr),y
     
-    ldy    #shell_bash_struct::pos_command_line
-    sta    (bash_struct_ptr),y
-
-
-
 
     lda     #$00
     sta     STACK_BANK
@@ -76,27 +73,29 @@ start_prompt:
 
 .IFPC02
 .pc02
-    stz     sh_length_of_command_line               ; Used to store the length of the command line
-    stz     BUFEDT
-    stz     ORIX_ARGV
+    stz    sh_length_of_command_line               ; Used to store the length of the command line
+    stz    ORIX_ARGV
+    lda    #$00
+    ldy    #shell_bash_struct::command_line
+    sta    (bash_struct_ptr),y
+
+    ldy    #shell_bash_struct::pos_command_line
+    sta    (bash_struct_ptr),y
+    
 .p02    
 .else
-    lda     #$00
-    sta     sh_length_of_command_line               ; Used to store the length of the command line
-    sta     BUFEDT               ; command line buffer
-    sta     ORIX_ARGV            ; argv buffer
+    lda    #$00
+    sta    sh_length_of_command_line               ; Used to store the length of the command line
+    sta    ORIX_ARGV            ; argv buffer
+    lda    #$00
+    ldy    #shell_bash_struct::command_line
+    sta    (bash_struct_ptr),y
+    ldy    #shell_bash_struct::pos_command_line
+    sta    (bash_struct_ptr),y
 .endif	
 
 
 display_prompt:
-.IFPC02
-.pc02
-    stz     ORIX_GETOPT_PTR
-.p02    
-.else
-    lda     #$00
-    sta     ORIX_GETOPT_PTR      ; init the PTR of the command line
-.endif
 
 sh_switch_on_prompt:
 
@@ -108,13 +107,13 @@ sh_switch_on_prompt:
     SWITCH_ON_CURSOR
 
 start_commandline:
-    lda     #$05    ; Kernel bank
+    lda     #ORIX_ID_BANK    ; Kernel bank
     sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
     BRK_TELEMON XRDW0            ; read keyboard
    ; bmi     start_commandline    ; don't receive any specials chars (that is the case when funct key is used : it needs to be fixed in bank 7 in keyboard management
 
     cmp     #KEY_LEFT
-    beq     start_commandline    ; left key not managed
+    beq     @key_left_routine    ; left key not managed
     cmp     #KEY_RIGHT
     beq     start_commandline    ; right key not managed
     cmp     #KEY_UP
@@ -122,48 +121,79 @@ start_commandline:
     cmp     #KEY_DOWN
     beq     start_commandline    ; down key not managed
     cmp     #KEY_RETURN          ; is it enter key ?
-    bne     next_key             ; no we display the char
+    bne     @next_key             ; no we display the char
 
-    lda     sh_length_of_command_line               ; no command ?
+    ldx     sh_length_of_command_line               ; no command ?
     bne     @sh_launch_command ; yes it's an empty line
     RETURN_LINE
     jmp     start_prompt
 
 @sh_launch_command:    
-    lda     #<BUFEDT             ; register command line buffer
-    ldy     #>BUFEDT
+    
+    ldy    bash_struct_ptr+1
+    
+    lda    bash_struct_ptr
+    clc
+    adc    #shell_bash_struct::command_line
+    bcc    @S7
+    iny
+@S7:
+    sta    bash_struct_command_line_ptr
+    sty    bash_struct_command_line_ptr+1  ; should be removed when çorix_get_opt will be
+    sta    $5000
+    sty    $5001
     jsr     _bash                ; and launch interpreter
     jmp     start_prompt
 
 @function_key:
 
 
-next_key:
+@next_key:
     cmp     #KEY_DEL             ; is it del pressed ?
     beq     key_del_routine      ; yes let's remove the char in the BUFEDT buffer
-    cmp     #KEY_ESC             ; ESC key not managed, but could do autocompletion (Pressed twice)
+    cmp     #KEY_ESC                   ; ESC key not managed, but could do autocompletion (Pressed twice)
     beq     @key_esc_routine 
 
-    ldx     sh_length_of_command_line               ; get the length of the current line
+    ldx     sh_length_of_command_line  ; get the length of the current line
     cpx     #BASH_MAX_BUFEDT_LENGTH-1 ; do we reach the size of command line buffer ?
     beq     start_commandline    ; yes restart command line until enter or del keys are pressed, but
     BRK_TELEMON XWR0             ; write key on the screen (it's really a key pressed
+
+    pha
+    ldy    #shell_bash_struct::pos_command_line
+    ; inc a
+    lda    (bash_struct_ptr),y
+    sec
+    sta    (bash_struct_ptr),y
+
+    txa
+    clc
+    adc     #shell_bash_struct::command_line
+    tay
+    pla
+    sta    (bash_struct_ptr),y
+    iny
+
     ldx     sh_length_of_command_line               ; get the position on the command line
-    sta     BUFEDT,x             ; stores the char in command line buffer
     inx                          ; increase by 1 the current position in the command line buffer
     stx     sh_length_of_command_line
   
 .IFPC02
 .pc02         
-    stz     BUFEDT,x             ; flush edition buffer
+    
+    sta    (bash_struct_ptr),y
 .p02    
 .else
     lda     #$00
-    sta     BUFEDT,x             ; flush edition buffer
+    sta    (bash_struct_ptr),y
 .endif		
 
     jmp     start_commandline    ; and loop interpreter
 
+@key_left_routine:
+    ;adc    #shell_bash_struct::command_line
+    ;    sta    (bash_struct_ptr),y
+    jmp     start_commandline
 
 @key_esc_routine:
     ldx     sh_esc_pressed
@@ -179,12 +209,31 @@ next_key:
     jmp     sh_switch_on_prompt
 
 key_del_routine:
-    ldx     sh_length_of_command_line               ; load the length of the command line buffer
+    ldx     sh_length_of_command_line    ; load the length of the command line buffer
     beq     send_oups_and_loop   ; command line is empty send oups sound
     dex                          ; command line is NOT empty, remove last char in the buffer
-    lda     #$00                 ; remove last char FIXME 65c02
-    sta     BUFEDT,x
-    stx     sh_length_of_command_line               ; and store the length
+
+
+
+
+    
+    txa
+    clc
+    adc    #shell_bash_struct::command_line
+    tay
+
+    lda    #$00                 ; remove last char FIXME 65c02
+    sta    (bash_struct_ptr),y
+    stx    sh_length_of_command_line               ; and store the length
+
+    ldy    #shell_bash_struct::pos_command_line
+    ; dec a
+    lda    (bash_struct_ptr),y
+    tax
+    dex
+    txa
+    sta    (bash_struct_ptr),y
+
     SWITCH_OFF_CURSOR
     dec     SCRX                 ; go one step to the left on the screen
 
@@ -197,13 +246,11 @@ send_oups_and_loop:
     BRK_KERNEL XOUPS
     jmp     start_commandline
 
-
-
 .proc _bash
 
     sta     RES
     sty     RES+1
-    
+
 
     jsr     ltrim               ; ltrim command line
 
@@ -257,12 +304,14 @@ command_not_found:
     cpx     #BASH_NUMBER_OF_COMMANDS 
     bne     mloop
     ; at this step we did not found the command in the rom
+
     jmp     orix_try_to_find_command_in_bin_path
 command_found:
     ; at this step we found the command from a rom
 	; X contains ID of the command
 	; Y contains the position of the BUFEDT
     stx     TR7                             ; save the id of the command
+
 
     RETURN_LINE                             ;jump a line
     
@@ -279,13 +328,15 @@ command_found:
     lda     commands_high,x
     sta     exec_address+1
     
+
+
     JMP     (exec_address)               ; be careful with 6502 bug (jmp xxFF)
 .endproc
 
 
 
 ; [IN] X get the id of the parameter
-; [ IN] Y contains the index in BUFEDT
+
 ; Return in AY the ptr of the parameter
 
 .proc ltrim
@@ -326,7 +377,8 @@ trimme:
 
 
 
-
+str_oom:
+  .byte     "Out of memory",$0D,$0A,0 ; FIXME
 
 ; Commands
 .ifdef WITH_BANK
@@ -525,11 +577,12 @@ trimme:
 
 
 _cd_to_current_realpath_new:
-    BRK_KERNEL XGETCWD_ROUTINE ; Return X and Y the string
+    BRK_KERNEL XGETCWD_ROUTINE ; Return A and Y the string
     sty     TR6
     ldy     #O_RDONLY
     ldx     TR6
     BRK_KERNEL XOPEN
+    ; get A&Y
     BRK_KERNEL XFREE
     rts
 
@@ -2240,12 +2293,10 @@ command_not_found:
 command_found:
     ; at this step we found the command from a rom
 	; X contains ID of the command
-	; Y contains the position of the BUFEDT
-    stx     TR7                             ; save the id of the command
 
-    ;RETURN_LINE                             ;jump a line
+    stx     TR7                             ; save the id of the command
     
-    ldx     TR7                             ; get the id of the command
+  ;  ldx     TR7                             ; get the id of the command ????
     
     lda     list_command_low,x              ; get the name of the command
     ldy     list_command_high,x             ; and high
@@ -2267,7 +2318,7 @@ command_found:
 
     ;lda    #$14
     ;sta    $BB80+200
-    
+
 
     jsr    _bash
     rts
@@ -2293,11 +2344,11 @@ copyright:
     .word   signature
 
 NMI:
-	.word   start_orix
+	.word   start_sh_interactive
 
 ; fffc
 RESET:
-    .word   start_orix
+    .word   start_sh_interactive
 ; fffe
 BRK_IRQ:	
     .word   IRQVECTOR

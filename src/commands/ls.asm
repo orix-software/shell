@@ -4,6 +4,9 @@ ls_number_of_columns:=    userzp
 
 
 .proc _ls
+
+
+
     lda     #NUMBER_OF_COLUMNS_LS+1
     sta     ls_number_of_columns
 
@@ -20,16 +23,14 @@ ls_number_of_columns:=    userzp
     ; Il faudrait un STRNCPY
     STRCPY ORIX_ARGV, BUFNOM
 
-    ;MALLOC 13
-    ; FIXME test OOM
-    ;TEST_OOM_AND_MAX_MALLOC
-    ;sta RESB
-    ;sty RESB+1
 
-    lda     #<BUFEDT
+    lda     bash_struct_command_line_ptr ; $61E
     sta     RESB
-    lda     #>BUFEDT
+    ;sta     $5002
+    
+    lda     bash_struct_command_line_ptr+1
     sta     RESB+1
+    ;sta     $5003
 
     ; Potentiel buffer overflow ici
     ; Il faudrait un STRNCPY
@@ -41,7 +42,7 @@ ls_number_of_columns:=    userzp
     sty     RES+1
     jsr     _strcpy
 
-    ; RESB pointe toujours sur BUFEDT
+    ; RESB pointe toujours sur le buffer de command line
     jsr     WildCard
     bne     Error       ; Il faut une autre erreur, ici c'est parce qu'il y a des caractères incorrects
     ;bcc @ZZ0002     ; Pas de '?' ni de '*'

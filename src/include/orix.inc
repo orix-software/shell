@@ -22,7 +22,7 @@ XOPENRELATIVE                 = $31
 NEXT_STACK_BANK               :=$418
 
 
-.org $4c7
+.org $4C7
 .bss
 ;*=end_of_copy_page4-begin_of_copy_page4
 FIXME_DUNNO:
@@ -33,74 +33,19 @@ READ_BYTE_FROM_OVERLAY_RAM:
     .res 1
 
 ; 6522
-.org $500
-.bss
-GETOPT_PTR:
-    .res 1 ; Store the index of the current opt
+
+.org BUFEDT
+.res 110
+ORIX_ARGV:
+	.res    MAX_LENGTH_OF_FILES*BASH_MAX_ARGS
 TEMP_ORIX_1:
     .res 1
 ORIX_ARGC:
     .res 1
-; could be removed ...  until ERRNO is moved somewhere
-ORIX_GETOPT_PTR:
-    .res 1
-
-.org BUFNOM+14
-.bss
+.out     .sprintf("ORIX_ARGV  : %x", ORIX_ARGV)
+.out     .sprintf("ORIX_ARGC  : %x", ORIX_ARGC)
 
 
-ORIX_MALLOC_FREE_TABLE:
-; (adress begin) (adress_end) (size of chunk 16 bit)
-ORIX_MALLOC_FREE_BEGIN_LOW_TABLE:
-    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
-ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE:
-    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
-
-ORIX_MALLOC_FREE_END_LOW_TABLE:
-    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
-ORIX_MALLOC_FREE_END_HIGH_TABLE:
-    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
-
-MEMFREE:
-ORIX_MALLOC_FREE_SIZE_LOW_TABLE:
-    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
-ORIX_MALLOC_FREE_SIZE_HIGH_TABLE:
-    .res ORIX_MALLOC_FREE_FRAGMENT_MAX
-    .res 2 ; For 32 bits management
-
-ORIX_MALLOC_FREE_TABLE_NUMBER:
-; it contains the number of free chuncks
-    .res 1
-
-; Busy table
-ORIX_MALLOC_BUSY_TABLE:
-ORIX_MALLOC_BUSY_TABLE_BEGIN_LOW:
-    .res ORIX_NUMBER_OF_MALLOC
-ORIX_MALLOC_BUSY_TABLE_BEGIN_HIGH:
-    .res ORIX_NUMBER_OF_MALLOC
-ORIX_MALLOC_BUSY_TABLE_END_LOW:
-    .res ORIX_NUMBER_OF_MALLOC
-ORIX_MALLOC_BUSY_TABLE_END_HIGH:
-    .res ORIX_NUMBER_OF_MALLOC
-ORIX_MALLOC_BUSY_TABLE_SIZE_LOW:
-    .res ORIX_NUMBER_OF_MALLOC
-ORIX_MALLOC_BUSY_TABLE_SIZE_HIGH:
-    .res ORIX_NUMBER_OF_MALLOC
-
-; We store the PID of the malloc
-ORIX_MALLOC_BUSY_TABLE_PID:
-    .res ORIX_NUMBER_OF_MALLOC
-
-ORIX_MALLOC_BUSY_TABLE_NUMBER:
-    .res 1
-
-.org BUFEDT+BASH_MAX_BUFEDT_LENGTH
-.bss
-ORIX_ARGV_NAME:
-    .res    MAX_LENGTH_OF_FILES  ; name
-ORIX_ARGV:
-	.res    MAX_LENGTH_OF_FILES*BASH_MAX_ARGS
-; used to check term
 
 ; ptr of LIST_NAME_PID
 orix_end_memory_kernel:
@@ -185,7 +130,7 @@ orix_end_memory_kernel:
 ; This macro must be placed after MALLOC call
 .macro TEST_OOM_AND_MAX_MALLOC
     ; Test if we reached the max number of malloc chunk
-    cpx     #ORIX_NUMBER_OF_MALLOC
+    cpx     #KERNEL_MAX_NUMBER_OF_MALLOC
     bne     @check_for_oom_TEST_OOM_AND_MAX_MALLOC
     ; We reachead max malloc available
     PRINT   str_max_malloc_reached

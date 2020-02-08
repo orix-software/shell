@@ -4,9 +4,9 @@ save_mainargs_ptr:=userzp
 
 
 .proc _watch
+    rts
     PRINT   str_argc
-    lda     #<BUFEDT
-    ldy     #>BUFEDT
+
     BRK_KERNEL $2C ; XMAINARGS
     ; Return in A & Y struct
     ; save ptr

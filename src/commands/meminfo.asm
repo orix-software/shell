@@ -30,9 +30,15 @@
     
     PRINT   strMemFree
     
-    lda     ORIX_MALLOC_FREE_SIZE_LOW_TABLE
+
+    ldy     #kernel_malloc_struct::kernel_malloc_free_chunk_size_low
+    lda     (meminfo_ptr_malloc),y
+
+
     sta     RES
-    lda     ORIX_MALLOC_FREE_SIZE_HIGH_TABLE
+    ldy     #kernel_malloc_struct::kernel_malloc_free_chunk_size_high
+    lda     (meminfo_ptr_malloc),y
+    
     sta     RES+1
     lda     #$00
     sta     RESB  

@@ -7,8 +7,8 @@
    lsmem_ptr            := userzp+4 
    lsmem_savey          := userzp+6  ; 1 byte
    lsmem_savex          := userzp+7  ; 1 byte
-   lsmem_save2y          := userzp+8  ; 1 byte
-   lsmem_savey_kernel_malloc_busy_pid_list := userzp+9
+
+   lsmem_savey_kernel_malloc_busy_pid_list := userzp+8
 
    ldx     #XVARS_KERNEL_PROCESS  ; Get adress struct of process from kernel
    BRK_KERNEL XVARS
@@ -23,7 +23,6 @@
 
    PRINT   str_column
 
-
 ; Displays all free chunk 
 
     ldx     #$00
@@ -37,13 +36,16 @@
     tay
     lda     (lsmem_ptr_malloc),y
 
-    ;lda     ORIX_MALLOC_FREE_BEGIN_HIGH_TABLE,x
     bne     @S4
     txa
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_low
     tay
+    lda     lsmem_ptr_malloc
+    lda     lsmem_ptr_malloc+1
+
     lda     (lsmem_ptr_malloc),y
+    
     
     bne     @S4
     beq     @S5
@@ -104,7 +106,7 @@
 
     jsr    _print_hexa_no_sharp
     
-    BRK_ORIX XCRLF
+    BRK_KERNEL XCRLF
         
 @S5:
     ldx     lsmem_savex
@@ -140,11 +142,9 @@ myloop2:
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_high
     tay
     lda     (lsmem_ptr_malloc),y
-
     jsr     _print_hexa
-    ; Displays the low Offset (busy)
 
-
+   ; Displays the low Offset (busy)
     txa
     clc
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_low

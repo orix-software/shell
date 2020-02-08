@@ -67,18 +67,17 @@ restart:
     beq     end
     cmp     #$0A
     beq     end
-    sta     BUFEDT,x
+    
     inx
     iny
     bne     @loop
 end:
     lda     #$00
-    sta     BUFEDT,x
+    
     iny
     sty     TEMP_SH_COMMAND
  
-    lda     #<BUFEDT
-    ldy     #>BUFEDT
+    
     jsr     _bash             ; launch interpreter
   ; Free the process 
   

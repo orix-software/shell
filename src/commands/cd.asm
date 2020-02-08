@@ -7,6 +7,13 @@
     cd_fp_tmp := userzp+2
     ; Let's malloc
     MALLOC(KERNEL_MAX_PATH_LENGTH)
+    cmp     #NULL
+    bne     @not_null_1
+    cpy     #NULL
+    bne     @not_null_1
+
+    rts 
+@not_null_1:
     sta     cd_path
     sty     cd_path+1
 
@@ -87,8 +94,8 @@
     cpy     #NULL
     bne     @not_null
 
-    PRINT   str_not_a_directory
-    ; Error
+
+
     jmp     free_cd_memory
 
 @not_null:

@@ -1,7 +1,6 @@
 
 ; ORIX_ARGSV
 ;  [IN] X get the id of the parameter
-; [ IN] Y contains the index in BUFEDT
 ; Return in AY the ptr of the parameter
 .proc _orix_get_opt
 
@@ -19,7 +18,7 @@
     cpx #$00
     bne not_first_param	
 trim_space:
-    lda BUFEDT,y
+    lda (bash_struct_command_line_ptr),y
     cmp #' '
     bne not_first_param	
     iny
@@ -29,7 +28,7 @@ trim_space:
 not_first_param:	
     ldx #$00	
 loop_opt:
-    lda BUFEDT,y
+    lda (bash_struct_command_line_ptr),y
     beq end_of_param
 
 next2: 	

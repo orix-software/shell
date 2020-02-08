@@ -143,7 +143,6 @@ no_such_file:
   rts
 str_cannot_stat:
   .asciiz   "cannot stat "
-str_oom:
-  .byte     "Out of memory",$0D,$0A,0 ; FIXME
+
 .endproc
 

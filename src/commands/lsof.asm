@@ -58,7 +58,7 @@
 
 @is_ptr:
     ldy     #$00
-    lda     #(_KERNEL_FILE::f_path)
+  ;  lda     #(_KERNEL_FILE::f_path)
     clc
     adc     (lsof_ptr_struct_fp),y
     bcc     @S3
