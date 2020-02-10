@@ -13,6 +13,15 @@
 
 .include   "dependencies/orix-sdk/macros/strnxxx.mac"
 
+exec_address              :=userzp
+sh_esc_pressed            :=userzp+2
+sh_length_of_command_line :=userzp+3 ; 
+bash_struct_ptr           := userzp+4 ; 16bits
+bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
+
+
+BASH_NUMBER_OF_USERZP = 8
+
 .include   "build.inc"
 .include   "include/bash.inc"
 
@@ -24,27 +33,22 @@
 
 .include   "include/orix.inc"
 
+XGETCWD=$48
+XPUTCWD_ROUTINE=$49
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
-
-exec_address              :=userzp
-sh_esc_pressed            :=userzp+2
-sh_length_of_command_line :=userzp+3 ; 
-bash_struct_ptr           := userzp+4 ; 16bits
-bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 
 .org        $C000
 .code
 
 start_sh_interactive:
 
-
-
     MALLOC .sizeof(shell_bash_struct)
 
     ; FIXME test NULL pointer
     sta    bash_struct_ptr
     sty    bash_struct_ptr+1
+
 
 
     lda    #$00
@@ -100,8 +104,8 @@ display_prompt:
 sh_switch_on_prompt:
 
     ; Displays current path
-    BRK_ORIX XGETCWD_ROUTINE
-    BRK_ORIX XWSTR0
+    BRK_KERNEL XGETCWD
+    BRK_KERNEL XWSTR0
     
     BRK_KERNEL XECRPR           ; display prompt (# char)
     SWITCH_ON_CURSOR
@@ -131,8 +135,9 @@ start_commandline:
 @sh_launch_command:    
     
     ldy    bash_struct_ptr+1
-    
+
     lda    bash_struct_ptr
+
     clc
     adc    #shell_bash_struct::command_line
     bcc    @S7
@@ -140,8 +145,7 @@ start_commandline:
 @S7:
     sta    bash_struct_command_line_ptr
     sty    bash_struct_command_line_ptr+1  ; should be removed when çorix_get_opt will be
-    sta    $5000
-    sty    $5001
+
     jsr     _bash                ; and launch interpreter
     jmp     start_prompt
 
@@ -193,6 +197,24 @@ start_commandline:
 @key_left_routine:
     ;adc    #shell_bash_struct::command_line
     ;    sta    (bash_struct_ptr),y
+    ldy    #shell_bash_struct::pos_command_line
+    ; dec a
+    lda    (bash_struct_ptr),y
+    beq    @out_key_left
+    tax
+    dex
+    txa
+    sta    (bash_struct_ptr),y
+
+    SWITCH_OFF_CURSOR
+   ; ldx     SCRX
+   ; lda     CURSCR
+    ldy      #$00
+    lda     (ADSCR),y
+    sta     CURSCR
+    dec     SCRX
+    SWITCH_ON_CURSOR
+@out_key_left:
     jmp     start_commandline
 
 @key_esc_routine:
@@ -312,22 +334,21 @@ command_found:
 	; Y contains the position of the BUFEDT
     stx     TR7                             ; save the id of the command
 
+    ; save zp ptr for shell
 
-    RETURN_LINE                             ;jump a line
+    RETURN_LINE                             ; jump a line
     
-    ldx     TR7                             ; get the id of the command
-    
-    lda     list_command_low,x              ; get the name of the command
-    ldy     list_command_high,x             ; and high
-    ; get PID father
-    
-    ldx     TR7
-    lda     commands_low,x
+    lda     TR7                             ; get the id of the command
+    asl
+    tax
+
+    lda     addr_commands,x
     sta     exec_address
-	
-    lda     commands_high,x
+
+    inx	
+
+    lda     addr_commands,x
     sta     exec_address+1
-    
 
 
     JMP     (exec_address)               ; be careful with 6502 bug (jmp xxFF)
@@ -577,7 +598,7 @@ str_oom:
 
 
 _cd_to_current_realpath_new:
-    BRK_KERNEL XGETCWD_ROUTINE ; Return A and Y the string
+    BRK_KERNEL XGETCWD ; Return A and Y the string
     sty     TR6
     ldy     #O_RDONLY
     ldx     TR6
@@ -971,396 +992,210 @@ fork_mode:
 .endif
 
 
-commands_low:
+addr_commands:
 
 .ifdef WITH_BASIC11
-    .byt <_basic11
+    .addr  _basic11
 .endif    
 
 .ifdef WITH_BANK    
-    .byt <_banks
+    .addr  _banks
 .endif
 
 .ifdef WITH_CAT
-    .byt <_cat
+    .addr  _cat
 .endif    
 
 .ifdef WITH_CA65
-    .byt <_ca65
+    .addr  _ca65
 .endif    	
 
 .ifdef WITH_CD
-    .byt <_cd
+    .addr  _cd
 .endif    
 
 .ifdef WITH_CLEAR    
-    .byt <_clear ; 
+    .addr  _clear ; 
 .endif    
 
 .ifdef WITH_CP
-    .byt <_cp
+    .addr  _cp
 .endif
 
 .ifdef WITH_DATE
-    .byt <_date 
+    .addr  _date 
 .endif    
 
 .ifdef WITH_DEBUG
-    .byt <_debug
+    .addr  _debug
 .endif    	
 
 .ifdef WITH_DF
-    .byt <_df
+    .addr  _df
 .endif
 
 .ifdef WITH_DIR
-    .byt <_ls ; dir (alias)
+    .addr  _ls ; dir (alias)
 .endif    
 
 .ifdef WITH_ECHO
-    .byt <_echo ; 
+    .addr  _echo ; 
 .endif    
 
 .ifdef WITH_ENV    
-    .byt <_env
+    .addr  _env
 .endif    
 
 .ifdef WITH_EXEC
-    .byt <_exec
+    .addr  _exec
 .endif    
 
 .ifdef WITH_FORTH
-    .byt <_forth
+    .addr  _forth
 .endif
 
 .ifdef WITH_HELP
-    .byt <_help ;
+    .addr  _help ;
 .endif    
 	
 .ifdef WITH_HISTORY
-    .byt <_history
+    .addr  _history
 .endif   
 
 .ifdef WITH_IOPORT	
-    .byt <_ioports ;    
+    .addr  _ioports ;    
 .endif	
 
 .ifdef WITH_KILL
-    .byt <_kill ;    
+    .addr  _kill ;    
 .endif	
 
 .ifdef WITH_LESS
-    .byt <_less
+    .addr  _less
 .endif    
 
 .ifdef WITH_LS   
-    .byt <_ls
+    .addr  _ls
 .endif    
 
 .ifdef WITH_LSCPU
-    .byt <_lscpu
+    .addr  _lscpu
 .endif
 
 .ifdef WITH_LSMEM
-    .byt <_lsmem
+    .addr  _lsmem
 .endif    
 
 .ifdef WITH_LSOF
-    .byt <_lsof
+    .addr  _lsof
 .endif
 
 .ifdef WITH_MAN
-    .byt <_man
+    .addr  _man
 .endif
 
 .ifdef WITH_MEMINFO
-    .byt <_meminfo
+    .addr  _meminfo
 .endif    
 
 .ifdef WITH_MKDIR
-    .byt <_mkdir
+    .addr  _mkdir
 .endif    
 
 .ifdef WITH_MONITOR
-    .byt <_monitor
+    .addr  _monitor
 .endif    
 
 .ifdef WITH_MV   
-    .byt <_mv ; is in _cp
+    .addr  _mv ; is in _cp
 .endif    
     
 .ifdef WITH_MOUNT
-    .byt <_mount
+    .addr  _mount
 .endif    
 
 .ifdef WITH_OCONFIG
-    .byt <_oconfig
+    .addr  _oconfig
 .endif
 
 .ifdef WITH_ORICSOFT
-    .byt <_oricsoft
+    .addr  _oricsoft
 .endif
 
 .ifdef WITH_PS
-    .byt <_ps
+    .addr  _ps
 .endif
 
 .ifdef WITH_PSTREE
-    .byt <_pstree
+    .addr  _pstree
 .endif   
 
 .ifdef WITH_PWD    
-    .byt <_pwd
+    .addr  _pwd
 .endif    
 
 .ifdef WITH_REBOOT
-    .byt <_reboot	
+    .addr  _reboot	
 .endif
 
 .ifdef WITH_RM
-    .byt <_rm
+    .addr  _rm
 .endif    
 
 .ifdef WITH_SEDSD
-    .byt <_sedsd
+    .addr  _sedsd
 .endif     
     
 .ifdef WITH_SETFONT
-    .byt <_setfont
+    .addr  _setfont
 .endif
 
 .ifdef WITH_SH
-    .byt <_sh
+    .addr  _sh
 .endif 
 
 .ifdef WITH_TELNETD
-    .byt <_telnetd
+    .addr  _telnetd
 .endif
 
 .ifdef WITH_TOUCH
-    .byt <_touch
+    .addr  _touch
 .endif
 
 .ifdef WITH_TREE
-    .byt <_tree
+    .addr  _tree
 .endif
 
 .ifdef WITH_TWILIGHT
-    .byt <_twil
+    .addr  _twil
 .endif
 
 .ifdef WITH_UNAME
-    .byt <_uname
+    .addr  _uname
 .endif    
     
 .ifdef WITH_VI
-    .byt <_vi
+    .addr  _vi
 .endif
 
 .ifdef WITH_VIEWHRS
-    .byt <_viewhrs
+    .addr  _viewhrs
 .endif    
 
 .ifdef WITH_WATCH
-    .byt <_watch
+    .addr  _watch
 .endif    
     
 .ifdef WITH_XORIX
-    .byt <_xorix
+    .addr  _xorix
 .endif	
-  
-commands_high:
-.ifdef WITH_BASIC11
-    .byt >_basic11
+addr_commands_end:
+
+
+.if     addr_commands_end-addr_commands > 255
+  .error  "Error too many commands, kernel won't be able to start command"
 .endif
 
-.ifdef WITH_BANK
-    .byt >_banks
-.endif    
-
-.ifdef WITH_CAT    
-    .byt >_cat
-.endif    
-
-.ifdef WITH_CA65
-    .byt >_ca65
-.endif	 	
-
-.ifdef WITH_CD
-    .byt >_cd
-.endif
-
-.ifdef WITH_CLEAR
-    .byt >_clear
-.endif    
-
-.ifdef WITH_CP
-    .byt >_cp
-.endif    
-
-.ifdef WITH_DATE
-    .byt >_date 
-.endif
-
-.ifdef WITH_DEBUG
-    .byt >_debug	
-.endif 
-
-.ifdef WITH_DF
-    .byt >_df
-.endif        
-
-.ifdef WITH_DIR
-    .byt >_ls ; (dir)
-.endif    
-
-.ifdef WITH_ECHO
-    .byt >_echo
-.endif    
-
-.ifdef WITH_ENV    
-    .byt >_env
-.endif    
-
-.ifdef WITH_EXEC
-    .byt >_exec
-.endif    
-
-.ifdef WITH_FORTH
-    .byt >_forth
-.endif    
-
-.ifdef WITH_HELP
-    .byt >_help
-.endif    
-	
-.ifdef WITH_HISTORY
-    .byt >_history
-.endif   
-
-.ifdef WITH_IOPORT	
-    .byt >_ioports
-.endif
-
-.ifdef WITH_KILL
-    .byt >_kill
-.endif
-
-.ifdef WITH_LESS
-    .byt >_less
-.endif        
-
-.ifdef WITH_LS
-    .byt >_ls
-.endif    
-
-.ifdef WITH_LSCPU    
-    .byt >_lscpu
-.endif
-
-.ifdef WITH_LSMEM
-    .byt >_lsmem
-.endif    
-    
-.ifdef WITH_LSOF    
-    .byt >_lsof
-.endif
-
-.ifdef WITH_MAN
-    .byt >_man
-.endif
-
-.ifdef WITH_MEMINFO
-    .byt >_meminfo
-.endif    
-
-.ifdef WITH_MKDIR
-    .byt >_mkdir
-.endif
-
-.ifdef WITH_MONITOR
-    .byt >_monitor
-.endif        
-    
-.ifdef WITH_MV
-    .byt >_mv
-.endif    
-    
-.ifdef WITH_MOUNT
-    .byt >_mount
-.endif
-
-.ifdef WITH_OCONFIG
-    .byt >_oconfig
-.endif
-
-.ifdef WITH_ORICSOFT
-    .byt >_oricsoft
-.endif
-
-.ifdef WITH_PS    
-    .byt >_ps
-.endif    
-
-.ifdef WITH_PSTREE
-    .byt >_pstree
-.endif    
-
-.ifdef WITH_PWD
-    .byt >_pwd
-.endif    
-
-.ifdef WITH_REBOOT
-    .byt >_reboot
-.endif
-
-.ifdef WITH_RM    
-    .byt >_rm
-.endif    
-
-.ifdef WITH_SEDSD
-    .byt >_sedsd
-.endif  
-
-.ifdef WITH_SETFONT
-    .byt >_setfont
-.endif
-
-.ifdef WITH_SH
-    .byt >_sh
-.endif  
-
-.ifdef WITH_TELNETD
-    .byt >_telnetd
-.endif
-
-.ifdef WITH_TOUCH
-    .byt >_touch
-.endif
-
-.ifdef WITH_TREE
-    .byt >_tree
-.endif
-
-.ifdef WITH_TWILIGHT
-    .byt >_twil
-.endif
-
-.ifdef WITH_UNAME
-    .byt >_uname
-.endif    
-
-.ifdef WITH_VI
-    .byt >_vi
-.endif
-
-.ifdef WITH_VIEWHRS
-    .byt >_viewhrs
-.endif    
-
-.ifdef WITH_WATCH
-    .byt >_watch
-.endif    
 
 
     
@@ -2293,33 +2128,21 @@ command_not_found:
 command_found:
     ; at this step we found the command from a rom
 	; X contains ID of the command
+    txa
+    asl
+    tax
 
-    stx     TR7                             ; save the id of the command
-    
-  ;  ldx     TR7                             ; get the id of the command ????
-    
-    lda     list_command_low,x              ; get the name of the command
-    ldy     list_command_high,x             ; and high
-    ; get PID father
-    
-    
-    ldx     TR7
-    lda     commands_low,x
+    lda     addr_commands,x
     sta     RES
-	
-    lda     commands_high,x
+    inx
+    lda     addr_commands,x
     sta     RES+1
-    
+
     JMP     (RES)               ; be careful with 6502 bug (jmp xxFF)
 
 .endproc
 
 .proc   exec_commandline
-
-    ;lda    #$14
-    ;sta    $BB80+200
-
-
     jsr    _bash
     rts
 .endproc
@@ -2331,7 +2154,7 @@ parse_vector:
     .addr exec_commandline     
 ; fff3
 adress_commands:
-    .addr parse_vector
+    .addr addr_commands
 ; fff5        
 list_commands:
     .addr list_of_commands_bank
