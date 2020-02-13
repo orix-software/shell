@@ -19,6 +19,9 @@ sh_length_of_command_line :=userzp+3 ;
 bash_struct_ptr           := userzp+4 ; 16bits
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 
+XEXEC = $63
+
+
 
 BASH_NUMBER_OF_USERZP = 8
 
@@ -145,8 +148,8 @@ start_commandline:
 @S7:
     sta    bash_struct_command_line_ptr
     sty    bash_struct_command_line_ptr+1  ; should be removed when çorix_get_opt will be
-
-    jsr     _bash                ; and launch interpreter
+    BRK_KERNEL XEXEC
+    ;jsr     _bash                ; and launch interpreter
     jmp     start_prompt
 
 @function_key:
@@ -993,143 +996,139 @@ fork_mode:
 
 
 addr_commands:
-
+; 8
 .ifdef WITH_BASIC11
     .addr  _basic11
 .endif    
-
+; 1
 .ifdef WITH_BANK    
     .addr  _banks
 .endif
-
+; 2
 .ifdef WITH_CAT
     .addr  _cat
 .endif    
-
-.ifdef WITH_CA65
-    .addr  _ca65
-.endif    	
-
+; 3
 .ifdef WITH_CD
     .addr  _cd
 .endif    
-
+; 4
 .ifdef WITH_CLEAR    
     .addr  _clear ; 
 .endif    
-
+; 5
 .ifdef WITH_CP
     .addr  _cp
 .endif
-
+; 6
 .ifdef WITH_DATE
     .addr  _date 
 .endif    
-
+; 7
 .ifdef WITH_DEBUG
     .addr  _debug
 .endif    	
-
+; 8
 .ifdef WITH_DF
     .addr  _df
 .endif
-
+; 10
 .ifdef WITH_DIR
     .addr  _ls ; dir (alias)
 .endif    
-
+; 11
 .ifdef WITH_ECHO
     .addr  _echo ; 
 .endif    
-
+; 12
 .ifdef WITH_ENV    
     .addr  _env
 .endif    
-
+; 13
 .ifdef WITH_EXEC
     .addr  _exec
 .endif    
-
+; 14
 .ifdef WITH_FORTH
     .addr  _forth
 .endif
-
+; 15
 .ifdef WITH_HELP
     .addr  _help ;
 .endif    
-	
+; 16	
 .ifdef WITH_HISTORY
     .addr  _history
 .endif   
-
+; 17
 .ifdef WITH_IOPORT	
     .addr  _ioports ;    
 .endif	
-
+; 18
 .ifdef WITH_KILL
     .addr  _kill ;    
 .endif	
-
+; 19
 .ifdef WITH_LESS
     .addr  _less
 .endif    
-
+; 20
 .ifdef WITH_LS   
     .addr  _ls
 .endif    
-
+; 21
 .ifdef WITH_LSCPU
     .addr  _lscpu
 .endif
-
+; 22
 .ifdef WITH_LSMEM
     .addr  _lsmem
 .endif    
-
+; 23
 .ifdef WITH_LSOF
     .addr  _lsof
 .endif
-
+; 24
 .ifdef WITH_MAN
     .addr  _man
 .endif
-
+; 25
 .ifdef WITH_MEMINFO
     .addr  _meminfo
 .endif    
-
+; 26
 .ifdef WITH_MKDIR
     .addr  _mkdir
 .endif    
-
+; 27
 .ifdef WITH_MONITOR
     .addr  _monitor
 .endif    
-
+; 28
 .ifdef WITH_MV   
     .addr  _mv ; is in _cp
 .endif    
-    
+; 29
 .ifdef WITH_MOUNT
     .addr  _mount
 .endif    
-
+; 30
 .ifdef WITH_OCONFIG
     .addr  _oconfig
 .endif
-
+; 31
 .ifdef WITH_ORICSOFT
     .addr  _oricsoft
 .endif
-
+; 32
 .ifdef WITH_PS
     .addr  _ps
 .endif
-
+; 33
 .ifdef WITH_PSTREE
     .addr  _pstree
 .endif   
-
+; 34
 .ifdef WITH_PWD    
     .addr  _pwd
 .endif    
@@ -1797,174 +1796,186 @@ commands_length:
 .endif	    
 
 list_of_commands_bank:
+; 0
 .ifdef WITH_BASIC11    
 basic11:
     .asciiz "basic11"
 .endif    
-
+; 1
 .ifdef WITH_BANK    
 banks:
     .asciiz "bank"
 .endif    
-
+; 2
 .ifdef WITH_CAT    
 cat:
     .asciiz "cat"
 .endif
-
+; 3
 .ifdef WITH_CD
 cd:
     .asciiz "cd"
 .endif    
-
+; 4
 .ifdef WITH_CLEAR    
 clear:
     .asciiz "clear"
 .endif
-
+; 5
 ;.ifdef WITH_CP
 ; Because cp & mv are in same file
 cp:
     .asciiz "cp"
 ;.endif    
-
+; 6
 .ifdef WITH_DATE    
 date:
     .asciiz "date"
 .endif    
 
+.ifdef WITH_DEBUG
+debug:
+    .asciiz "debug"
+.endif    
+
+; 7
+
 .ifdef WITH_DF    
 df:
     .asciiz "df"
 .endif    
-
+; 8
 .ifdef WITH_DIR
 dir:
     .asciiz "dir"
 .endif
-
+; 9
 .ifdef WITH_ECHO    
 echocmd:
     .asciiz "echo"
 .endif    
-
+; 10
 .ifdef WITH_ENV    
 env:
     .asciiz "env"
 .endif  
-
+; 11
 .ifdef WITH_EXEC
 exec:
     .asciiz "exec"
 .endif  
-
+; 12
 .ifdef WITH_FORTH    
 forth:
     .asciiz "forth"
 .endif
-
+; 13
 .ifdef WITH_HELP
 help:
     .asciiz "help"
 .endif
-
+; 14
 .ifdef WITH_HISTORY
 history:
     .asciiz "history"
 .endif    
-
+; 15
 .ifdef WITH_IOPORT	
 ioports:
     .asciiz "ioports"
 .endif
-
+; 16
 .ifdef WITH_KILL	
 kill:
     .asciiz "kill"
 .endif
-
+; 17
 .ifdef WITH_LESS
 less:
     .asciiz "less"
 .endif
-
+; 18
 .ifdef WITH_LS
 ls:
     .asciiz "ls"
 .endif    
-
+; 19
 .ifdef WITH_LSCPU    
 lscpu:
     .asciiz "lscpu"
 .endif    
-
+; 20
 .ifdef WITH_LSMEM
 lsmem:	
     .asciiz "lsmem"
 .endif
-
+; 21
 .ifdef WITH_LSOF    
 lsof:	
     .asciiz "lsof"
 .endif    
-
+; 22
 .ifdef WITH_MAN    
 man:
     .asciiz "man"  
 .endif    
+
+; 23
+.ifdef WITH_MEMINFO
 meminfo:
     .asciiz "meminfo"
-
+.endif    
+; 24
 .ifdef WITH_MKDIR
 mkdir:
     .asciiz "mkdir"
 .endif    
-
+; 25
 .ifdef WITH_MONITOR
 monitor:
     .asciiz "monitor"
 .endif
-
+; 26
 .ifdef WITH_MOUNT
 mount:
     .asciiz "mount"
 .endif
-
+; 27
 .ifdef WITH_MV
 mv:
     .asciiz "mv"
 .endif    
-    
+; 28   
 .ifdef WITH_OCONFIG
 oconfig:
     .asciiz "oconfig"
 .endif     
-
+; 29
 .ifdef WITH_ORICSOFT
 oricsoft:
     .asciiz "oricsft"
 .endif      
-
+; 30
 .ifdef WITH_RM
 rm:
     .asciiz "rm"
 .endif
-
+; 31
 .ifdef WITH_PS
 ps:
     .asciiz "ps"
 .endif
-
+; 32
 .ifdef WITH_PSTREE
 pstree:
     .asciiz "pstree"
 .endif
-
+; 33
 .ifdef WITH_PWD
 pwd:
     .asciiz "pwd"
 .endif    
-
+; 34
 .ifdef WITH_REBOOT    
 reboot:
     .asciiz "reboot"
@@ -2035,10 +2046,7 @@ ca65:
     .asciiz "c"
 .endif
 
-.ifdef WITH_DEBUG
-debug:
-    .asciiz "debug"
-.endif    
+
    
 str_6502:                           ; use for lscpu
     .asciiz "6502"
@@ -2153,26 +2161,26 @@ command_found:
 parse_vector:
     .addr exec_commandline     
 ; fff3
-adress_commands:
+signature_adress_commands:
     .addr addr_commands
-; fff5        
+; fff5-fff6        
 list_commands:
     .addr list_of_commands_bank
-; $fff7
+; fff7
 number_of_commands:
     .byt BASH_NUMBER_OF_COMMANDS
-; fffa
 
+; fff8-fff9
 copyright:
     .word   signature
-
+; fffa-fffb
 NMI:
 	.word   start_sh_interactive
 
-; fffc
+; fffc-fffd
 RESET:
     .word   start_sh_interactive
-; fffe
+; fffe-ffff
 BRK_IRQ:	
     .word   IRQVECTOR
 

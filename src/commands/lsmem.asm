@@ -167,7 +167,7 @@ myloop2:
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_end_low
     tay
     lda     (lsmem_ptr_malloc),y
-    jsr _print_hexa_no_sharp
+    jsr     _print_hexa_no_sharp
         
         
     CPUTC ' '
@@ -204,11 +204,11 @@ myloop2:
 ;.endif
 
 
-    jsr display_process
+   jsr display_process
 
 @S1:
 
-    BRK_TELEMON XCRLF
+    BRK_KERNEL XCRLF
     ; save X
     ldx     lsmem_savex
     ldy     lsmem_savey_kernel_malloc_busy_pid_list
@@ -223,6 +223,7 @@ skip:
     rts
 
 display_process:
+
     lda     (lsmem_ptr_malloc),y
     ; at this step A contains the id of the pid
     ; we get the process position, now let's get it's name
@@ -233,10 +234,10 @@ display_process:
     tay
 
     lda     (lsmem_ptr_pid_table),y
-    sta     lsmem_ptr
+ ;   sta     lsmem_ptr
 
     pla
-
+    rts
     clc
     adc     #kernel_process_struct::kernel_one_process_struct_ptr_high
     tay

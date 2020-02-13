@@ -2,6 +2,6 @@
 .proc _date
     lda     #<(SCREEN+32)
     ldy     #>(SCREEN+32)
-    BRK_TELEMON XWRCLK
+    BRK_KERNEL XWRCLK
     rts
 .endproc    

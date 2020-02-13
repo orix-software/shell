@@ -5,8 +5,6 @@ ls_number_of_columns:=    userzp
 
 .proc _ls
 
-
-
     lda     #NUMBER_OF_COLUMNS_LS+1
     sta     ls_number_of_columns
 
@@ -26,11 +24,12 @@ ls_number_of_columns:=    userzp
 
     lda     bash_struct_command_line_ptr ; $61E
     sta     RESB
-    ;sta     $5002
+    sta $6002
+
     
     lda     bash_struct_command_line_ptr+1
     sta     RESB+1
-    ;sta     $5003
+    sta $6003
 
     ; Potentiel buffer overflow ici
     ; Il faudrait un STRNCPY
