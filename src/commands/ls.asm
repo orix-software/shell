@@ -24,12 +24,12 @@ ls_number_of_columns:=    userzp
 
     lda     bash_struct_command_line_ptr ; $61E
     sta     RESB
-    sta $6002
+
 
     
     lda     bash_struct_command_line_ptr+1
     sta     RESB+1
-    sta $6003
+
 
     ; Potentiel buffer overflow ici
     ; Il faudrait un STRNCPY

@@ -22,7 +22,7 @@ copy %ROM%.rom %ORICUTRON%\roms\ > NUL
 xcopy data\*.* %ORICUTRON%\sdcard\ > NUL
 
 cd %ORICUTRON%
-oricutron -mt  --symbols "%ORIGIN_PATH%\xa_labels_orix.txt"
+oricutron -mt  --symbols "%ORIGIN_PATH%\xa_labels_orix.txt" -r :bp.txt
 
 :End
 cd %ORIGIN_PATH%

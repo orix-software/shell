@@ -2,17 +2,17 @@
 .export  _ps
 
 .proc _ps
-
+    
     ptr_kernel_process           :=userzp ; 2 bytes
     ptr_kernel_process_current   :=userzp+2
     ps_tmp1                      :=userzp+3
     ps_tmp2                      :=userzp+6
     ptr_one_process              :=userzp+4 ; 2 bytes
 
-    PRINT str_ps_title
+    PRINT   str_ps_title
 
-    ldx #XVARS_KERNEL_PROCESS ; Get Kernel adress
-    BRK_ORIX XVARS
+    ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
+    BRK_KERNEL XVARS
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
 
@@ -45,7 +45,7 @@
     lda     (ptr_one_process),y
 
     beq     @S1
-    BRK_ORIX XWR0
+    BRK_KERNEL XWR0
     iny
     bne     @L1
 @S1:    

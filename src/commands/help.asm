@@ -9,10 +9,12 @@
     help_number_command     :=  userzp+2     ; 1 byte
     help_length             :=  userzp+3    ; 1 bytes
     help_ptr2               :=  userzp+4    ; 2 bytes
+    help_ptr3               :=  userzp+6    ; 2 bytes
     current_bank            :=  ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
     ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
 
     ; let's get opt
+
     ldx     #$01
     jsr     _orix_get_opt
     ldx     #$00
@@ -33,23 +35,42 @@
     beq     @read_next_byte
     bne     list_command_in_bank
      ; there is a char
-
-    
 @noparam:
+
+    lda    #<list_of_commands_bank
+    sta    help_ptr3
+    
+    lda    #>list_of_commands_bank
+    sta    help_ptr3+1
+
     ldx     #$00
 loop:
-    lda     list_command_low,x          ; Get the ptr of command string
-    ldy     list_command_high,x
+    lda     help_ptr3         ; Get the ptr of command string
+    ldy     help_ptr3+1
+
     stx     current_command             ; Save X
-    BRK_ORIX XWSTR0                     ; Print command
+
+    BRK_KERNEL XWSTR0                     ; Print command
 
     ldx     current_command            ; Load X register with the current command to display
 
     ; Next lines are build to put in columns commands
     lda     commands_length,x           ; get the length of the command
-    tax                                 ; Save in X 
+    
+
+    sec      ; Add \0 to the compute of the string
+    adc     help_ptr3
+    bcc     @S1
+    inc     help_ptr3+1
+@S1:
+    sta     help_ptr3
+
+
+    lda     commands_length,x           ; get the length of the command
+    tax
+
 loopme:                     
-    stx     current_column              ; Save X in TR6
+    stx     current_column              ; Save0 X in TR6
     CPUTC   ' '                         ; Displays a char 
     ldx     current_column              ; Get again X 
     inx                                 ; inx

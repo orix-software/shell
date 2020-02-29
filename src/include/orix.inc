@@ -47,9 +47,6 @@ ORIX_ARGC:
 
 
 
-; ptr of LIST_NAME_PID
-orix_end_memory_kernel:
-    .res 1
 
 .macro  BRK_ORIX   value
 	.byte $00,value
