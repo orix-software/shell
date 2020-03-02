@@ -13,11 +13,12 @@
 
 .include   "dependencies/orix-sdk/macros/strnxxx.mac"
 
-exec_address              :=userzp
-sh_esc_pressed            :=userzp+2
-sh_length_of_command_line :=userzp+3 ; 
-bash_struct_ptr           := userzp+4 ; 16bits
+exec_address                 :=userzp
+sh_esc_pressed               :=userzp+2
+sh_length_of_command_line    :=userzp+3 ; 
+bash_struct_ptr              := userzp+4 ; 16bits
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
+bash_tmp1                    :=userzp+8 
 
 XEXEC = $63
 
@@ -148,13 +149,21 @@ start_commandline:
     iny
 @S7:
     sta    bash_struct_command_line_ptr
-    sty    bash_struct_command_line_ptr+1  ; should be removed when çorix_get_opt will be
-    BRK_KERNEL XEXEC
+    sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+
+    jsr    _bash
     cmp    #EOK
-    beq    @S20 
-    PRINT   str_command_not_found
+    bne    @call_xexec
+    jmp    start_prompt
+@call_xexec:   
+
+    lda    bash_struct_command_line_ptr
+    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+    ;BRK_KERNEL XEXEC
+    ;cmp    #EOK
+    ;beq    @S20 
+    ;PRINT   str_command_not_found
 @S20:    
-    ;jsr     _bash                ; and launch interpreter
     jmp     start_prompt
 
 @function_key:
@@ -277,21 +286,16 @@ send_oups_and_loop:
     jmp     start_commandline
 
 .proc _bash
-
     sta     RES
     sty     RES+1
 
-
-    jsr     ltrim               ; ltrim command line
-
-    ;  Looking if it request ./ : it means that user want to load and execute
     ldy     #$00
 @loop:
     lda     (RES),y
     cmp     #' '
     bne     no_more_space 
     iny
-    cpy     #BASH_MAX_BUFEDT_LENGTH
+    cpy     #BASH_MAX_LENGTH_COMMAND_LINE
     bne     @loop
 no_command:
     rts 
@@ -303,18 +307,20 @@ no_more_space:
 find_command:
     ; Search command
     ; Insert each command pointer in zpTemp02Word
-    ldx     #$01
-    jsr     _orix_get_opt
+    ;ldx     #$01
+    ;jsr     _orix_get_opt
   
     ldx     #$00
+    
 mloop:
+    stx     bash_tmp1
     txa
     asl
     tax
-    lda     list_of_commands_bank,x
+    lda     internal_commands_ptr,x
     sta     RESB
     inx
-    lda     list_of_commands_bank,x
+    lda     internal_commands_ptr,x
     sta     RESB+1  
   
   
@@ -325,7 +331,7 @@ next_char:
     beq     no_space
     cmp     #' '             ; space?
     bne     command_not_found
-    lda     (RESB),Y        ; Last character of the command name?
+    lda     (RESB),y        ; Last character of the command name?
 no_space:                   ; FIXME
     cmp     #$00            ; Test end of command name or EOL
     beq     command_found
@@ -333,37 +339,36 @@ no_space:                   ; FIXME
     bne     next_char
  
 command_not_found:
-
+    ldx     bash_tmp1
     inx
-    cpx     #BASH_NUMBER_OF_COMMANDS 
+
+    cpx     #BASH_NUMBER_OF_COMMANDS_BUILTIN
     bne     mloop
     ; at this step we did not found the command in the rom
+    ; not found
 
-    jmp     orix_try_to_find_command_in_bin_path
+    lda     #ENOENT         ; Error  
+    rts
+    ; jmp     orix_try_to_find_command_in_bin_path
 command_found:
     ; at this step we found the command from a rom
-	; X contains ID of the command
-	; Y contains the position of the BUFEDT
-    stx     TR7                             ; save the id of the command
+	; bash_tmp1 contains ID of the command
+
+    lda     bash_tmp1                             ; get the id of the command
 
     ; save zp ptr for shell
-
-    RETURN_LINE                             ; jump a line
-    
-    lda     TR7                             ; get the id of the command
     asl
     tax
 
-    lda     addr_commands,x
+    lda     internal_commands_addr,x
     sta     exec_address
 
     inx	
 
-    lda     addr_commands,x
+    lda     internal_commands_addr,x
     sta     exec_address+1
-
-
-    JMP     (exec_address)               ; be careful with 6502 bug (jmp xxFF)
+  
+    jmp     (exec_address)               ; be careful with 6502 bug (jmp xxFF)
 .endproc
 
 
@@ -413,6 +418,45 @@ trimme:
 str_oom:
   .byte     "Out of memory",$0D,$0A,0 ; FIXME
 
+internal_commands_str:
+cd:
+.asciiz "cd"
+echo:
+.asciiz "echo"
+;exec:
+;.asciiz "exec"
+help:
+.asciiz "help"
+pwd:
+.asciiz "pwd"
+
+internal_commands_ptr:
+.addr   cd
+.addr   echo
+;.addr   exec
+.addr   help
+.addr   pwd
+
+internal_commands_addr:
+.addr _cd
+.addr _echo
+;.addr _exec
+.addr _help
+.addr _pwd
+
+internal_commands_length:
+.byte 2 ; cd
+.byte 4 ; echo 
+;.byte 4 ; exec
+.byte 4 ; help
+.byte 3 ; pwd
+
+.include "commands/cd.asm"
+.include "commands/echo.asm"
+.include "commands/exec.asm"
+.include "commands/help.asm"
+.include "commands/pwd.asm"
+
 
 ; Commands
 .ifdef WITH_BANK
@@ -427,9 +471,8 @@ str_oom:
 .include "commands/cat.asm"
 .endif
 
-.ifdef WITH_CD
-.include "commands/cd.asm"
-.endif
+
+
 
 .ifdef WITH_CLEAR
 .include "commands/clear.asm"
@@ -447,25 +490,24 @@ str_oom:
 .include "commands/date.asm"
 .endif
 
-.ifdef WITH_ECHO
-.include "commands/echo.asm"
-.endif
+
+
+
 
 .ifdef WITH_ENV
 .include "commands/env.asm"
 .endif
 
-.ifdef WITH_EXEC
-.include "commands/exec.asm"
-.endif
+
+
 
 .ifdef WITH_FORTH
 .include "commands/teleforth.asm"
 .endif
 
-.ifdef WITH_HELP
-.include "commands/help.asm"
-.endif
+
+
+
 
 .ifdef WITH_HISTORY
 .include "commands/history.asm"
@@ -531,9 +573,7 @@ str_oom:
 .include "commands/pstree.asm"
 .endif
 
-.ifdef WITH_PWD
-.include "commands/pwd.asm"
-.endif
+
 
 .ifdef WITH_REBOOT
 .include "commands/reboot.asm"
@@ -609,16 +649,14 @@ str_oom:
 .include "lib/ch376.s"
 .include "lib/ch376_verify.s"
 
-internal_commands:
-.addr _cd
-.addr _pwd
+
+
+
 
 
 
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
-
-
     sty     TR6
     ldy     #O_RDONLY
     ldx     TR6
@@ -817,10 +855,7 @@ addr_commands:
 .ifdef WITH_CAT
     .addr  _cat
 .endif    
-; 3
-.ifdef WITH_CD
-    .addr  _cd
-.endif    
+
 ; 4
 .ifdef WITH_CLEAR    
     .addr  _clear ; 
@@ -843,26 +878,19 @@ addr_commands:
 .endif
 ; 9
 
-; 10
-.ifdef WITH_ECHO
-    .addr  _echo ; 
-.endif    
+
 ; 11
 .ifdef WITH_ENV    
     .addr  _env
 .endif    
 ; 12
-.ifdef WITH_EXEC
-    .addr  _exec
-.endif    
+
 ; 14
 .ifdef WITH_FORTH
     .addr  _forth
 .endif
 ; 15
-.ifdef WITH_HELP
-    .addr  _help ;
-.endif    
+
 ; 16	
 .ifdef WITH_HISTORY
     .addr  _history
@@ -936,9 +964,6 @@ addr_commands:
     .addr  _pstree
 .endif   
 ; 34
-.ifdef WITH_PWD    
-    .addr  _pwd
-.endif    
 
 .ifdef WITH_REBOOT
     .addr  _reboot	
@@ -1022,9 +1047,6 @@ commands_length:
     .byt 4 ;ca65
 .endif
 
-.ifdef WITH_CD
-    .byt 2 ; _cd
-.endif    
 
 .ifdef WITH_CLEAR    
     .byt 5 ; _clear ; 
@@ -1046,26 +1068,17 @@ commands_length:
     .byt 2 ; _df ;     
 .endif
 
-.ifdef WITH_ECHO
-    .byt 4 ; _echo ; 
+.ifdef WITH_ENV
+    .byt 2 ; _env
 .endif    
 
-.ifdef WITH_ENV    
-    .byt 3 ; _env
-.endif   
 
-.ifdef WITH_EXEC
-    .byt 4 ; _env
-.endif    
 
 .ifdef WITH_FORTH
     .byt 5 ; forth
 .endif 
 
-.ifdef WITH_HELP
-    .byt 4 ; _help ; 
-.endif    
-	
+
 .ifdef WITH_HISTORY
     .byt 7 ; history
 .endif   
@@ -1138,9 +1151,7 @@ commands_length:
     .byt 6 ; pstree
 .endif
 
-.ifdef WITH_PWD
-    .byt 3 ; _pwd
-.endif    
+
 
 .ifdef WITH_REBOOT    
     .byt 6 ;_reboot	
@@ -1215,10 +1226,7 @@ cat:
     .asciiz "cat"
 .endif
 ; 3
-.ifdef WITH_CD
-cd:
-    .asciiz "cd"
-.endif    
+
 ; 4
 .ifdef WITH_CLEAR    
 clear:
@@ -1250,30 +1258,21 @@ df:
 ; 8
 
 ; 9
-.ifdef WITH_ECHO    
-echocmd:
-    .asciiz "echo"
-.endif    
+
 ; 10
 .ifdef WITH_ENV    
 env:
     .asciiz "env"
 .endif  
 ; 11
-.ifdef WITH_EXEC
-exec:
-    .asciiz "exec"
-.endif  
+
 ; 12
 .ifdef WITH_FORTH    
 forth:
     .asciiz "forth"
 .endif
 ; 13
-.ifdef WITH_HELP
-help:
-    .asciiz "help"
-.endif
+
 ; 14
 .ifdef WITH_HISTORY
 history:
@@ -1371,10 +1370,7 @@ pstree:
     .asciiz "pstree"
 .endif
 ; 33
-.ifdef WITH_PWD
-pwd:
-    .asciiz "pwd"
-.endif    
+
 ; 34
 .ifdef WITH_REBOOT    
 reboot:

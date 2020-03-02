@@ -37,10 +37,10 @@
      ; there is a char
 @noparam:
 
-    lda    #<list_of_commands_bank
+    lda    #<internal_commands_str
     sta    help_ptr3
     
-    lda    #>list_of_commands_bank
+    lda    #>internal_commands_str
     sta    help_ptr3+1
 
     ldx     #$00
@@ -55,7 +55,7 @@ loop:
     ldx     current_command            ; Load X register with the current command to display
 
     ; Next lines are build to put in columns commands
-    lda     commands_length,x           ; get the length of the command
+    lda     internal_commands_length,x           ; get the length of the command
     
 
     sec      ; Add \0 to the compute of the string
@@ -66,7 +66,7 @@ loop:
     sta     help_ptr3
 
 
-    lda     commands_length,x           ; get the length of the command
+    lda     internal_commands_length,x           ; get the length of the command
     tax
 
 loopme:                     
@@ -78,7 +78,7 @@ loopme:
     bne     loopme                      ; no, let's display again a space
     ldx     current_command             ; do we reached 
     inx 
-    cpx     #BASH_NUMBER_OF_COMMANDS-1  ; loop until we have display all commands
+    cpx     #BASH_NUMBER_OF_COMMANDS_BUILTIN  ; loop until we have display all commands
     bne     loop
   
     RETURN_LINE
