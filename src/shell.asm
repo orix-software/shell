@@ -16,7 +16,7 @@
 exec_address                 :=userzp
 sh_esc_pressed               :=userzp+2
 sh_length_of_command_line    :=userzp+3 ; 
-bash_struct_ptr              := userzp+4 ; 16bits
+bash_struct_ptr              :=userzp+4 ; 16bits
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 bash_tmp1                    :=userzp+8 
 
@@ -122,7 +122,7 @@ start_commandline:
     BRK_TELEMON XRDW0            ; read keyboard
 
     cmp     #KEY_LEFT
-    beq     @key_left_routine    ; left key not managed
+    beq     start_commandline    ; left key not managed
     cmp     #KEY_RIGHT
     beq     start_commandline    ; right key not managed
     cmp     #KEY_UP
@@ -159,10 +159,21 @@ start_commandline:
 
     lda    bash_struct_command_line_ptr
     ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
-    ;BRK_KERNEL XEXEC
-    ;cmp    #EOK
-    ;beq    @S20 
-    ;PRINT   str_command_not_found
+    BRK_KERNEL XEXEC
+    cmp    #EOK
+    beq    @S20 
+
+    ldy    #$00
+@S30:
+    lda    (bash_struct_command_line_ptr),y
+    beq    @print_not_found
+    cmp    #$20
+    beq    @print_not_found
+    BRK_KERNEL XWR0
+    iny
+    bne    @S30
+@print_not_found:
+    PRINT   str_command_not_found
 @S20:    
     jmp     start_prompt
 
@@ -367,7 +378,11 @@ command_found:
 
     lda     internal_commands_addr,x
     sta     exec_address+1
-  
+    jsr     execute_rom_command ; jsr could be avoided but it's the way we use to store EOK to A after command started
+
+    lda     #EOK
+    rts
+execute_rom_command:
     jmp     (exec_address)               ; be careful with 6502 bug (jmp xxFF)
 .endproc
 
@@ -490,24 +505,13 @@ internal_commands_length:
 .include "commands/date.asm"
 .endif
 
-
-
-
-
 .ifdef WITH_ENV
 .include "commands/env.asm"
 .endif
 
-
-
-
 .ifdef WITH_FORTH
 .include "commands/teleforth.asm"
 .endif
-
-
-
-
 
 .ifdef WITH_HISTORY
 .include "commands/history.asm"
@@ -650,11 +654,6 @@ internal_commands_length:
 .include "lib/ch376_verify.s"
 
 
-
-
-
-
-
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
     sty     TR6
@@ -676,9 +675,6 @@ _cd_to_current_realpath_new:
 @skip:
     rts
 .endproc    
-
-
-
 
 
 .proc _XREAD
@@ -877,7 +873,6 @@ addr_commands:
     .addr  _df
 .endif
 ; 9
-
 
 ; 11
 .ifdef WITH_ENV    
@@ -1475,7 +1470,7 @@ str_max_malloc_reached:
 
 
 signature:
-    .byte  "Orix Shell-"
+    .asciiz  "Shell V2020.1"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
@@ -1488,12 +1483,6 @@ cpu_build_:
 .endif
     .include "tables/text_first_line_adress.asm"  
 ; .include "tables/malloc_table.asm"  
-
-
-
-
-
-
 
     .res $FFF1-*
     .org $FFF1

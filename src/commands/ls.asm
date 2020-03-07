@@ -1,9 +1,14 @@
 NUMBER_OF_COLUMNS_LS = 3
 
 ls_number_of_columns:=    userzp
+ls_save_line_command_ptr := userzp+1 ; 2 bytes
 
+.struct ls_command_struct
+.endstruct
 
 .proc _ls
+
+
 
     lda     #NUMBER_OF_COLUMNS_LS+1
     sta     ls_number_of_columns
@@ -35,8 +40,8 @@ ls_number_of_columns:=    userzp
     ; Il faudrait un STRNCPY
     lda     #<BUFNOM
     ldy     #>BUFNOM
-    sta     TR2         ; TR2: Cf Match
-    sty     TR3
+    sta     ls_save_line_command_ptr         ; ls_save_line_command_ptr: Cf Match
+    sty     ls_save_line_command_ptr+1
     sta     RES
     sty     RES+1
     jsr     _strcpy
@@ -71,9 +76,9 @@ ls_number_of_columns:=    userzp
 
     ; Ajuste le pointeur vers BUFNOM pour plus tard
     ; (le 1er caractère contient la couleur)
-    inc     TR2
+    inc     ls_save_line_command_ptr
     bne     *+4
-    inc     TR3
+    inc     ls_save_line_command_ptr+1
 
   @ZZ1001:
     cmp     #CH376_USB_INT_SUCCESS
@@ -488,7 +493,7 @@ ExtensionOk:
 
 ;
 ; Entrée:
-;    TR2 : Chaine
+;    ls_save_line_command_ptr : Chaine
 ;    RESB: Masque
 ;
 ; Sortie:
@@ -497,7 +502,7 @@ ExtensionOk:
 ;    A: Dernier caractère testé (0 si fin du masque atteinte)
 ;
 ; Note: ne vérifie pas si la longueur de la chaîne est > à celle du masque
-;       - RES ne peut être utilisé à la place de TR2 (le XCRLF modifie RES)
+;       - RES ne peut être utilisé à la place de ls_save_line_command_ptr (le XCRLF modifie RES)
 ;
 .proc Match
     ldy     #$FF
@@ -510,7 +515,7 @@ ExtensionOk:
     beq     @fin
 
     ; Caractères identiques?
-    cmp     (TR2),y
+    cmp     (ls_save_line_command_ptr),y
     beq     @loop
 
     ; Note: ls z?? affiche un fichier 'zx' si il existe

@@ -6,8 +6,9 @@
     ptr_kernel_process           :=userzp ; 2 bytes
     ptr_kernel_process_current   :=userzp+2
     ps_tmp1                      :=userzp+3
-    ps_tmp2                      :=userzp+6
     ptr_one_process              :=userzp+4 ; 2 bytes
+    ps_tmp2                      :=userzp+6
+    ps_current_process_read      :=userzp+8 ; 2 bytes
 
     PRINT   str_ps_title
 
@@ -16,8 +17,14 @@
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
 
+    lda     #$00
+    sta     ps_current_process_read
+
     ; Displays init process
-    ldy     #(kernel_process_struct::kernel_pid_list+1)
+    ldy     #kernel_process_struct::kernel_pid_list
+
+    sty     ps_current_process_read
+    ldy     ps_current_process_read
     lda     (ptr_kernel_process),y
     ldy     #$00
     PRINT_BINARY_TO_DECIMAL_16BITS 1

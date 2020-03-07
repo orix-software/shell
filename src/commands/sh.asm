@@ -6,6 +6,8 @@
     ; TODO read file length and malloc
     SH_FILE_LENGTH_MAX = 1000
 
+
+
    ; MALLOC  SH_FILE_LENGTH_MAX
     ; FIXME test OOM
  ;   TEST_OOM_AND_MAX_MALLOC
@@ -93,7 +95,8 @@ skipme:
     ldy     #$00
     jmp     restart           ; FIXME 65C02
 exit:
-    FREE    ptr_file_save 
+
+ ;   FREE    ptr_file_save 
     ; FIXME Free the process too
     rts
 .endproc

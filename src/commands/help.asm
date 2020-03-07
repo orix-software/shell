@@ -4,6 +4,12 @@
 
     ; This command works if commands have not a length greater than 8
 
+.struct help_command_vars
+;.res     userzp
+.endstruct
+
+
+
     current_command         :=  userzp      ; 1 byte
     current_column          :=  userzp+1    ; 1 byte
     help_number_command     :=  userzp+2     ; 1 byte
@@ -11,8 +17,8 @@
     help_ptr2               :=  userzp+4    ; 2 bytes
     help_ptr3               :=  userzp+6    ; 2 bytes
     current_bank            :=  ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
-    ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
-
+    ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK    ; 2 bytes
+.code
     ; let's get opt
 
     ldx     #$01
@@ -100,12 +106,12 @@ list_command_in_bank:
     sta     ptr1+1
     ldy     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
+
     beq     @no_commands ; no commands out
     sta     help_number_command
 
 
     ; Get now adress of commands
-    sei
     lda     #<$FFF5
     sta     ptr1
     lda     #>$FFF5
@@ -113,22 +119,26 @@ list_command_in_bank:
     ldy     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     RES
+
     iny 
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
     sta     RES+1
-   
+
     lda     RES
     sta     ptr1
     lda     RES+1
     sta     ptr1+1
 
 
+
     lda     #$00
-    sta     help_ptr2
+    sta     help_ptr2 ; Bug ...
 
 @loopme:
     ldy     help_ptr2
+
     jsr     READ_BYTE_FROM_OVERLAY_RAM
+    
     beq     @S1
     cli
     BRK_KERNEL XWR0

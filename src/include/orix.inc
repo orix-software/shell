@@ -10,14 +10,10 @@ ptr1_32                       := $33
 ATMOS_ID_BANK                 = 6
 ORIX_ID_BANK                  = 5
 MONITOR_ID_BANK               = 4
-TELEFORTH_ID_BANK     	      = 3
-
 
 ORIX_MAX_OPEN_FILES           = 2
 
 SIZE_OF_STACK_BANK            =  1
-
-XOPENRELATIVE                 = $31
 
 NEXT_STACK_BANK               :=$418
 
@@ -46,8 +42,6 @@ ORIX_ARGC:
 .out     .sprintf("ORIX_ARGC  : %x", ORIX_ARGC)
 
 
-
-
 .macro  BRK_ORIX   value
 	.byte $00,value
 .endmacro
@@ -66,7 +60,7 @@ ORIX_ARGC:
     LDX #$20
     STX DEFAFF
     LDX #justif
-    BRK_ORIX XDECIM
+    BRK_KERNEL XDECIM
     ;.byte $00,XDECIM
 .endmacro
 
@@ -78,21 +72,21 @@ ORIX_ARGC:
   ldy     #<(SCREEN+40+27*40)
   ldx     #>(SCREEN+40+27*40)
   lda     #' '
-  BRK_ORIX XFILLM
+  BRK_KERNEL XFILLM
 .endmacro
    
 .macro SWITCH_ON_CURSOR
   ldx #$00
-  BRK_ORIX XCSSCR
+  BRK_KERNEL XCSSCR
 .endmacro  
 
 .macro SWITCH_OFF_CURSOR
 	ldx #$00
-	BRK_ORIX XCOSCR
+	BRK_KERNEL XCOSCR
 .endmacro    
 
 .macro HIRES
-	BRK_ORIX XHIRES
+	BRK_KERNEL XHIRES
 .endmacro    
 
 ; O_WRONLY
@@ -121,7 +115,7 @@ ORIX_ARGC:
     sta PTR_READ_DEST+1
     lda #<size
     ldy #>size
-    BRK_ORIX XFREAD
+    BRK_KERNEL XFREAD
 .endmacro
 
 ; This macro must be placed after MALLOC call
@@ -147,24 +141,18 @@ ORIX_ARGC:
 .endmacro
 
 .macro  CGETC
-    BRK_ORIX XRDW0 
+    BRK_KERNEL XRDW0 
 .endmacro    
     
 .macro MALLOC size 
   lda #<size
   ldy #>size
-  BRK_ORIX XMALLOC
+  BRK_KERNEL XMALLOC
 .endmacro
-
-.macro FREE ptr 
-  lda #<ptr
-  ldy #>ptr
-  BRK_ORIX XFREE
-.endmacro 
 
 .macro CPUTC char
   lda #char
-  BRK_ORIX XWR0
+  BRK_KERNEL XWR0
 .endmacro
   
 .macro  PRINT_CHAR str
@@ -252,7 +240,7 @@ ORIX_ARGC:
 .endmacro
 
 .macro RETURN_LINE
-  BRK_ORIX XCRLF
+  BRK_KERNEL XCRLF
 .endmacro  
 	
 .macro STRCPY str1, str2
@@ -316,11 +304,6 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     CLEAR=0
 .endif
 
-.ifdef WITH_CD
-    CD=1
-.else
-    CD=0
-.endif
 
 .ifdef WITH_CP
     CP=1
@@ -346,11 +329,7 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     DF=0
 .endif
 
-.ifdef WITH_ECHO
-    ECHO=1
-.else
-    ECHO=0
-.endif
+
 
 .ifdef WITH_ENV
     ENV=1
@@ -358,17 +337,8 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     ENV=0
 .endif
 
-.ifdef WITH_EXEC
-    EXEC=1
-.else
-    EXEC=0
-.endif
 
-.ifdef WITH_HELP
-    HELP=1
-.else
-    HELP=0
-.endif
+
 
 .ifdef WITH_IOPORT
     IOPORT=1
@@ -454,13 +424,11 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     OCONFIG=0
 .endif
 
-
 .ifdef WITH_ORICSOFT
     ORICSOFT=1
 .else
     ORICSOFT=0
 .endif
-
 
 .ifdef WITH_PS
     PS=1
@@ -472,12 +440,6 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     PSTREE=1
 .else
     PSTREE=0
-.endif
-
-.ifdef WITH_PWD
-    PWD=1
-.else
-    PWD=0
 .endif
 
 .ifdef WITH_RM
@@ -594,7 +556,7 @@ BASIC11_IRQ_VECTOR_ROM=$EE22
     TWILIGHT=0
 .endif
 
-BASH_NUMBER_OF_COMMANDS=1+BASIC11+CD+CP+CAT+CLEAR+DEBUG+DF+DATE+ECHO+ENV+EXEC+FORTH+HELP+HISTORY+IOPORT+KILL+LESS+LS+BANK+LSCPU+LSOF+LSMEM+MAN+MOUNT+MEMINFO+MKDIR_COMMAND+MONITOR+MV+ORICSOFT+PS+PSTREE+PWD+REBOOT+RM+SETFONT+SH+UNAME+VI+VIEWHRS+TELNETD+TOUCH+TWILIGHT+TREE+WATCH+XORIX
+BASH_NUMBER_OF_COMMANDS=BASIC11+CP+CAT+CLEAR+DEBUG+DF+DATE+ENV+FORTH+HISTORY+IOPORT+KILL+LESS+LS+BANK+LSCPU+LSOF+LSMEM+MAN+MOUNT+MEMINFO+MKDIR_COMMAND+MONITOR+MV+ORICSOFT+PS+PSTREE+REBOOT+RM+SETFONT+SH+UNAME+VI+VIEWHRS+TELNETD+TOUCH+TWILIGHT+TREE+WATCH+XORIX
 
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 
 COLOR_FOR_DIRECTORY  =        $86 ; colors when ls display directory
