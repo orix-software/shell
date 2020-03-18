@@ -119,7 +119,7 @@ start_commandline:
     lda     #ORIX_ID_BANK    ; Kernel bank
     sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
 
-    BRK_TELEMON XRDW0            ; read keyboard
+    BRK_KERNEL XRDW0            ; read keyboard
 
     cmp     #KEY_LEFT
     beq     start_commandline    ; left key not managed
@@ -497,6 +497,10 @@ internal_commands_length:
 .include "commands/cp.asm"
 ;.endif
 
+
+.include "commands/debug.asm"
+
+
 .ifdef WITH_DF
 .include "commands/df.asm"
 .endif
@@ -576,8 +580,6 @@ internal_commands_length:
 .ifdef WITH_PSTREE
 .include "commands/pstree.asm"
 .endif
-
-
 
 .ifdef WITH_REBOOT
 .include "commands/reboot.asm"
@@ -766,76 +768,32 @@ next:
     rts
 .endproc
 
-.proc _debug
-
-;CPU_6502
-    ; routine used for some debug
-    PRINT   str_cpu
-    jsr     _getcpu
-    cmp     #CPU_65C02
-    bne     @is6502
-    PRINT   str_65C02
-    RETURN_LINE
-.pc02    
-    bra     @next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
-.p02    
-@is6502:
-	
-    PRINT   str_6502
-	RETURN_LINE
-@next:
-    PRINT   str_ch376
-    jsr     _ch376_ic_get_ver
-    BRK_KERNEL XWR0
-    BRK_KERNEL XCRLF
-    ;RETURN_LINE
-    
-    PRINT   str_ch376_check_exist
-    jsr     _ch376_check_exist
-    jsr     _print_hexa
-	BRK_KERNEL XCRLF
-    
-    
-    lda #$09
-    ldy #$02
-  
-    BRK_KERNEL XMALLOC
-    ; A & Y are the ptr here
-    BRK_KERNEL XFREE
-    
-    rts
 
     
-str_ch376:
-    .asciiz "CH376 VERSION : "
-str_ch376_check_exist:
-    .asciiz "CH376 CHECK EXIST : "
-str_cpu:    
-    .asciiz "CPU: "
-.endproc
+
 
 _print_hexa:
     pha
     CPUTC '#'
     pla
 
-    BRK_TELEMON XHEXA
+    BRK_KERNEL XHEXA
     sty TR7
     
-    BRK_TELEMON XWR0
+    BRK_KERNEL XWR0
     lda TR7
-    BRK_TELEMON XWR0
+    BRK_KERNEL XWR0
     rts
    
 
 _print_hexa_no_sharp:
 
-    BRK_TELEMON XHEXA
+    BRK_KERNEL XHEXA
     sty TR7
     
-    BRK_TELEMON XWR0
+    BRK_KERNEL XWR0
     lda TR7
-    BRK_TELEMON XWR0
+    BRK_KERNEL XWR0
     rts   
 
 addr_commands:

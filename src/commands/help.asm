@@ -18,8 +18,12 @@
     help_ptr3               :=  userzp+6    ; 2 bytes
     current_bank            :=  ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
     ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK    ; 2 bytes
+    help_ID_BANK_TO_READ_FOR_READ_BYTE_save := userzp+8
 .code
     ; let's get opt
+    lda     ID_BANK_TO_READ_FOR_READ_BYTE
+    sta     help_ID_BANK_TO_READ_FOR_READ_BYTE_save
+
 
     ldx     #$01
     jsr     _orix_get_opt
@@ -163,6 +167,9 @@ list_command_in_bank:
     dec     help_number_command
     bne     @loopme
 @out:    
+    lda     help_ID_BANK_TO_READ_FOR_READ_BYTE_save
+    sta     ID_BANK_TO_READ_FOR_READ_BYTE
+    
     cli
     RETURN_LINE
     rts
