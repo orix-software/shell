@@ -1,6 +1,6 @@
 @echo off
 
-SET ORICUTRON="..\..\..\oricutron-iss2-debug\"
+SET ORICUTRON="..\..\..\..\oricutron-iss2-debug\"
 
 SET RELEASE="30"
 SET UNITTEST="NO"
