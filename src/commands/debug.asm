@@ -47,6 +47,8 @@ mount_sdcard:
     sta     CH376_COMMAND
 	lda     #CH376_SET_USB_MODE_CODE_SDCARD
     sta     CH376_DATA
+    nop
+    nop    
     jsr     _ch376_disk_mount
 	cmp 	#CH376_USB_INT_SUCCESS
 	beq 	ok
@@ -61,7 +63,9 @@ mount_key:
     sta     CH376_COMMAND
 
     lda     #CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY
-    sta     CH376_DATA	
+    sta     CH376_DATA
+    nop
+    nop
     jsr     _ch376_disk_mount
 	cmp 	#CH376_USB_INT_SUCCESS
 	beq 	ok2
