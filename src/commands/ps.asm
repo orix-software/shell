@@ -5,11 +5,9 @@
     
     ptr_kernel_process           :=userzp ; 2 bytes
     ptr_kernel_process_current   :=userzp+2
-    ps_tmp1                      :=userzp+3
     ptr_one_process              :=userzp+4 ; 2 bytes
-    ps_tmp2                      :=userzp+6
-    ps_current_process_read      :=userzp+8 ; 1 bytes max 256 process to display
-   ; ps_current_process_id        :=userzp+10
+    ps_current_process_read      :=userzp+6 ; 1 bytes max 256 process to display
+
 
     PRINT   str_ps_title
 
@@ -60,7 +58,6 @@
 
     lda     (ptr_kernel_process),y
     sta     ptr_one_process+1
-
 
 
     ldy     #kernel_one_process_struct::process_name

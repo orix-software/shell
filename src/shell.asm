@@ -1402,10 +1402,7 @@ str_6502:                           ; use for lscpu
 str_65C02:                          ; use for lscpu
     .asciiz "65C02"
 
-strMaxProcessReached:
-    .byte "Max Process reached : "
-    .byt ORIX_MAX_PROCESS+32+8+8
-    .byt $0D,$0A,0
+
 str_tape_file:
     .asciiz "Tape file : not working yet"
 str_cant_execute:
