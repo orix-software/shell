@@ -8,7 +8,8 @@
     ps_tmp1                      :=userzp+3
     ptr_one_process              :=userzp+4 ; 2 bytes
     ps_tmp2                      :=userzp+6
-    ps_current_process_read      :=userzp+8 ; 2 bytes
+    ps_current_process_read      :=userzp+8 ; 1 bytes max 256 process to display
+   ; ps_current_process_id        :=userzp+10
 
     PRINT   str_ps_title
 
@@ -17,34 +18,49 @@
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
 
+    sta     $5000
+    sty     $5001
+
     lda     #$00
     sta     ps_current_process_read
 
-    ; Displays init process
-    ldy     #kernel_process_struct::kernel_pid_list
-
+    
+    ;  ldy     #kernel_process_struct::kernel_pid_list
+    ldy     #$01 ; because init consume the first byte
+    
+@NEXT_PROCESS:    
     sty     ps_current_process_read
     ldy     ps_current_process_read
+
+    
+
     lda     (ptr_kernel_process),y
+    beq     @SKIP_NOPROCESS
+    tay
+    iny
+    tya
     ldy     #$00
     PRINT_BINARY_TO_DECIMAL_16BITS 1
     CPUTC   ' '
 
-    ldy     #(kernel_process_struct::kernel_one_process_struct_ptr_low+1)
-    sty     ps_tmp1
     
-    ldy     #(kernel_process_struct::kernel_one_process_struct_ptr_high+1)
-    sty     ps_tmp2
+    lda     #kernel_process_struct::kernel_one_process_struct_ptr_low
+    clc     
+    adc     ps_current_process_read
+    tay
 
-    ldy     ps_tmp1
     lda     (ptr_kernel_process),y
     sta     ptr_one_process
 
 
-    ldy     ps_tmp2
+    lda     #kernel_process_struct::kernel_one_process_struct_ptr_high
+    clc     
+    adc     ps_current_process_read
+    tay
+
     lda     (ptr_kernel_process),y
-       
     sta     ptr_one_process+1
+
 
 
     ldy     #kernel_one_process_struct::process_name
@@ -59,6 +75,12 @@
 
 
     RETURN_LINE
+@SKIP_NOPROCESS:
+    ldy     ps_current_process_read
+    iny
+    cpy     #KERNEL_MAX_PROCESS
+    bne     @NEXT_PROCESS
+
     rts
 
 str_ps_title:
