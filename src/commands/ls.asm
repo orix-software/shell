@@ -9,7 +9,6 @@ ls_save_line_command_ptr := userzp+1 ; 2 bytes
 .proc _ls
 
 
-
     lda     #NUMBER_OF_COLUMNS_LS+1
     sta     ls_number_of_columns
 

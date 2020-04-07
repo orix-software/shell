@@ -7,6 +7,7 @@
    lsmem_ptr            := userzp+4 
    lsmem_savey          := userzp+6  ; 1 byte
    lsmem_savex          := userzp+7  ; 1 byte
+   lsmem_savexbis          := userzp+8  ; 1 byte
 
    lsmem_savey_kernel_malloc_busy_pid_list := userzp+8
 
@@ -57,7 +58,7 @@
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_high
     tay
     lda     (lsmem_ptr_malloc),y
-
+  
     jsr     _print_hexa
 
     txa
@@ -78,6 +79,7 @@
     tay
     lda     (lsmem_ptr_malloc),y
     
+
     jsr     _print_hexa
 
     txa
@@ -87,18 +89,20 @@
     lda     (lsmem_ptr_malloc),y
        
     jsr     _print_hexa_no_sharp
+    
+    stx     lsmem_savexbis
         
     CPUTC   ' '
-
-    txa
+  ; Affichage de la size free
+    lda     lsmem_savexbis
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_size_high
     tay
     lda     (lsmem_ptr_malloc),y
 
-    jsr    _print_hexa
+    jsr     _print_hexa
 
-    txa
+    lda     lsmem_savexbis
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_size_low
     tay
@@ -204,7 +208,7 @@ myloop2:
 ;.endif
 
 
-   jsr display_process
+    jsr     display_process
 
 @S1:
 

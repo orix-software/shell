@@ -16,9 +16,6 @@
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
 
-    sta     $5000
-    sty     $5001
-
     lda     #$00
     sta     ps_current_process_read
 
