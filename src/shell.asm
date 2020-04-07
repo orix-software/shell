@@ -11,7 +11,7 @@
 .include   "dependencies/kernel/src/include/files.inc"
 .include   "dependencies/twilighte/src/include/io.inc"
 
-.include   "dependencies/orix-sdk/macros/strnxxx.mac"
+;.include   "dependencies/orix-sdk/macros/strnxxx.mac"
 
 exec_address              :=userzp
 sh_esc_pressed            :=userzp+2
@@ -34,6 +34,7 @@ BASH_NUMBER_OF_USERZP = 8
 .include   "include/orix.inc"
 
 XGETCWD=$48
+XGETCWD_ROUTINE=$48
 XPUTCWD_ROUTINE=$49
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
