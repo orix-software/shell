@@ -262,7 +262,7 @@ display_process:
     rts    
 
 str_column:
-    .byte "TYPE  START END   SIZE  PROGRAM  CHUNK",$0D,$0A,0    
+    .byte "TYPE  START END   SIZE  PROGRAM  PID",$0D,$0A,0    
 
 str_empty_program:
     .asciiz "       "
