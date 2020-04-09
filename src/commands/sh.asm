@@ -6,6 +6,9 @@
     ; TODO read file length and malloc
     SH_FILE_LENGTH_MAX = 1000
 
+    ldx     #$01
+    jsr     _orix_get_opt
+    bcs     @start_normal
 
 
    ; MALLOC  SH_FILE_LENGTH_MAX
@@ -28,6 +31,7 @@
     ;lda     ptr_file
     ;ldy     ptr_file+1
     ;BRK_KERNEL XFREE
+  @start_normal:
     jmp     start_sh_interactive
 
 

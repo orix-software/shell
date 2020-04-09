@@ -19,6 +19,11 @@ sh_length_of_command_line    :=userzp+3 ;
 bash_struct_ptr              :=userzp+4 ; 16bits
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 bash_tmp1                    :=userzp+8 
+sh_ptr_file                  := userzp+10 ; 2 bytes
+sh_ptr_file_save             := userzp+12
+
+
+
 
 XEXEC = $63
 

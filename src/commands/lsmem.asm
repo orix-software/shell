@@ -7,7 +7,7 @@
    lsmem_ptr            := userzp+4 
    lsmem_savey          := userzp+6  ; 1 byte
    lsmem_savex          := userzp+7  ; 1 byte
-   lsmem_savexbis          := userzp+8  ; 1 byte
+   lsmem_savexbis       := userzp+8  ; 1 byte
 
    lsmem_savey_kernel_malloc_busy_pid_list := userzp+8
 

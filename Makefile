@@ -23,7 +23,7 @@ build: $(SOURCE)
 	$(AS) $(CFLAGS) $(SOURCE) -o $(ROM).ld65 --debug-info
 	$(LD) -vm -m map7banks.txt -Ln memorymap.txt  -tnone $(ROM).ld65 -o $(ROM).rom
 	$(AS) $(CFLAGS) $(SOURCE) -DWITH_SDCARD_FOR_ROOT=1 -o $(ROM)sd.ld65 --debug-info
-	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)sd.rom
+	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)sd.rom
 
 test:
 	#cp src/include/orix.h build/usr/include/orix/
