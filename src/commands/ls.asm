@@ -1,6 +1,6 @@
 NUMBER_OF_COLUMNS_LS = 3
 
-ls_number_of_columns:=    userzp
+ls_number_of_columns     := userzp
 ls_save_line_command_ptr := userzp+1 ; 2 bytes
 
 .struct ls_command_struct
