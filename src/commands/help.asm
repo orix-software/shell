@@ -199,7 +199,7 @@ list_command_in_bank:
 
 
 str_nocommands_found:
-    .byte "no commands found in this bank",$0A,$0D,0
+    .byte "No commands found in this bank",$0A,$0D,0
 str_usage:
     .byte "Usage: help [-bBANKID]",$0A,$0D,0
 .endproc 

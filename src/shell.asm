@@ -439,8 +439,11 @@ str_oom:
   .byte     "Out of memory",$0D,$0A,0 ; FIXME
 
 internal_commands_str:
+.ifdef WITH_CD
 cd:
 .asciiz "cd"
+.endif
+
 echo:
 .asciiz "echo"
 ;exec:
@@ -451,27 +454,39 @@ pwd:
 .asciiz "pwd"
 
 internal_commands_ptr:
+.ifdef WITH_CD
 .addr   cd
+.endif
+
 .addr   echo
 ;.addr   exec
 .addr   help
 .addr   pwd
 
 internal_commands_addr:
+.ifdef WITH_CD
 .addr _cd
+.endif
+
 .addr _echo
 ;.addr _exec
 .addr _help
 .addr _pwd
 
 internal_commands_length:
+.ifdef WITH_CD
 .byte 2 ; cd
+.endif
+
 .byte 4 ; echo 
 ;.byte 4 ; exec
 .byte 4 ; help
 .byte 3 ; pwd
 
+.ifdef WITH_CD
 .include "commands/cd.asm"
+.endif
+
 .include "commands/echo.asm"
 .include "commands/exec.asm"
 .include "commands/help.asm"

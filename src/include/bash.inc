@@ -10,7 +10,7 @@ BASH_MAX_BUFEDT_LENGTH         = 110
 
 .define BASH_MAX_LENGTH_COMMAND_LINE 37
 
-.define BASH_NUMBER_OF_COMMANDS_BUILTIN  4
+.define BASH_NUMBER_OF_COMMANDS_BUILTIN  3
 
 .struct shell_bash_struct
     command_line              .res BASH_MAX_LENGTH_COMMAND_LINE
