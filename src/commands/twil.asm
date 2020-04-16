@@ -108,9 +108,10 @@ str_usage:
     .byte "       twil -s[idbank]",$0A,$0D
     .byte "       twil -r",$0A,$0D
     .byte "       twil -w",$0A,$0D
-    .byte "       twil -u",$0A,$0D   ; update main rom (kernel)
-    .byte "       twil -e",$0A,$0D   ; EEPROM informations
-    .byte "       twil -l[file64KB]",$0A,$0D,$00
+    ;.byte "       twil -u",$0A,$0D   ; update main rom (kernel)
+    ;.byte "       twil -e",$0A,$0D   ; EEPROM informations
+    ;.byte "       twil -l[file64KB]",$0A,$0D
+    .byte $00
 .endproc 
 
 
