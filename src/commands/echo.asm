@@ -6,7 +6,7 @@
     jsr _orix_get_opt
     STRCPY ORIX_ARGV,BUFNOM
     PRINT ORIX_ARGV
-    BRK_ORIX XCRLF
+    BRK_KERNEL XCRLF
     rts
 .endproc
 

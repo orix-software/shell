@@ -8,8 +8,11 @@
     ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     ptr2         := userzp    ; 2 bytes
 
+
+
     ldx     #$01
     jsr     _orix_get_opt           ; get arg 
+    
     bcc     displays_all_banks      ; if there is no args, let's displays all banks
     lda     ORIX_ARGV
     sec

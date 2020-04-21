@@ -3,4 +3,4 @@
 	url = https://github.com/assinie/orix-sdk.git
 [submodule "src/dependencies/kernel"]
 	path = src/dependencies/kernel
-	url = https://github.com/orix-software/kernel
+	url = https://github.com/orix-software/kernel.git

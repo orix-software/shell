@@ -13,7 +13,7 @@ basic11_ptr1 := userzp+1
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
-
+    jmp     @start
     ldx     #$01
     jsr     _orix_get_opt
     ; get parameter
@@ -23,7 +23,7 @@ basic11_ptr1 := userzp+1
     lda    #<ORIX_ARGV
     ldy    #>ORIX_ARGV+1
     BRK_KERNEL XWSTR0 
-    jmp    @loopme
+
     ; Check if it's a .tap
     lda     #<ORIX_ARGV
     sta     basic11_ptr1
@@ -83,9 +83,6 @@ basic11_ptr1 := userzp+1
     BRK_KERNEL XWSTR0 
 
 
-@loopme:
-    jmp @loopme
-
 @open_current_cwd:
     ; Open args
     lda     #<ORIX_ARGV
@@ -99,7 +96,7 @@ basic11_ptr1 := userzp+1
 
 @noparam:
     ; Get current pwd and open
-    BRK_KERNEL XGETCWD_ROUTINE  ; Get A & Y 
+    BRK_KERNEL XGETCWD  ; Get A & Y 
     sty     basic11_tmp
     ldx     basic11_tmp
     ldy     #O_RDONLY
@@ -111,27 +108,27 @@ basic11_ptr1 := userzp+1
     
 
     ; stop t2 from via1
-    lda #0+32
-    sta VIA::IER
+    lda     #0+32
+    sta     VIA::IER
     ; stop via 2
-    lda #0+32+64
-    sta VIA2::IER
+    lda     #0+32+64
+    sta     VIA2::IER
 	
-    ldx #$00
+    ldx     #$00
 loop:
-    lda #$00                                    ; FIXME 65C02
-    sta $00,x
-    sta COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
-    lda copy,x
-    sta COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
+    lda     #$00                                    ; FIXME 65C02
+    sta     $00,x
+    sta     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
+    lda     copy,x
+    sta     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
     dex
-    bne loop
-    lda #$00                                    ; FIXME 65C02
-    sta $2DF ; Flush keyboard for atmos rom
-    jmp COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
+    bne     loop
+    lda     #$00                                    ; FIXME 65C02
+    sta     $2DF ; Flush keyboard for atmos rom
+    jmp     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
 copy:
     sei
-    lda #ATMOS_ID_BANK
-    sta VIA2::PRA
-    jmp $F88F ; NMI vector of ATMOS rom
+    lda     #ATMOS_ID_BANK
+    sta     VIA2::PRA
+    jmp     $F88F ; NMI vector of ATMOS rom
 .endproc

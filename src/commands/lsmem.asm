@@ -7,6 +7,7 @@
    lsmem_ptr            := userzp+4 
    lsmem_savey          := userzp+6  ; 1 byte
    lsmem_savex          := userzp+7  ; 1 byte
+   lsmem_savexbis       := userzp+8  ; 1 byte
 
    lsmem_savey_kernel_malloc_busy_pid_list := userzp+8
 
@@ -57,7 +58,7 @@
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_high
     tay
     lda     (lsmem_ptr_malloc),y
-
+  
     jsr     _print_hexa
 
     txa
@@ -78,6 +79,7 @@
     tay
     lda     (lsmem_ptr_malloc),y
     
+
     jsr     _print_hexa
 
     txa
@@ -87,18 +89,20 @@
     lda     (lsmem_ptr_malloc),y
        
     jsr     _print_hexa_no_sharp
+    
+    stx     lsmem_savexbis
         
     CPUTC   ' '
-
-    txa
+  ; Affichage de la size free
+    lda     lsmem_savexbis
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_size_high
     tay
     lda     (lsmem_ptr_malloc),y
 
-    jsr    _print_hexa
+    jsr     _print_hexa
 
-    txa
+    lda     lsmem_savexbis
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_size_low
     tay
@@ -167,7 +171,7 @@ myloop2:
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_end_low
     tay
     lda     (lsmem_ptr_malloc),y
-    jsr _print_hexa_no_sharp
+    jsr     _print_hexa_no_sharp
         
         
     CPUTC ' '
@@ -204,11 +208,11 @@ myloop2:
 ;.endif
 
 
-    jsr display_process
+    jsr     display_process
 
 @S1:
 
-    BRK_TELEMON XCRLF
+    BRK_KERNEL XCRLF
     ; save X
     ldx     lsmem_savex
     ldy     lsmem_savey_kernel_malloc_busy_pid_list
@@ -223,6 +227,7 @@ skip:
     rts
 
 display_process:
+
     lda     (lsmem_ptr_malloc),y
     ; at this step A contains the id of the pid
     ; we get the process position, now let's get it's name
@@ -233,10 +238,10 @@ display_process:
     tay
 
     lda     (lsmem_ptr_pid_table),y
-    sta     lsmem_ptr
+ ;   sta     lsmem_ptr
 
     pla
-
+    rts
     clc
     adc     #kernel_process_struct::kernel_one_process_struct_ptr_high
     tay
@@ -257,7 +262,7 @@ display_process:
     rts    
 
 str_column:
-    .byte "TYPE  START END   SIZE  PROGRAM  CHUNK",$0D,$0A,0    
+    .byte "TYPE  START END   SIZE  PROGRAM  PID",$0D,$0A,0    
 
 str_empty_program:
     .asciiz "       "

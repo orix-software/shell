@@ -63,8 +63,7 @@ mkdir_malloc_ptr       := userzp+1 ; .word
     sta     (mkdir_malloc_ptr),y
     lda     mkdir_malloc_ptr
     ldy     mkdir_malloc_ptr+1
-    sta     $5000
-    sty     $5001
+
     BRK_KERNEL XMKDIR
     rts
 missing_operand:
