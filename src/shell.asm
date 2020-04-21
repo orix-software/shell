@@ -506,20 +506,15 @@ internal_commands_length:
 .include "commands/cat.asm"
 .endif
 
-
-
-
 .ifdef WITH_CLEAR
 .include "commands/clear.asm"
 .endif
 
-;.ifdef WITH_CP ; commented because mv is also include in cp.asm
+.ifdef WITH_CP ; commented because mv is also include in cp.asm
 .include "commands/cp.asm"
-;.endif
-
+.endif
 
 .include "commands/debug.asm"
-
 
 .ifdef WITH_DF
 .include "commands/df.asm"
@@ -995,12 +990,9 @@ addr_commands:
 .endif	
 addr_commands_end:
 
-
 .if     addr_commands_end-addr_commands > 255
   .error  "Error too many commands, kernel won't be able to start command"
 .endif
-
-
 
 
 commands_length:
@@ -1044,8 +1036,6 @@ commands_length:
 .ifdef WITH_ENV
     .byt 2 ; _env
 .endif    
-
-
 
 .ifdef WITH_FORTH
     .byt 5 ; forth
@@ -1124,8 +1114,6 @@ commands_length:
     .byt 6 ; pstree
 .endif
 
-
-
 .ifdef WITH_REBOOT    
     .byt 6 ;_reboot	
 .endif
@@ -1200,17 +1188,17 @@ cat:
 .endif
 ; 3
 
-; 4
+
 .ifdef WITH_CLEAR    
 clear:
     .asciiz "clear"
 .endif
 ; 5
-;.ifdef WITH_CP
+.ifdef WITH_CP
 ; Because cp & mv are in same file
 cp:
     .asciiz "cp"
-;.endif    
+.endif    
 ; 6
 .ifdef WITH_DATE    
 date:
