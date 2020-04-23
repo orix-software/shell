@@ -6,7 +6,7 @@
     MAN_SAVE_MALLOC_PTR:=userzp
     MAN_SAVE_MALLOC_FP :=userzp+2
     ; 
-    MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+1)             ; length of /usr/share/man/ + 8 + .hlp + \0
+    MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+4)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
     TEST_OOM_AND_MAX_MALLOC
 
@@ -54,7 +54,9 @@ start_man:
 
 
     lda     MAN_SAVE_MALLOC_PTR
+    sta     $6000
     ldx     MAN_SAVE_MALLOC_PTR+1
+    stx     $6001
     ldy     #O_RDONLY
     BRK_ORIX XOPEN
 

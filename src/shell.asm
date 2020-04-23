@@ -1434,7 +1434,7 @@ str_max_malloc_reached:
 
 
 signature:
-    .asciiz  "Shell v2020.1"
+    .asciiz  "Shell v2020.2"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
