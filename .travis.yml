@@ -3,14 +3,8 @@ before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -qq git
     - sudo pip install --upgrade pip
-    - sudo apt-get install ruby-full build-essential zlib1g-dev
-    - echo '# Install Ruby Gems to ~/gems' >> ~/.bashrc
-    - echo 'export GEM_HOME="$HOME/gems"' >> ~/.bashrc
-    - echo 'export PATH="$HOME/gems/bin:$PATH"' >> ~/.bashrc
-    - source ~/.bashrc
-    - gem install jekyll bundler
+    - sudo apt-get install mkdocs
     - git clone https://github.com/orix-software/orix-software.github.io.git
-    - sudo pip install mkdocs
     - git clone https://github.com/oric-software/buildTestAndRelease.git
     - cd buildTestAndRelease/ && sh make.sh
     - cd ..

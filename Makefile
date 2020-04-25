@@ -15,6 +15,15 @@ ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
 
+ifdef $(TRAVIS_BRANCH)
+ifneq ($(TRAVIS_BRANCH), master)
+RELEASE=alpha
+endif
+else
+RELEASE:=$(shell cat VERSION)
+endif
+
+
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
  
@@ -44,10 +53,8 @@ test:
 	filepack  $(ORIX_ROM).tar $(ORIX_ROM).pkg
 	gzip $(ORIX_ROM).tar
 	mv $(ORIX_ROM).tar.gz $(ORIX_ROM).tgz
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).pkg ${hash} 6502 pkg alpha
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).tgz ${hash} 6502 tgz alpha
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).pkg ${hash} 65c02 pkg alpha
-	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).tgz ${hash} 65c02 tgz alpha
+	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).tgz ${hash} 6502 tgz $(RELEASE)
+
   
   
 
