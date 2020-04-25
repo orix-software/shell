@@ -94,6 +94,8 @@
     cpy     #NULL
     bne     @not_null
 
+    BRK_KERNEL XFREE
+    PRINT str_not_a_directory
 
     jmp     free_cd_memory
 
@@ -107,8 +109,7 @@
 free_cd_memory:
     lda     cd_path
     ldy     cd_path+1
-    BRK_KERNEL XFREE
-    PRINT str_not_a_directory
+
     rts
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
