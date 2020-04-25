@@ -18,9 +18,9 @@ SOURCE=src/$(ROM).asm
 ifdef $(TRAVIS_BRANCH)
 ifneq ($(TRAVIS_BRANCH), master)
 RELEASE=alpha
-endif
 else
 RELEASE:=$(shell cat VERSION)
+endif
 endif
 
 
