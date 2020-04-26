@@ -15,6 +15,7 @@ start_man:
     sta     RESB
     sty     MAN_SAVE_MALLOC_PTR+1
     sty     RESB+1
+
     lda     #<man_path
     sta     RES
     lda     #>man_path
@@ -38,7 +39,6 @@ start_man:
     lda     MAN_SAVE_MALLOC_PTR+1
     sta     RES+1
     jsr     _strcat
-
     
     lda     #<str_man_hlp
     sta     RESB
@@ -54,9 +54,8 @@ start_man:
 
 
     lda     MAN_SAVE_MALLOC_PTR
-    sta     $6000
     ldx     MAN_SAVE_MALLOC_PTR+1
-    stx     $6001
+
     ldy     #O_RDONLY
     BRK_ORIX XOPEN
 
