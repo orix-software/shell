@@ -36,15 +36,16 @@ build: $(SOURCE)
 
 test:
 	#cp src/include/orix.h build/usr/include/orix/
-	mkdir -p build/usr/src/orix-source-1.0/src/
+	mkdir -p build/usr/src/shell/src/
 	mkdir -p build/usr/share/man/
 	mkdir -p build/usr/share/fonts/
 	mkdir -p build/usr/share/shell/
+	cp data/USR/SHARE/FONTS/* build/usr/share/fonts/ -adpR
 	cp $(ROM)sd.rom build/usr/share/shell/
 	sh tools/builddocs.sh
-	cp Makefile build/usr/src/orix-source-1.0/
-	cp README.md build/usr/src/orix-source-1.0/
-	cp src/* build/usr/src/orix-source-1.0/src/ -adpR
+	cp Makefile build/usr/src/shell/
+	cp README.md build/usr/src/shell/
+	cp src/* build/usr/src/shell/src/ -adpR
 	#cp data/* build/ -adpR
 	#cp README.md build/usr/share/doc/$(ORIX_ROM)/
 	#ls -l $(HOMEDIR)
