@@ -2,3 +2,4 @@
 * env command added
 * cd is now working
 * man is added
+* viewhrs added
