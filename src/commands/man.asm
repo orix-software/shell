@@ -50,15 +50,12 @@ start_man:
     lda     MAN_SAVE_MALLOC_PTR+1
     sta     RES+1
     jsr     _strcat
-
-
-
+ 
     lda     MAN_SAVE_MALLOC_PTR
     ldx     MAN_SAVE_MALLOC_PTR+1
-
+    
     ldy     #O_RDONLY
-    BRK_ORIX XOPEN
-
+    BRK_KERNEL XOPEN
 
     cmp     #NULL
     bne     next
@@ -70,7 +67,7 @@ start_man:
     ; Free memory for path
     lda     MAN_SAVE_MALLOC_PTR
     ldy     MAN_SAVE_MALLOC_PTR+1
-    BRK_ORIX XFREE
+    BRK_KERNEL XFREE
 
     PRINT   txt_file_not_found
     ldx     #$01

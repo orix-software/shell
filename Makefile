@@ -15,7 +15,7 @@ ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
 
-ifdef $(TRAVIS_BRANCH)
+ifdef TRAVIS_BRANCH
 ifneq ($(TRAVIS_BRANCH), master)
 RELEASE=alpha
 else
