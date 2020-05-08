@@ -8,10 +8,12 @@
    lsmem_savey          := userzp+6  ; 1 byte
    lsmem_savex          := userzp+7  ; 1 byte
    lsmem_savexbis       := userzp+8  ; 1 byte
+   lsmem_ptr_command_name := userzp+10
+   lsmem_ptr_command_name_tmp := userzp+12
 
    lsmem_savey_kernel_malloc_busy_pid_list := userzp+8
 
-   ldx     #XVARS_KERNEL_PROCESS  ; Get adress struct of process from kernel
+   ldx     #XVARS_KERNEL_PROCESS  ; Get struct process adress  from kernel
    BRK_KERNEL XVARS
    sta     lsmem_ptr_pid_table
    sty     lsmem_ptr_pid_table+1
@@ -195,20 +197,9 @@ myloop2:
     jsr     _print_hexa_no_sharp
 
     CPUTC ' '
-    ; There is a bug here if kernel_malloc_struct::kernel_malloc_busy_pid_list + x are greater than 255
-	; display process now
-    txa     ; X contains the index of the process
-    clc
-    adc     #kernel_malloc_struct::kernel_malloc_busy_pid_list
-
-    tay
-
-;.if     KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list > 255
-  ;.error  "[lsmem] KERNEL_MAX_NUMBER_OF_MALLOC+kernel_malloc_struct::kernel_malloc_busy_pid_list greater than 255 : overflow in lsmem_ptr_malloc ..."
-;.endif
-
 
     jsr     display_process
+    jsr     display_pid
 
 @S1:
 
@@ -225,41 +216,83 @@ busy_chunk_is_empty:
 
 skip:
     rts
+display_pid:
+    lda     (lsmem_ptr_pid_table),y
+    ldy     #$00
+    ldx     #$20 ;
+    stx     DEFAFF
+    ldx     #$00
+    BRK_KERNEL XDECIM
+    rts
 
 display_process:
+    txa
+    tay
+    lda     (lsmem_ptr_pid_table),y
+    cmp     #$01 ; init ?
+    beq     @is_init_process     
 
-    lda     (lsmem_ptr_malloc),y
-    ; at this step A contains the id of the pid
-    ; we get the process position, now let's get it's name
 
-    pha
-    clc
+
+    txa     
+    clc     
     adc     #kernel_process_struct::kernel_one_process_struct_ptr_low
     tay
 
     lda     (lsmem_ptr_pid_table),y
- ;   sta     lsmem_ptr
+    sta     lsmem_ptr_command_name
 
-    pla
-    rts
-    clc
+
+    txa
+    clc     
     adc     #kernel_process_struct::kernel_one_process_struct_ptr_high
     tay
-    lda     (lsmem_ptr_pid_table),y
-    sta     lsmem_ptr+1
 
-    ; At this step lsmem_ptr is the first char of the name of the command
-    ldy     #$00
-@L1:
-    lda     (lsmem_ptr),y
-    beq     @S1
-    sty     lsmem_savey
-    BRK_ORIX XWR0
-    ldy     lsmem_savey
+    lda     (lsmem_ptr_pid_table),y
+    sta     lsmem_ptr_command_name+1
+
+
+    lda     #$00
+    sta     lsmem_ptr_command_name_tmp
+
+    ldy     #kernel_one_process_struct::process_name
+@L1_string:    
+    lda     (lsmem_ptr_command_name),y
+    beq     @out
+    BRK_KERNEL XWR0
+    inc     lsmem_ptr_command_name_tmp
     iny
-    bne     @L1
-@S1:
-    rts    
+    bne     @L1_string
+@out:
+    ; Align now
+    lda     lsmem_ptr_command_name_tmp
+    cmp     #08
+    beq     @finish_align
+    lda     #' '
+    BRK_KERNEL XWR0
+    inc     lsmem_ptr_command_name_tmp
+    jmp     @out
+@finish_align:
+    rts
+  
+@is_init_process:
+    lda     #'i'
+    BRK_KERNEL XWR0
+    lda     #'n'
+    BRK_KERNEL XWR0
+    lda     #'i'
+    BRK_KERNEL XWR0    
+    lda     #'t'
+    BRK_KERNEL XWR0
+    lda     #' '
+    BRK_KERNEL XWR0    
+    lda     #' '
+    BRK_KERNEL XWR0    
+    lda     #' '
+    BRK_KERNEL XWR0    
+    lda     #' '
+    BRK_KERNEL XWR0    
+    rts
 
 str_column:
     .byte "TYPE  START END   SIZE  PROGRAM  PID",$0D,$0A,0    
@@ -270,6 +303,7 @@ str_FREE:
     .asciiz "Free  "
 str_BUSY:
     .asciiz "Busy  "
-
+str_INIT:
+    .asciiz "init"
 .endproc
 
