@@ -4,14 +4,14 @@
 
    lsmem_ptr_malloc     := userzp
    lsmem_ptr_pid_table  := userzp+2	 ; Get struct
-   lsmem_ptr            := userzp+4 
+   lsmem_savey_kernel_malloc_busy_pid_list := userzp+4
    lsmem_savey          := userzp+6  ; 1 byte
    lsmem_savex          := userzp+7  ; 1 byte
    lsmem_savexbis       := userzp+8  ; 1 byte
    lsmem_ptr_command_name := userzp+10
    lsmem_ptr_command_name_tmp := userzp+12
 
-   lsmem_savey_kernel_malloc_busy_pid_list := userzp+8
+
 
    ldx     #XVARS_KERNEL_PROCESS  ; Get struct process adress  from kernel
    BRK_KERNEL XVARS
@@ -134,7 +134,8 @@ myloop2:
     
     ; at this step X contains the first busy chunck    
     stx     lsmem_savex
-    sty     lsmem_savey_kernel_malloc_busy_pid_list     
+    sty     lsmem_savey_kernel_malloc_busy_pid_list
+ 
         
     PRINT str_BUSY
 
@@ -191,6 +192,7 @@ myloop2:
     clc
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_size_low
     tay
+   
     lda     (lsmem_ptr_malloc),y
 
 
@@ -198,7 +200,10 @@ myloop2:
 
     CPUTC ' '
 
+    ;ldy     lsmem_savey_kernel_malloc_busy_pid_list
     jsr     display_process
+    
+    ;lda     lsmem_savey_kernel_malloc_busy_pid_list
     jsr     display_pid
 
 @S1:
@@ -218,6 +223,7 @@ skip:
     rts
 display_pid:
     lda     (lsmem_ptr_pid_table),y
+
     ldy     #$00
     ldx     #$20 ;
     stx     DEFAFF

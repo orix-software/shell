@@ -11,7 +11,7 @@
     bne     @not_null_1
     cpy     #NULL
     bne     @not_null_1
-
+    PRINT   str_oom
     rts 
 @not_null_1:
     sta     cd_path
@@ -19,6 +19,10 @@
 
     ldx     #$01
     jsr     _orix_get_opt
+
+
+
+
 
     ; copy in malloc args
     ldy     #$00
@@ -42,6 +46,9 @@
 
 @path_with_no_slash_at_the_end:
 
+
+@not_slash_only:
+
     ; check if it's . or ..
     ; FIXME : add trim
     
@@ -63,6 +70,7 @@
     ldy     #$00
 @L2:    
     lda     (cd_path),y
+
     beq     @end_of_string_found
     iny
     bne     @L2
@@ -87,7 +95,10 @@
     
     ; modify path now
     lda     cd_path
+    sta     $6000
     ldy     cd_path+1
+    sty     $6001
+
     BRK_KERNEL   XPUTCWD_ROUTINE
     ; and free
     jmp     free_cd_memory

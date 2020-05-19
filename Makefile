@@ -23,7 +23,6 @@ RELEASE:=$(shell cat VERSION)
 endif
 endif
 
-
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
  

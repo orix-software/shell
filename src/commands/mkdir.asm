@@ -9,12 +9,19 @@ mkdir_malloc_ptr       := userzp+1 ; .word
 
 .proc _mkdir
 ; broken
-    rts
+
     ldx     #$01
     jsr     _orix_get_opt
     lda     ORIX_ARGV
     beq     missing_operand
   
+    lda     #<ORIX_ARGV
+    ;sta     RES
+    ldy     #>ORIX_ARGV
+    BRK_KERNEL XMKDIR
+    rts
+    ;sta     RES+1
+
     ;compute strlen of the argument
     lda     #<ORIX_ARGV
     sta     RES

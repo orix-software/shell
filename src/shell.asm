@@ -22,9 +22,6 @@ bash_tmp1                    :=userzp+8
 sh_ptr_file                  := userzp+10 ; 2 bytes
 sh_ptr_file_save             := userzp+12
 
-
-
-
 XEXEC = $63
 
 
@@ -52,6 +49,8 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 .code
 
 start_sh_interactive:
+
+.out     .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
 
     MALLOC .sizeof(shell_bash_struct)
 
@@ -1279,10 +1278,7 @@ oricsoft:
     .asciiz "oricsft"
 .endif      
 ; 30
-.ifdef WITH_RM
-rm:
-    .asciiz "rm"
-.endif
+
 ; 31
 .ifdef WITH_PS
 ps:
@@ -1300,6 +1296,11 @@ pstree:
 reboot:
     .asciiz "reboot"
 .endif    
+
+.ifdef WITH_RM
+rm:
+    .asciiz "rm"
+.endif
 
 .ifdef WITH_SEDORIC
 sedoric:

@@ -4,3 +4,4 @@
 [submodule "src/dependencies/kernel"]
 	path = src/dependencies/kernel
 	url = https://github.com/orix-software/kernel.git
+	branch = 2020.2
