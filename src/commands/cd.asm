@@ -30,6 +30,17 @@
     bne     @L1
 @S1:    
     sta     (cd_path),y
+    ; Remove / at the end (to avoid cd /usr///)
+@L7:    
+    dey
+    lda     (cd_path),y
+    cmp     #'/'
+    bne     @path_with_no_slash_at_the_end
+    lda     #$00
+    sta     (cd_path),y
+    jmp     @L7
+
+@path_with_no_slash_at_the_end:
 
     ; check if it's . or ..
     ; FIXME : add trim
