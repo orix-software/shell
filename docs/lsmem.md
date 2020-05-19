@@ -12,4 +12,4 @@ Displays malloc table
 + lsmem
 
 ## SOURCE
-located in Orix Kernel
+https://github.com/orix-software/shell/blob/master/src/commands/lsmem.asm

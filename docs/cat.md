@@ -6,7 +6,7 @@
 + cat FILENAME
 
 ## NOTES
-There is a bug on some files. It seems that orix primitive XWR0 is a bit buggy, and does not want to display some chars.
+Displays content of the FILENAME
 
 ## SOURCE
-Internal command in Orix
+https://github.com/orix-software/shell/blob/master/src/commands/cat.asm

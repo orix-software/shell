@@ -1,9 +1,9 @@
 # Command: clear
 
-### clear the screen
+### Clear the screen
 
 ## SYNOPSYS
 + clear
 
 ## SOURCE
-Internal command in Orix (Assembly)
+https://github.com/orix-software/shell/blob/master/src/commands/clear.asm

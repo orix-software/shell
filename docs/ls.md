@@ -6,7 +6,7 @@
 + ls
 
 ## DESCRIPTION
-Directories are in ^FBLUE^G color. It does not manage '-l'. Pattern works in different ways
+Directories are in ^FBLUE^G color. It does not manage '-l'. Pattern works in different ways : ls *.tap
 
 ## SOURCE
-Internal command in Orix (assembly)
+https://github.com/orix-software/shell/blob/master/src/commands/ls.asm

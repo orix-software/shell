@@ -12,4 +12,4 @@ rm file or directory
 + rm /myfolder
 
 ## SOURCE
-kernel internal command
+https://github.com/orix-software/shell/blob/master/src/commands/rm.asm
