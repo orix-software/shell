@@ -25,7 +25,15 @@ endif
 
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
- 
+
+ifdef $(TRAVIS_BRANCH)
+ifneq ($(TRAVIS_BRANCH), master)
+RELEASE=alpha
+endif
+else
+RELEASE:=$(shell cat VERSION)
+endif
+
 build: $(SOURCE)
 	@date +'.define __DATE__ "%F %R"' > src/build.inc
 	$(AS) $(CFLAGS) $(SOURCE) -o $(ROM).ld65 --debug-info
