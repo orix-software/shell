@@ -94,10 +94,10 @@
     sta     (cd_path),y
     
     ; modify path now
-    lda     cd_path
-    sta     $6000
-    ldy     cd_path+1
-    sty     $6001
+    ;lda     cd_path
+    ;sta     $6000
+    ;ldy     cd_path+1
+    ;sty     $6001
 
     BRK_KERNEL   XPUTCWD_ROUTINE
     ; and free
@@ -131,7 +131,7 @@
 free_cd_memory:
     lda     cd_path
     ldy     cd_path+1
-
+    BRK_KERNEL XFREE
     rts
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
