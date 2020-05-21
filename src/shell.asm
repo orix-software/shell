@@ -22,9 +22,6 @@ bash_tmp1                    :=userzp+8
 sh_ptr_file                  := userzp+10 ; 2 bytes
 sh_ptr_file_save             := userzp+12
 
-
-
-
 XEXEC = $63
 
 
@@ -53,6 +50,8 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 start_sh_interactive:
 
+.out     .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
+
     MALLOC .sizeof(shell_bash_struct)
 
     ; FIXME test NULL pointer
@@ -66,8 +65,7 @@ start_sh_interactive:
     sta    (bash_struct_ptr),y
     
 
-    lda     #$00
-    sta     STACK_BANK
+
     ; set lowercase keyboard should be move in telemon bank
     lda     FLGKBD
     and     #%00111111 ; b7 : lowercase, b6 : no sound
@@ -529,10 +527,6 @@ internal_commands_length:
 .include "commands/env.asm"
 .endif
 
-.ifdef WITH_FORTH
-.include "commands/teleforth.asm"
-.endif
-
 .ifdef WITH_HISTORY
 .include "commands/history.asm"
 .endif
@@ -615,10 +609,6 @@ internal_commands_length:
 
 .ifdef WITH_TELNETD
 .include "commands/telnetd.asm"
-.endif
-
-.ifdef WITH_MONITOR
-.include "commands/monitor.asm"
 .endif
 
 .ifdef WITH_TWILIGHT
@@ -852,13 +842,6 @@ addr_commands:
 .ifdef WITH_ENV    
     .addr  _env
 .endif    
-; 12
-
-; 14
-.ifdef WITH_FORTH
-    .addr  _forth
-.endif
-; 15
 
 ; 16	
 .ifdef WITH_HISTORY
@@ -905,9 +888,6 @@ addr_commands:
     .addr  _mkdir
 .endif    
 ; 27
-.ifdef WITH_MONITOR
-    .addr  _monitor
-.endif    
 ; 28
 .ifdef WITH_MV   
     .addr  _mv ; is in _cp
@@ -1038,11 +1018,6 @@ commands_length:
     .byt 2 ; _env
 .endif    
 
-.ifdef WITH_FORTH
-    .byt 5 ; forth
-.endif 
-
-
 .ifdef WITH_HISTORY
     .byt 7 ; history
 .endif   
@@ -1087,9 +1062,6 @@ commands_length:
     .byt 5 ; _mkdir
 .endif    
 
-.ifdef WITH_MONITOR
-    .byt 7 ; monitor
-.endif          
 
 .ifdef WITH_MV
     .byt 2 ; mv
@@ -1228,14 +1200,6 @@ env:
 .endif  
 ; 11
 
-; 12
-.ifdef WITH_FORTH    
-forth:
-    .asciiz "forth"
-.endif
-; 13
-
-; 14
 .ifdef WITH_HISTORY
 history:
     .asciiz "history"
@@ -1292,10 +1256,7 @@ mkdir:
     .asciiz "mkdir"
 .endif    
 ; 25
-.ifdef WITH_MONITOR
-monitor:
-    .asciiz "monitor"
-.endif
+
 ; 26
 .ifdef WITH_MOUNT
 mount:
@@ -1317,10 +1278,7 @@ oricsoft:
     .asciiz "oricsft"
 .endif      
 ; 30
-.ifdef WITH_RM
-rm:
-    .asciiz "rm"
-.endif
+
 ; 31
 .ifdef WITH_PS
 ps:
@@ -1338,6 +1296,11 @@ pstree:
 reboot:
     .asciiz "reboot"
 .endif    
+
+.ifdef WITH_RM
+rm:
+    .asciiz "rm"
+.endif
 
 .ifdef WITH_SEDORIC
 sedoric:
@@ -1403,17 +1366,12 @@ xorix:
 ca65:
     .asciiz "c"
 .endif
-
-
    
 str_6502:                           ; use for lscpu
     .asciiz "6502"
 str_65C02:                          ; use for lscpu
     .asciiz "65C02"
 
-
-str_tape_file:
-    .asciiz "Tape file : not working yet"
 str_cant_execute:
     .asciiz ": is not an Orix file"
 str_not_found:
@@ -1432,9 +1390,8 @@ str_out_of_memory:
 str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
-
 signature:
-    .asciiz  "Shell v2020.1"
+    .asciiz  "Shell v2020.2"
 str_compile_time:
     .byt    __DATE__
     .byt    " "

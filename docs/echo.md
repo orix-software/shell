@@ -9,4 +9,4 @@
 Display a message
 
 ## SOURCE
-kernel Orix command 
+https://github.com/orix-software/shell/blob/master/src/commands/echo.asm

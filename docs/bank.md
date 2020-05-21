@@ -12,4 +12,4 @@ bank : displays all the bank
 bank 4 : switch to bank 4
 
 ## SOURCE
-Internal command in Orix (assembly)
+https://github.com/orix-software/shell/blob/master/src/commands/bank.asm

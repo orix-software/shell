@@ -74,7 +74,7 @@ print_registers:
     LDX     #$20 ;
     STX     DEFAFF
     LDX     #$03
-    BRK_ORIX XDECIM
+    BRK_KERNEL XDECIM
     RETURN_LINE
     PRINT   str_twilighte_banking_register
     lda     TWILIGHTE_BANKING_REGISTER

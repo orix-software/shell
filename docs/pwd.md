@@ -6,4 +6,4 @@
 + pwd
 
 ## SOURCE
-Internal command in Orix (assembly)
+https://github.com/orix-software/shell/blob/master/src/commands/pwd.asm

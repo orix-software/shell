@@ -12,4 +12,4 @@ Create a folder
 + mkdir /opt
 
 ## SOURCE
-kernel internal command
+https://github.com/orix-software/shell/blob/master/src/commands/mkdir.asm

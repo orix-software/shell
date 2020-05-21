@@ -31,9 +31,9 @@
 
     lda     (ptr_kernel_process),y
     beq     @SKIP_NOPROCESS
-    tay
-    iny
-    tya
+   ; tay
+;    iny
+ ;   tya
     ldy     #$00
     PRINT_BINARY_TO_DECIMAL_16BITS 1
     CPUTC   ' '

@@ -12,4 +12,4 @@ Displays manual
 + man ls
 
 ## SOURCE
-located in Orix Kernel
+https://github.com/orix-software/shell/blob/master/src/commands/man.asm

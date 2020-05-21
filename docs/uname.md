@@ -9,4 +9,4 @@
 Display kernel info
 
 ## SOURCE
-Internal command in Orix (assembly)
+https://github.com/orix-software/shell/blob/master/src/commands/uname.asm

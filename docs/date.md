@@ -6,8 +6,7 @@
 + date
 
 ## NOTES
-Please note that it uses the second via of the telestrat to display this time.
-Each time telestrat reboots, this time is reset beacause there is no available RTC on the telestrat
+Each time Oric reboots, this time is reset because there is no available RTC.
 
 ## SOURCE
-Internal command in Oric (assembly)
+https://github.com/orix-software/shell/blob/master/src/commands/date.asm

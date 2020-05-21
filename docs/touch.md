@@ -9,4 +9,4 @@
 Create an empty file. Time does not affect the timstamp of the file.
 
 ## SOURCE
-kernel internal command
+https://github.com/orix-software/shell/blob/master/src/commands/touch.asm

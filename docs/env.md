@@ -9,4 +9,4 @@
 Displays env variables. It can't be used in command line or shell script for instance
 
 ## SOURCE
-kernel internal command
+https://github.com/orix-software/shell/blob/master/src/commands/env.asm

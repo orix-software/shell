@@ -11,7 +11,7 @@
     bne     @not_null_1
     cpy     #NULL
     bne     @not_null_1
-
+    PRINT   str_oom
     rts 
 @not_null_1:
     sta     cd_path
@@ -19,6 +19,10 @@
 
     ldx     #$01
     jsr     _orix_get_opt
+
+
+
+
 
     ; copy in malloc args
     ldy     #$00
@@ -30,6 +34,20 @@
     bne     @L1
 @S1:    
     sta     (cd_path),y
+    ; Remove / at the end (to avoid cd /usr///)
+@L7:    
+    dey
+    lda     (cd_path),y
+    cmp     #'/'
+    bne     @path_with_no_slash_at_the_end
+    lda     #$00
+    sta     (cd_path),y
+    jmp     @L7
+
+@path_with_no_slash_at_the_end:
+
+
+@not_slash_only:
 
     ; check if it's . or ..
     ; FIXME : add trim
@@ -52,6 +70,7 @@
     ldy     #$00
 @L2:    
     lda     (cd_path),y
+
     beq     @end_of_string_found
     iny
     bne     @L2
@@ -76,7 +95,10 @@
     
     ; modify path now
     lda     cd_path
+    sta     $6000
     ldy     cd_path+1
+    sty     $6001
+
     BRK_KERNEL   XPUTCWD_ROUTINE
     ; and free
     jmp     free_cd_memory
@@ -94,7 +116,8 @@
     cpy     #NULL
     bne     @not_null
 
-
+    BRK_KERNEL XFREE
+    PRINT str_not_a_directory
 
     jmp     free_cd_memory
 
@@ -108,7 +131,7 @@
 free_cd_memory:
     lda     cd_path
     ldy     cd_path+1
-    BRK_KERNEL XFREE
+
     rts
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	

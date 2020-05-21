@@ -6,7 +6,7 @@
     MAN_SAVE_MALLOC_PTR:=userzp
     MAN_SAVE_MALLOC_FP :=userzp+2
     ; 
-    MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+1)             ; length of /usr/share/man/ + 8 + .hlp + \0
+    MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+4)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
     TEST_OOM_AND_MAX_MALLOC
 
@@ -15,6 +15,7 @@ start_man:
     sta     RESB
     sty     MAN_SAVE_MALLOC_PTR+1
     sty     RESB+1
+
     lda     #<man_path
     sta     RES
     lda     #>man_path
@@ -38,7 +39,6 @@ start_man:
     lda     MAN_SAVE_MALLOC_PTR+1
     sta     RES+1
     jsr     _strcat
-
     
     lda     #<str_man_hlp
     sta     RESB
@@ -50,14 +50,12 @@ start_man:
     lda     MAN_SAVE_MALLOC_PTR+1
     sta     RES+1
     jsr     _strcat
-
-
-
+ 
     lda     MAN_SAVE_MALLOC_PTR
     ldx     MAN_SAVE_MALLOC_PTR+1
+    
     ldy     #O_RDONLY
-    BRK_ORIX XOPEN
-
+    BRK_KERNEL XOPEN
 
     cmp     #NULL
     bne     next
@@ -69,7 +67,7 @@ start_man:
     ; Free memory for path
     lda     MAN_SAVE_MALLOC_PTR
     ldy     MAN_SAVE_MALLOC_PTR+1
-    BRK_ORIX XFREE
+    BRK_KERNEL XFREE
 
     PRINT   txt_file_not_found
     ldx     #$01
