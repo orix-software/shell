@@ -2,7 +2,7 @@
 
 
 .proc _cd
-    cd_path := userzp
+    cd_path := sh_ptr_for_internal_command
     cd_fp := userzp+2
     cd_fp_tmp := userzp+2
     ; Let's malloc
@@ -21,9 +21,6 @@
     jsr     _orix_get_opt
 
 
-
-
-
     ; copy in malloc args
     ldy     #$00
 @L1:
@@ -37,12 +34,20 @@
     ; Remove / at the end (to avoid cd /usr///)
 @L7:    
     dey
+    beq     @it_slash
     lda     (cd_path),y
     cmp     #'/'
     bne     @path_with_no_slash_at_the_end
     lda     #$00
     sta     (cd_path),y
     jmp     @L7
+@it_slash:
+
+    lda     (cd_path),y
+
+    cmp     #'/'
+    beq     @launch_xput
+
 
 @path_with_no_slash_at_the_end:
 
@@ -61,6 +66,7 @@
     beq     @only_one_dot
     cmp     #'.'
     bne     free_cd_memory ; it's  'cd .' only then, jump. 
+
     ; Here we have 'cd ..'
     ; let's pull folder
     BRK_KERNEL XGETCWD  ; Get A & Y 
@@ -85,20 +91,20 @@
     dey
     bne     @L3
     ; We reached 0 : then we are in "/" root
+    iny     
+    bne     @slash_found
 @only_one_dot:    
     rts
 
 
 @slash_found:
+
     lda     #$00
     sta     (cd_path),y
-    
-    ; modify path now
-    ;lda     cd_path
-    ;sta     $6000
-    ;ldy     cd_path+1
-    ;sty     $6001
 
+@launch_xput:
+    lda     cd_path
+    ldy     cd_path+1
     BRK_KERNEL   XPUTCWD_ROUTINE
     ; and free
     jmp     free_cd_memory
@@ -115,13 +121,14 @@
     bne     @not_null
     cpy     #NULL
     bne     @not_null
-
+    ; Free fp
     BRK_KERNEL XFREE
     PRINT str_not_a_directory
 
     jmp     free_cd_memory
 
 @not_null:
+    ; Free FP
     BRK_KERNEL XFREE
     lda     cd_path
     ldy     cd_path+1
@@ -135,9 +142,5 @@ free_cd_memory:
     rts
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
-str_max_level:
-    .byte "Limit is ",$30+(ORIX_MAX_PATH_LENGTH-1)," chars",0
-str_root:
-    .asciiz "/"
 .endproc
 
