@@ -558,6 +558,10 @@ internal_commands_length:
 .include "commands/lsof.asm"
 .endif
 
+.ifdef WITH_LSPROC
+.include "commands/lsproc.asm"
+.endif
+
 .ifdef WITH_MAN
 .include "commands/man.asm"
 .endif
@@ -766,6 +770,7 @@ next:
     rts
 @isA65C816:
     lda     #CPU_65816
+    rts
 @is6502Nmos:
     lda     #CPU_6502
     rts
