@@ -65,7 +65,7 @@
     lda     (cd_path),y
     beq     @only_one_dot
     cmp     #'.'
-    bne     free_cd_memory ; it's  'cd .' only then, jump. 
+    bne     @free_cd_memory ; it's  'cd .' only then, jump. 
 
     ; Here we have 'cd ..'
     ; let's pull folder
@@ -87,7 +87,7 @@
 @L3:    
     lda     (cd_path),y
     cmp     #'/'
-    beq     @slash_found
+    beq     @try_to_recurse
     dey
     bne     @L3
     ; We reached 0 : then we are in "/" root
@@ -95,7 +95,6 @@
     bne     @slash_found
 @only_one_dot:    
     rts
-
 
 @slash_found:
 
@@ -107,7 +106,7 @@
     ldy     cd_path+1
     BRK_KERNEL   XPUTCWD_ROUTINE
     ; and free
-    jmp     free_cd_memory
+    jmp     @free_cd_memory
 
 
 @not_dot:
@@ -125,7 +124,7 @@
     BRK_KERNEL XFREE
     PRINT str_not_a_directory
 
-    jmp     free_cd_memory
+    jmp     @free_cd_memory
 
 @not_null:
     ; Free FP
@@ -135,11 +134,37 @@
 
     BRK_KERNEL   XPUTCWD_ROUTINE
 
-free_cd_memory:
+@free_cd_memory:
     lda     cd_path
     ldy     cd_path+1
     BRK_KERNEL XFREE
     rts
+
+@try_to_recurse:  
+    lda     #$00
+    sta     (cd_path),y
+
+    lda     cd_path
+    ldy     cd_path+1
+    BRK_KERNEL   XPUTCWD_ROUTINE
+    ; cdpath++
+    ; cdpath++
+    ; remove ..
+    inc     cd_path
+    bcc     @do_not_inc_1
+    inc     cd_path+1
+@do_not_inc_1:    
+    inc     cd_path
+    bcc     @do_not_inc_2
+    inc     cd_path+1
+    ; cdpath++ (because ../usr/ for example)
+@do_not_inc_2:    
+    inc     cd_path
+    bcc     @do_not_inc_3
+    inc     cd_path+1
+@do_not_inc_3:
+;   at this step cd_path should be here : usr/    
+    bne     @not_dot    
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
 .endproc

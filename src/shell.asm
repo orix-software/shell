@@ -764,7 +764,7 @@ next:
     dec     a               ; .byte $3A, A=$00
     xba                     ; .byte $EB, A=$01 if 65816/65802 and A=$00 if 65C02/65SC02
     inc     a               ; .byte $1A, A=$02 if 65816/65802 and A=$01 if 65C02/65SC02
-    cmp     #2
+    cmp     #$02
     beq     @isA65C816
     lda     #CPU_65C02       ; it's a 65C02
     rts
@@ -1393,7 +1393,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2020.2"
+    .asciiz  "Shell v2020.3"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
