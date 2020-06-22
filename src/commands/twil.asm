@@ -68,28 +68,29 @@ check_next_parameter_w:
     PRINT   str_swap_to_bank_sram
     RETURN_LINE
 print_registers:
-    PRINT   str_twilighte_register
-    lda     TWILIGHTE_REGISTER
-    LDY     #$00
-    LDX     #$20 ;
-    STX     DEFAFF
-    LDX     #$03
-    BRK_KERNEL XDECIM
-    RETURN_LINE
-    PRINT   str_twilighte_banking_register
-    lda     TWILIGHTE_BANKING_REGISTER
-    LDY     #$00
-    LDX     #$20 ;
-    STX     DEFAFF
-    LDX     #$03
-    BRK_ORIX XDECIM
-    RETURN_LINE
-
     rts
-str_twilighte_register:
-    .asciiz "Twilighte register : "
-str_twilighte_banking_register:
-    .asciiz "Twilighte Banking register : "
+    ;PRINT   str_twilighte_register
+    ;lda     TWILIGHTE_REGISTER
+    ;LDY     #$00
+    ;LDX     #$20 ;
+    ;STX     DEFAFF
+    ;LDX     #$03
+    ;;BRK_KERNEL XDECIM
+    ;RETURN_LINE
+    ;PRINT   str_twilighte_banking_register
+    ;lda     TWILIGHTE_BANKING_REGISTER
+    ;LDY     #$00
+    ;LDX     #$20 ;
+    ;STX     DEFAFF
+    ;LDX     #$03
+    ;BRK_ORIX XDECIM
+    ;RETURN_LINE
+
+    ;rts
+;str_twilighte_register:
+    ;.asciiz "Twilighte register : "
+;str_twilighte_banking_register:
+    ;.asciiz "Twilighte Banking register : "
 
 
 

@@ -55,6 +55,9 @@
 
 @S4:
     PRINT   str_FREE
+    ;lda  #$82
+    ;BRK_KERNEL XWR0
+   ; PRINT   str_SPACE
     txa
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_high
@@ -137,7 +140,9 @@ myloop2:
     sty     lsmem_savey_kernel_malloc_busy_pid_list
  
         
-    PRINT str_BUSY
+    ;lda  #$81
+    ;BRK_KERNEL XWR0
+    PRINT   str_BUSY
 
     ; Get start adress of busy chunk
 
@@ -199,10 +204,11 @@ myloop2:
     jsr     _print_hexa_no_sharp
 
     CPUTC ' '
-
+    sty     lsmem_savey
     ;ldy     lsmem_savey_kernel_malloc_busy_pid_list
     jsr     display_process
     
+    ldy     lsmem_savey
     ;lda     lsmem_savey_kernel_malloc_busy_pid_list
     jsr     display_pid
 
@@ -222,6 +228,8 @@ busy_chunk_is_empty:
 skip:
     rts
 display_pid:
+;lsmem_savey_kernel_malloc_busy_pid_list
+
     lda     (lsmem_ptr_pid_table),y
 
     ldy     #$00
@@ -301,15 +309,17 @@ display_process:
     rts
 
 str_column:
-    .byte "TYPE  START END   SIZE  PROGRAM  PID",$0D,$0A,0    
+    .byte "TYPE START END   SIZE  PROGRAM  PID FUNC",0    
 
 str_empty_program:
     .asciiz "       "
 str_FREE:
-    .asciiz "Free  "
+    .asciiz "Free "
 str_BUSY:
-    .asciiz "Busy  "
+    .asciiz "Busy "
 str_INIT:
     .asciiz "init"
+str_SPACE:
+    .asciiz "unkn "
 .endproc
 

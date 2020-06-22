@@ -19,12 +19,11 @@ sh_length_of_command_line    :=userzp+3 ;
 bash_struct_ptr              :=userzp+4 ; 16bits
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 bash_tmp1                    :=userzp+8 
-sh_ptr_file                  := userzp+10 ; 2 bytes
-sh_ptr_file_save             := userzp+12
+sh_ptr_file                  :=userzp+10 ; 2 bytes
+sh_ptr_file_save             :=userzp+12
+sh_ptr_for_internal_command  :=userzp+14
 
 XEXEC = $63
-
-
 
 BASH_NUMBER_OF_USERZP = 8
 
@@ -191,7 +190,7 @@ start_commandline:
     beq     @key_esc_routine 
 
     ldx     sh_length_of_command_line  ; get the length of the current line
-    cpx     #BASH_MAX_BUFEDT_LENGTH-1 ; do we reach the size of command line buffer ?
+    cpx     #BASH_MAX_LENGTH_COMMAND_LINE-1 ; do we reach the size of command line buffer ?
     beq     start_commandline    ; yes restart command line until enter or del keys are pressed, but
     BRK_KERNEL XWR0             ; write key on the screen (it's really a key pressed
 
@@ -559,6 +558,10 @@ internal_commands_length:
 .include "commands/lsof.asm"
 .endif
 
+.ifdef WITH_LSPROC
+.include "commands/lsproc.asm"
+.endif
+
 .ifdef WITH_MAN
 .include "commands/man.asm"
 .endif
@@ -646,8 +649,6 @@ internal_commands_length:
 .ifdef WITH_XORIX
 .include "commands/xorix.asm"
 .endif
-
-.include "_exec_from_sdcard.asm"
 
 ; Functions
 
@@ -763,12 +764,13 @@ next:
     dec     a               ; .byte $3A, A=$00
     xba                     ; .byte $EB, A=$01 if 65816/65802 and A=$00 if 65C02/65SC02
     inc     a               ; .byte $1A, A=$02 if 65816/65802 and A=$01 if 65C02/65SC02
-    cmp     #2
+    cmp     #$02
     beq     @isA65C816
     lda     #CPU_65C02       ; it's a 65C02
     rts
 @isA65C816:
     lda     #CPU_65816
+    rts
 @is6502Nmos:
     lda     #CPU_6502
     rts
@@ -1391,7 +1393,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2020.2"
+    .asciiz  "Shell v2020.3"
 str_compile_time:
     .byt    __DATE__
     .byt    " "

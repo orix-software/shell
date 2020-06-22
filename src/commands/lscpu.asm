@@ -11,7 +11,8 @@
     PRINT   str_65C02
     jmp     next         ; FIXME 65c02
 is65c816:
-    PRINT   str_65c816 
+    PRINT   str_65c816
+    jmp     next 
    ; bra     next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 is6502:
     PRINT   str_6502

@@ -10,8 +10,8 @@ SET ORIGIN_PATH=%CD%
 SET ROM=shell
 rem -DWITH_SDCARD_FOR_ROOT=1 
 rem 
-%CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -ttelestrat --include-dir %CC65%\asminc\ src/%ROM%.asm -o %ROM%.ld65  
-%CC65%\ld65.exe -DWITH_SDCARD_FOR_ROOT=1 -tnone  %ROM%.ld65 -o %ROM%.rom  -Ln shell.sym
+%CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -ttelestrat --include-dir %CC65%\asminc\ src/%ROM%.asm -o %ROM%.ld65  
+%CC65%\ld65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -tnone  %ROM%.ld65 -o %ROM%.rom  -Ln shell.sym
 
 
 
