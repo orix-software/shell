@@ -25,12 +25,12 @@
 
     PRINT BUFNOM
     PRINT str_not_found
-rts
+    rts
 
 print_usage:
 cat_error_param:
     PRINT txt_usage
-rts
+    rts
 
 cat_file:
     lda #$FF
@@ -78,9 +78,9 @@ cat_file:
 
   @finished:
     BRK_TELEMON XCRLF
-rts
+    rts
 
 txt_usage:
-    .BYT "usage: cat FILE",$0D,$0A,0
+    .byte "usage: cat FILE",$0D,$0A,0
 
 .endproc

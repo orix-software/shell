@@ -13,17 +13,16 @@ basic11_ptr1 := userzp+1
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
+
     jmp     @start
     ldx     #$01
     jsr     _orix_get_opt
     ; get parameter
     bcc     @noparam      ; if there is no args, let's displays all banks
 
-
-    lda    #<ORIX_ARGV
-    ldy    #>ORIX_ARGV+1
-    BRK_KERNEL XWSTR0 
-
+    STRCPY  ORIX_ARGV,BUFNOM
+    PRINT ORIX_ARGV
+    rts
     ; Check if it's a .tap
     lda     #<ORIX_ARGV
     sta     basic11_ptr1
@@ -108,10 +107,10 @@ basic11_ptr1 := userzp+1
     
 
     ; stop t2 from via1
-    lda     #0+32
+    lda     #$00+32
     sta     VIA::IER
     ; stop via 2
-    lda     #0+32+64
+    lda     #$00+32+64
     sta     VIA2::IER
 	
     ldx     #$00
