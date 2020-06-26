@@ -22,6 +22,7 @@ bash_tmp1                    :=userzp+8
 sh_ptr_file                  :=userzp+10 ; 2 bytes
 sh_ptr_file_save             :=userzp+12
 sh_ptr_for_internal_command  :=userzp+14
+sh_ptr1                      :=userzp+16
 
 XEXEC = $63
 
@@ -162,6 +163,11 @@ start_commandline:
 
     lda    bash_struct_command_line_ptr
     ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+    jsr    ltrim ; Trim
+
+    lda    bash_struct_command_line_ptr
+    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+
     BRK_KERNEL XEXEC
     cmp    #EOK
     beq    @S20 
@@ -397,9 +403,13 @@ execute_rom_command:
 
 .proc ltrim
 
-restart_test_space:
+
+    sta     sh_ptr1
+    sty     sh_ptr1+1
+restart_test_space:     
     ldy     #$00
-    lda     (RES),y
+   
+    lda     (sh_ptr1),y
     cmp     #' '
     beq     trimme
     rts
@@ -413,15 +423,17 @@ loop:
 .endif  
 trimme:
     iny ; 1
-    lda     (RES),y
+    lda     (sh_ptr1),y
+    beq     @out
     dey ; 0
-    sta     (RES),y
+    sta     (sh_ptr1),y
     iny ;1 
-    lda     (RES),y
-    beq     loop
-    bne     trimme
+    jmp     trimme
+@out:    
+    dey
+    sta     (sh_ptr1),y
+    jmp     restart_test_space
 
-    rts
 .endproc
 ; This routine is used to read into /bin directory, and tries to open a binary, if it's Not ok it return in A and X $ffff
 
