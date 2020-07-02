@@ -141,57 +141,13 @@ start_commandline:
     RETURN_LINE
     jmp     start_prompt
 
-@sh_launch_command:    
-    RETURN_LINE
-    ldy    bash_struct_ptr+1
-
-    lda    bash_struct_ptr
-
-    clc
-    adc    #shell_bash_struct::command_line
-    bcc    @S7
-    iny
-@S7:
-    sta    bash_struct_command_line_ptr
-    sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
-
-    jsr    _bash
-    cmp    #EOK
-    bne    @call_xexec
-    jmp    start_prompt
-@call_xexec:   
-
-    lda    bash_struct_command_line_ptr
-    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
-    jsr    ltrim ; Trim
-
-    lda    bash_struct_command_line_ptr
-    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
-
-    BRK_KERNEL XEXEC
-    cmp    #EOK
-    beq    @S20 
-
-    ldy    #$00
-@S30:
-    lda    (bash_struct_command_line_ptr),y
-    beq    @print_not_found
-    cmp    #$20
-    beq    @print_not_found
-    BRK_KERNEL XWR0
-    iny
-    bne    @S30
-@print_not_found:
-    PRINT   str_command_not_found
-@S20:    
-    jmp     start_prompt
 
 @function_key:
 
 
 @next_key:
     cmp     #KEY_DEL             ; is it del pressed ?
-    beq     key_del_routine      ; yes let's remove the char in the BUFEDT buffer
+    beq     @key_del_routine      ; yes let's remove the char in the BUFEDT buffer
     cmp     #KEY_ESC                   ; ESC key not managed, but could do autocompletion (Pressed twice)
     beq     @key_esc_routine 
 
@@ -231,6 +187,111 @@ start_commandline:
 
     jmp     start_commandline    ; and loop interpreter
 
+
+
+
+@key_esc_routine:
+    ldx     sh_esc_pressed
+    bne     @sh_launch_autocompletion
+    inx
+    stx     sh_esc_pressed
+    jmp     start_commandline
+
+@key_del_routine:
+    ldx     sh_length_of_command_line    ; load the length of the command line buffer
+    beq     send_oups_and_loop   ; command line is empty send oups sound
+    dex                          ; command line is NOT empty, remove last char in the buffer
+    
+    txa
+    clc
+    adc    #shell_bash_struct::command_line
+    tay
+
+    lda    #$00                 ; remove last char FIXME 65c02
+    sta    (bash_struct_ptr),y
+    stx    sh_length_of_command_line               ; and store the length
+
+    ldy    #shell_bash_struct::pos_command_line
+    lda    (bash_struct_ptr),y
+    tax
+    dex
+    txa
+    sta    (bash_struct_ptr),y
+
+    SWITCH_OFF_CURSOR
+    dec     SCRX                 ; go one step to the left on the screen
+
+    SWITCH_ON_CURSOR
+
+; no_action
+    jmp     start_commandline    ; and restart 
+
+
+@sh_launch_command:    
+    RETURN_LINE
+    ldy    bash_struct_ptr+1
+
+    lda    bash_struct_ptr
+
+    clc
+    adc    #shell_bash_struct::command_line
+    bcc    @S7
+    iny
+@S7:
+    sta    bash_struct_command_line_ptr
+    sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+
+    jsr    _bash
+    cmp    #EOK
+    bne    @call_xexec
+    jmp    start_prompt
+@call_xexec:   
+
+    lda    bash_struct_command_line_ptr
+    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+    jsr    ltrim ; Trim
+
+    lda    bash_struct_command_line_ptr
+    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+
+    BRK_KERNEL XEXEC
+    cmp    #EOK
+    beq    @S20
+    ; display error
+    ;cmp    #ENOENT 
+    ;bne    @print_not_found_command
+    ;PRINT  str_impossible_to_mount_sdcard
+    ;jmp     start_prompt
+
+@print_not_found_command:
+    ldy    #$00
+@S30:
+    lda    (bash_struct_command_line_ptr),y
+    beq    @print_not_found
+    cmp    #$20
+    beq    @print_not_found
+    BRK_KERNEL XWR0
+    iny
+    bne    @S30
+@print_not_found:
+    PRINT   str_command_not_found
+@S20:    
+    jmp     start_prompt
+
+@sh_launch_autocompletion:
+    RETURN_LINE
+    jsr     _ls
+    ldx     #$00
+    stx     sh_esc_pressed
+    jmp     sh_switch_on_prompt
+
+
+send_oups_and_loop:
+    BRK_KERNEL XOUPS
+    jmp     start_commandline
+
+
+; Key left
 @key_left_routine:
     ;adc    #shell_bash_struct::command_line
     ;    sta    (bash_struct_ptr),y
@@ -244,8 +305,7 @@ start_commandline:
     sta    (bash_struct_ptr),y
 
     SWITCH_OFF_CURSOR
-   ; ldx     SCRX
-   ; lda     CURSCR
+
     ldy      #$00
     lda     (ADSCR),y
     sta     CURSCR
@@ -254,56 +314,9 @@ start_commandline:
 @out_key_left:
     jmp     start_commandline
 
-@key_esc_routine:
-    ldx     sh_esc_pressed
-    bne     @sh_launch_autocompletion
-    inx
-    stx     sh_esc_pressed
-    jmp     start_commandline
-@sh_launch_autocompletion:
-    RETURN_LINE
-    jsr     _ls
-    ldx     #$00
-    stx     sh_esc_pressed
-    jmp     sh_switch_on_prompt
-
-key_del_routine:
-    ldx     sh_length_of_command_line    ; load the length of the command line buffer
-    beq     send_oups_and_loop   ; command line is empty send oups sound
-    dex                          ; command line is NOT empty, remove last char in the buffer
 
 
 
-
-    
-    txa
-    clc
-    adc    #shell_bash_struct::command_line
-    tay
-
-    lda    #$00                 ; remove last char FIXME 65c02
-    sta    (bash_struct_ptr),y
-    stx    sh_length_of_command_line               ; and store the length
-
-    ldy    #shell_bash_struct::pos_command_line
-    ; dec a
-    lda    (bash_struct_ptr),y
-    tax
-    dex
-    txa
-    sta    (bash_struct_ptr),y
-
-    SWITCH_OFF_CURSOR
-    dec     SCRX                 ; go one step to the left on the screen
-
-    SWITCH_ON_CURSOR
-
-no_action:
-    jmp     start_commandline    ; and restart 
-
-send_oups_and_loop:
-    BRK_KERNEL XOUPS
-    jmp     start_commandline
 
 .proc _bash
     sta     RES
@@ -1380,7 +1393,10 @@ xorix:
 ca65:
     .asciiz "c"
 .endif
-   
+
+str_impossible_to_mount_sdcard:
+    .asciiz "Impossible to mount sdcard"
+
 str_6502:                           ; use for lscpu
     .asciiz "6502"
 str_65C02:                          ; use for lscpu
@@ -1405,7 +1421,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2020.3"
+    .asciiz  "Shell v2020.4"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
