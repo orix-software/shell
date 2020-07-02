@@ -5,6 +5,8 @@
     cd_path := sh_ptr_for_internal_command
     cd_fp := userzp+2
     cd_fp_tmp := userzp+2
+
+
     ; Let's malloc
     MALLOC(KERNEL_MAX_PATH_LENGTH)
     cmp     #NULL
@@ -73,11 +75,17 @@
     sta     cd_path
     sty     cd_path+1
     ; loop until we reach 0
+    ; is it cd .. when we are in / ?
+    ldy     #$01
+    lda     (cd_path),y
+    beq     @free_cd_memory ; yes we go out
+
     ldy     #$00
 @L2:    
     lda     (cd_path),y
 
     beq     @end_of_string_found
+    
     iny
     bne     @L2
     rts     ; Error overflow return with no error
