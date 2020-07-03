@@ -26,6 +26,8 @@
 
    PRINT   str_column
 
+   BRK_KERNEL XCRLF
+
 ; Displays all free chunk 
 
     ldx     #$00
@@ -206,11 +208,11 @@ myloop2:
     CPUTC ' '
     sty     lsmem_savey
     ;ldy     lsmem_savey_kernel_malloc_busy_pid_list
-    jsr     display_process
+    ;jsr     display_process
     
     ldy     lsmem_savey
     ;lda     lsmem_savey_kernel_malloc_busy_pid_list
-    jsr     display_pid
+    ;jsr     display_pid
 
 @S1:
 
@@ -309,7 +311,8 @@ display_process:
     rts
 
 str_column:
-    .byte "TYPE START END   SIZE  PROGRAM  PID FUNC",0    
+    .asciiz "TYPE START END   SIZE"
+    ;  PROGRAM  PID FUNC",0    
 
 str_empty_program:
     .asciiz "       "
