@@ -109,6 +109,7 @@ list_command_in_bank:
     lda     #>$FFF7
     sta     ptr1+1
     ldy     #$00
+    ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
 
     beq     @no_commands ; no commands out
@@ -121,10 +122,12 @@ list_command_in_bank:
     lda     #>$FFF5
     sta     ptr1+1
     ldy     #$00
+    ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     RES
 
-    iny 
+    iny
+    ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
     sta     RES+1
 
@@ -140,7 +143,7 @@ list_command_in_bank:
 
 @loopme:
     ldy     help_ptr2
-
+    ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM
     
     beq     @S1

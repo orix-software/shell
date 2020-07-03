@@ -47,9 +47,11 @@ loop2:
     lda     #>$FFF8
     sta     ptr1+1
     ldy     #$00
+    ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     RES
-    iny 
+    iny
+    ldx     #$00 ; Read mode 
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
     sta     RES+1
    
@@ -69,6 +71,7 @@ loop2:
 
 @loopme:
     ldy     ptr2
+    ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM
     beq     exit
     cli
