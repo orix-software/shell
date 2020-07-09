@@ -33,6 +33,7 @@ mkdir_malloc_ptr       := userzp+1 ; .word
 
     ldy     #>ORIX_ARGV
     BRK_KERNEL XMKDIR
+    BRK_KERNEL XCLOSE
     rts
 @slash_found:
   PRINT str_arg_not_managed_yet

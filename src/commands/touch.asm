@@ -26,6 +26,7 @@
   ldx     #>ORIX_ARGV
 
   BRK_KERNEL XOPEN
+  BRK_KERNEL XCLOSE
 
   rts  
 @slash_found:
