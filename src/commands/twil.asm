@@ -4,6 +4,9 @@
 
 twil_ptr1:= userzp ;
 
+twil_current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
+twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
+
 .proc _twil
     ldx     #$01
     jsr     _orix_get_opt           ; get arg 
@@ -68,6 +71,12 @@ check_next_parameter_w:
     PRINT   str_swap_to_bank_sram
     RETURN_LINE
     rts
+
+error_overflowbanking:
+    PRINT   str_usage
+    RETURN_LINE
+    rts 
+
 check_next_parameter_u:
     cmp     #'u'       ; Swap
     bne     check_next_parameter_d
@@ -80,13 +89,11 @@ check_next_parameter_u:
     lda   #CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY
     ldy   #$00
     sta   (twil_ptr1),y
+    jsr   savemount
     PRINT str_swap_root_to_usbkey
     RETURN_LINE
     rts
-error_overflowbanking:
-    PRINT   str_usage
-    RETURN_LINE
-    rts 
+
 
 check_next_parameter_d:
     cmp     #'d'       ; Swap
@@ -100,9 +107,24 @@ check_next_parameter_d:
     lda   #CH376_SET_USB_MODE_CODE_SDCARD
     ldy   #$00
     sta   (twil_ptr1),y
+    ; and save 
+    jsr     savemount
     PRINT str_swap_root_to_sdcard
     RETURN_LINE
     rts
+savemount:
+    sta   RES
+    ldx   #XVARS_KERNEL_CH376_MOUNT
+    BRK_KERNEL XVARS
+    sta   twil_ptr2
+    sty   twil_ptr2+1
+    lda   #$00
+    sta   twil_current_bank
+    ldy   #$00
+    ldx   #$01
+    jsr   READ_BYTE_FROM_OVERLAY_RAM
+    rts
+
 
 
     ;PRINT   str_twilighte_register
