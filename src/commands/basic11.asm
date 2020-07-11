@@ -5,6 +5,7 @@ basic11_TXTPTR          := $E9
 basic11_tmp := userzp
 
 basic11_ptr1 := userzp+1
+basic11_ptr2 := userzp+3
 
 .struct  basic11_struct
   path                 .res 50   
@@ -106,6 +107,16 @@ basic11_ptr1 := userzp+1
     sei
     
 
+    ldx   #XVARS_KERNEL_CH376_MOUNT
+    BRK_KERNEL XVARS
+    sta   basic11_ptr2
+    sty   basic11_ptr2+1
+    
+    ldy   #$00
+    lda   (basic11_ptr2),y
+    pha
+
+
     ; stop t2 from via1
     lda     #$00+32
     sta     VIA::IER
@@ -124,9 +135,13 @@ loop:
     bne     loop
     lda     #$00                                    ; FIXME 65C02
     sta     $2DF ; Flush keyboard for atmos rom
+
+
     jmp     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
 copy:
     sei
+    pla
+    sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
     lda     #ATMOS_ID_BANK
     sta     VIA2::PRA
     jmp     $F88F ; NMI vector of ATMOS rom

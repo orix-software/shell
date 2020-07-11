@@ -26,6 +26,17 @@
     sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
     sty     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
     stx     BNKCIB
+
+    ldx     #XVARS_KERNEL_CH376_MOUNT
+    BRK_KERNEL XVARS
+    sta     ptr2
+    sty     ptr2+1
+    ldy     #$00
+    lda     (ptr2),y
+    sta     STORE_CURRENT_DEVICE
+
+
+
     jmp     EXBNK
 	
 ; displays all bank	

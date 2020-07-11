@@ -24,6 +24,8 @@ sh_ptr_file_save             :=userzp+12
 sh_ptr_for_internal_command  :=userzp+14
 sh_ptr1                      :=userzp+16
 
+STORE_CURRENT_DEVICE :=$99
+
 XEXEC = $63
 
 BASH_NUMBER_OF_USERZP = 8
@@ -691,10 +693,33 @@ internal_commands_length:
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
     sty     TR6
+    ;pha
+    ;sta     RES
+    ;sty     RES+1
+
+;    ldy     #$00
+;@myloop:    
+    ;lda     (RES),y
+    ;beq     @out
+    ;sta     $bb80,y
+    ;iny
+    ;bne     @myloop
+
+;@out:
+    ;pla
+
+
     ldy     #O_RDONLY
     ldx     TR6
     BRK_KERNEL XOPEN
+    cmp     #NULL
+    bne     @free
+    
+    cpy     #NULL
+    bne     @free    
+    rts
     ; get A&Y
+@free:
     BRK_KERNEL XFREE
     rts
 
