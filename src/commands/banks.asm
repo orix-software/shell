@@ -86,6 +86,10 @@ loop2:
     jsr     READ_BYTE_FROM_OVERLAY_RAM
     beq     exit
     cli
+    cmp     #' '                        ; 'a'
+    bcs     @skip
+    lda     #' '
+@skip:    
     BRK_ORIX XWR0
     iny
     sty     ptr2
