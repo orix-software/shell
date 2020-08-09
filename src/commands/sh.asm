@@ -1,57 +1,91 @@
 .proc _sh
+    ptr_file_sh_interactive := userzp
+    ptr_file_sh_interactive_ptr_save := userzp+2
+    
+    ptr_file_sh_interactive_size_file :=userzp+4  ; 16 bits
 
+    ptr_file_sh_interactive_ptr := userzp+6
+    
+
+    
     ; TODO read file length and malloc
     SH_FILE_LENGTH_MAX = 1000
 
     ldx     #$01
     jsr     _orix_get_opt
-    bcs     @start_normal
+    bcc     @start_normal
+   
+    lda     ORIX_ARGV
+    bne     thereis_a_script_to_execute
 
-
-
-
-   ; MALLOC  SH_FILE_LENGTH_MAX
-    ; FIXME test OOM
- ;   TEST_OOM_AND_MAX_MALLOC
-;    sta     ptr_file
-    ;sta     ptr_file_save
-    ;sty     ptr_file+1
-    ;sty     ptr_file_save+1
-
-; TODO malloc
-; TODO mainargs
-
-    ;ldx     #$01
-    ;jsr     _orix_get_opt
-    ; is there a file to open ? 
-    ;lda     ORIX_ARGV
-    ;bne     thereis_a_script_to_execute
-    ; Let's start a prompt
-    ;lda     ptr_file
-    ;ldy     ptr_file+1
-    ;BRK_KERNEL XFREE
   @start_normal:
     jmp     start_sh_interactive
 
 
-thereis_a_script_to_execute:    
+thereis_a_script_to_execute: 
+
     FOPEN   ORIX_ARGV,O_RDONLY
  
     ; A register contains FP id
-    sta     TR0
-  ; define target address
-    ;lda     ptr_file
+    sta     ptr_file_sh_interactive
+    sty     ptr_file_sh_interactive+1
+
+    lda     #CH376_GET_FILE_SIZE
+    sta     CH376_COMMAND
+    lda     #$68
+    sta     CH376_DATA ; ????
+    ; store file length
+    ldx     CH376_DATA
+    stx     ptr_file_sh_interactive_size_file
+
+    ldy     CH376_DATA
+    sty     ptr_file_sh_interactive_size_file+1
+
+    ; and drop others (max 64KB of file)
+    lda     CH376_DATA
+    lda     CH376_DATA
     
+    txa     ; get low byte of the size
+    
+    BRK_KERNEL XMALLOC
+    sta      ptr_file_sh_interactive_ptr
+    sta      ptr_file_sh_interactive_ptr
+
+    sty      ptr_file_sh_interactive_ptr+1
+    sty      ptr_file_sh_interactive_ptr_save+1
+
+  ; define target address
+    lda     ptr_file_sh_interactive_ptr
     sta     PTR_READ_DEST
-    ;lda     ptr_file+1
+    
+    lda     ptr_file_sh_interactive_ptr+1
     sta     PTR_READ_DEST+1
-  ; We read 8000 bytes
-    lda     #<SH_FILE_LENGTH_MAX
-    ldy     #>SH_FILE_LENGTH_MAX
+
+  ; We read the file with the correct
+    lda     ptr_file_sh_interactive_size_file
+    ldy     ptr_file_sh_interactive_size_file+1
   ; reads byte 
-    BRK_TELEMON XFREAD
-    BRK_TELEMON XCLOSE  
-  
+    BRK_KERNEL XFREAD
+    BRK_KERNEL XCLOSE
+    
+    lda     ptr_file_sh_interactive
+    ldy     ptr_file_sh_interactive+1
+    BRK_KERNEL XFREE
+
+    ldy     #$00
+@L1:    
+    lda     (ptr_file_sh_interactive_ptr),y
+    cmp     #$0D
+    beq     @found_end_command
+    iny
+    cpy     ptr_file_sh_interactive_size_file
+    bne     @L1
+
+    rts
+@found_end_command:
+    lda     #$00
+    rts
+
   ; Store return
     ldy     #$00
     lda     #$0D
