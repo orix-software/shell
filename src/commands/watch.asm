@@ -4,6 +4,16 @@ save_mainargs_ptr:=userzp
 
 
 .proc _watch
+    ldx     #$01
+    jsr     _orix_get_opt
+    bcc     @usage
+    lda     #<ORIX_ARGV
+    ldy     #>ORIX_ARGV
+@L1:    
+    BRK_KERNEL XEXEC
+    jmp     @L1
+
+@usage:    
     rts
     PRINT   str_argc
 
