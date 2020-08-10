@@ -11,8 +11,9 @@ from shutil import copyfile
 
 
 dest="build/usr/share/basic"
-
-pathlib.Path(dest).mkdir(parents=True, exist_ok=True)
+destetc="build/etc/basic/"
+#exist_ok=True
+#pathlib.Path(dest).mkdir(parents=True)
 
 
 b_obj = BytesIO() 
@@ -42,6 +43,13 @@ for i in range(len(datastore)):
     print(i)
     #Use the new datastore datastructure
     tapefile=datastore[i]["download_software"]
+    rombasic11=datastore[i]["basic11_ROM_TWILIGHTE"]
+    up_joy=datastore[i]["up_joy"]
+    down_joy=datastore[i]["down_joy"]
+    right_joy=datastore[i]["right_joy"]
+    left_joy=datastore[i]["up_joy"]
+    fire1_joy=datastore[i]["fire1_joy"]
+    fire2_joy=datastore[i]["fire2_joy"]    
     print(datastore[i])
     print(tapefile)
     if tapefile!="":
@@ -87,10 +95,24 @@ for i in range(len(datastore)):
         if extension=="zip":
             print("zip")
             with zipfile.ZipFile("build/"+tail, 'r') as zip_ref:
-                zip_ref.extractall(dest+"/"+letter+"")
+                zip_ref.extractall(dest+"/"+rombasic11+"/"+letter+"")
         if extension=="tap":
             print("tap")
-            copyfile("build/"+tail,dest+"/"+letter+"/"+tail.lower() )
-            
+            print("build/"+tail,dest+"/"+letter+"/"+tail.lower())
+            copyfile("build/"+tail,dest+"/"+rombasic11+"/"+letter+"/"+tail.lower() )
+        if not os.path.exists(destetc+"/"+letter):
+            os.mkdir(destetc+"/"+letter)
+        tcnf=tail.lower().split('.')
+        cnf=tcnf[0]+".cnf"
+
+        f = open(destetc+"/"+letter+"/"+cnf, "w")
+        f.write("rom="+rombasic11+"\n")
+        f.write("up="+up_joy+"\n")
+        f.write("down="+down_joy+"\n")
+        f.write("right="+right_joy+"\n")
+        f.write("left="+left_joy+"\n")
+        f.write("fire1="+fire1_joy+"\n")
+        f.write("fire2="+fire2_joy+"\n")        
+        f.close() 
 
         exit

@@ -19,7 +19,7 @@ IF "%1"=="NORUN" GOTO End
 
 copy %ROM%.rom %ORICUTRON%\roms\ > NUL
 
-xcopy data\*.* %ORICUTRON%\sdcard\ > NUL
+rem xcopy data\*.* %ORICUTRON%\sdcard\ > NUL
 
 cd %ORICUTRON%
 oricutron -mt  --symbols "%ORIGIN_PATH%\xa_labels_orix.txt" -r :bp.txt
