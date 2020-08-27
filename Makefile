@@ -15,24 +15,18 @@ ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
 
+
+
 ifdef TRAVIS_BRANCH
-ifneq ($(TRAVIS_BRANCH), master)
-RELEASE=alpha
-else
+ifeq ($(TRAVIS_BRANCH), master)
 RELEASE:=$(shell cat VERSION)
-endif
+else
+RELEASE:=alpha
 endif
 
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
 
-ifdef $(TRAVIS_BRANCH)
-ifneq ($(TRAVIS_BRANCH), master)
-RELEASE=alpha
-endif
-else
-RELEASE:=$(shell cat VERSION)
-endif
 
 build: $(SOURCE)
 	@date +'.define __DATE__ "%F %R"' > src/build.inc
