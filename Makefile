@@ -23,10 +23,11 @@ RELEASE:=$(shell cat VERSION)
 else
 RELEASE:=alpha
 endif
+$(shell echo $(RELEASE))
 endif
 
 
-echo $(RELEASE)
+
 
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
@@ -59,6 +60,7 @@ test:
 	filepack  $(ORIX_ROM).tar $(ORIX_ROM).pkg
 	gzip $(ORIX_ROM).tar
 	mv $(ORIX_ROM).tar.gz $(ORIX_ROM).tgz
+	echo $(RELEASE)
 	php buildTestAndRelease/publish/publish2repo.php $(ORIX_ROM).tgz ${hash} 6502 tgz $(RELEASE)
 
   
