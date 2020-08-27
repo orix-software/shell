@@ -25,6 +25,9 @@ RELEASE:=alpha
 endif
 endif
 
+
+echo $(RELEASE)
+
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
 
@@ -52,7 +55,7 @@ test:
 	#cp README.md build/usr/share/doc/$(ORIX_ROM)/
 	#ls -l $(HOMEDIR)
 	export ORIX_PATH=`pwd`
-	cd build && tar -c * > ../$(ORIX_ROM).tar &&	cd ..
+	cd build && tar -c * > ../$(ORIX_ROM).tar && cd ..
 	filepack  $(ORIX_ROM).tar $(ORIX_ROM).pkg
 	gzip $(ORIX_ROM).tar
 	mv $(ORIX_ROM).tar.gz $(ORIX_ROM).tgz
