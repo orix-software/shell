@@ -7,9 +7,10 @@ save_mainargs_ptr:=userzp
     ldx     #$01
     jsr     _orix_get_opt
     bcc     @usage
+@L1: 
     lda     #<ORIX_ARGV
     ldy     #>ORIX_ARGV
-@L1:    
+
     BRK_KERNEL XEXEC
     jmp     @L1
 

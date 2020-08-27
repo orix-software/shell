@@ -13,16 +13,15 @@
 
 ;.include   "dependencies/orix-sdk/macros/strnxxx.mac"
 
-exec_address                 :=userzp
+bash_struct_ptr              :=userzp ; 16bits
 sh_esc_pressed               :=userzp+2
 sh_length_of_command_line    :=userzp+3 ; 
-bash_struct_ptr              :=userzp+4 ; 16bits
+exec_address                 :=userzp+4
+
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 bash_tmp1                    :=userzp+8 
-sh_ptr_file                  :=userzp+10 ; 2 bytes
-sh_ptr_file_save             :=userzp+12
-sh_ptr_for_internal_command  :=userzp+14
-sh_ptr1                      :=userzp+16
+sh_ptr_for_internal_command  :=userzp+10
+sh_ptr1                      :=userzp+12
 
 STORE_CURRENT_DEVICE :=$99
 
@@ -1432,7 +1431,7 @@ str_cant_execute:
 str_not_found:
     .byte " : No such file or directory",$0D,$0A,0
 str_missing_operand:
-    .byte ": missing operand",$0d,$0a,0
+    .byte ": missing operand",$0D,$0A,0
 ; used by uname
 str_os:
     .asciiz "Orix"

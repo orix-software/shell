@@ -10,6 +10,8 @@
    lsmem_savexbis       := userzp+8  ; 1 byte
    lsmem_ptr_command_name := userzp+10
    lsmem_ptr_command_name_tmp := userzp+12
+   lsmem_current_process_read := userzp+14
+   lsmem_ptr_one_process := userzp+16
 
 
 
@@ -24,6 +26,7 @@
    sta     lsmem_ptr_malloc
    sty     lsmem_ptr_malloc+1
 
+
    PRINT   str_column
 
    BRK_KERNEL XCRLF
@@ -34,6 +37,7 @@
     
 @L1:
     stx     lsmem_savex
+   ; stx $5002
     ; looking if there is free chunk set
     txa
     clc
@@ -60,6 +64,7 @@
     ;lda  #$82
     ;BRK_KERNEL XWR0
    ; PRINT   str_SPACE
+    ldx     lsmem_savex
     txa
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_high
@@ -68,6 +73,7 @@
   
     jsr     _print_hexa
 
+    ldx     lsmem_savex
     txa
     clc
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_low
@@ -207,8 +213,9 @@ myloop2:
 
     CPUTC ' '
     sty     lsmem_savey
-    ;ldy     lsmem_savey_kernel_malloc_busy_pid_list
-    ;jsr     display_process
+    
+    ldy     lsmem_savey_kernel_malloc_busy_pid_list
+    ;jsr     display_process2
     
     ldy     lsmem_savey
     ;lda     lsmem_savey_kernel_malloc_busy_pid_list
@@ -239,6 +246,39 @@ display_pid:
     stx     DEFAFF
     ldx     #$00
     BRK_KERNEL XDECIM
+    rts
+
+
+ display_process2: 
+    sty     lsmem_current_process_read
+
+    lda     #kernel_process_struct::kernel_one_process_struct_ptr_low
+    clc     
+    adc     lsmem_current_process_read
+    tay
+
+    lda     (lsmem_ptr_pid_table),y
+    sta     lsmem_ptr_one_process
+
+
+    lda     #kernel_process_struct::kernel_one_process_struct_ptr_high
+    clc     
+    adc     lsmem_current_process_read
+    tay
+
+    lda     (lsmem_ptr_pid_table),y
+    sta     lsmem_ptr_one_process+1
+
+
+    ldy     #kernel_one_process_struct::process_name
+@L1:    
+    lda     (lsmem_ptr_one_process),y
+
+    beq     @S1
+    BRK_KERNEL XWR0
+    iny
+    bne     @L1
+@S1:    
     rts
 
 display_process:

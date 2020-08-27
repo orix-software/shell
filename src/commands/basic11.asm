@@ -1,7 +1,5 @@
 .export _basic11
 
-basic11_TXTPTR          := $E9
-
 basic11_tmp := userzp
 
 basic11_ptr1 := userzp+1
@@ -13,12 +11,13 @@ basic11_found := userzp+7
 
 
 ;/etc/basic/a/12345678.cnf
-.define basic11_sizeof_max_length_of_conf_file 100 ; used for the path but also for the cnf content
+.define basic11_sizeof_max_length_of_conf_file_bin 100 ; used for the path but also for the cnf content
+
+.define basic11_sizeof_binary_conf_file 1+4+1+1 ; Rom + direction + fire1 + fire2 + fire3
 
 .struct  basic11_struct
-  path_conf                 .res basic11_sizeof_max_length_of_conf_file ; /etc/basic/a/12345678.cnf + \0
+  path_conf                 .res basic11_sizeof_max_length_of_conf_file_bin ; /etc/basic/a/12345678.cnf + \0
 .endstruct
-
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
@@ -30,7 +29,7 @@ basic11_found := userzp+7
     bcc     @noparam      ; if there is no args, let's start
 
 
-    lda     #basic11_sizeof_max_length_of_conf_file
+    lda     #basic11_sizeof_max_length_of_conf_file_bin
     ldy     #$00
     BRK_KERNEL XMALLOC
     sta     basic11_ptr1
@@ -172,8 +171,8 @@ basic11_found := userzp+7
     sta     PTR_READ_DEST+1
 
   ; We read the file with the correct
-    lda     #<basic11_sizeof_max_length_of_conf_file
-    ldy     #>basic11_sizeof_max_length_of_conf_file
+    lda     #<basic11_sizeof_binary_conf_file
+    ldy     #>basic11_sizeof_binary_conf_file
   ; reads byte 
     BRK_KERNEL XFREAD
     BRK_KERNEL XCLOSE
@@ -254,5 +253,5 @@ str_rom:
     .asciiz "rom="            
 
 basic_conf_str:
-    .asciiz "/etc/basic/"    
+    .asciiz "/var/cache/basic11/"
 .endproc

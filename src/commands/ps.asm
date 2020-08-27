@@ -15,12 +15,22 @@
     BRK_KERNEL XVARS
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
-
-    lda     #$00
-    sta     ps_current_process_read
-
     
-    ;  ldy     #kernel_process_struct::kernel_pid_list
+    ;sta     $5000
+    ;sty     $5001
+
+
+;.struct kernel_process_struct
+  ; don't move kernel_pid_list in an other line because it breaks ps and lsmem
+  ;kernel_pid_list                      .res KERNEL_MAX_PROCESS ; list of PID when the byte is equal to 0, it means that this is free, it store the index
+  ;kernel_current_process               .res 1                  ; id of the current pid (French, contient l'index et non pas la valeur, l'index sur la table kernel_pid_list)
+  ;kernel_one_process_struct_ptr_low    .res KERNEL_MAX_PROCESS
+  ;kernel_one_process_struct_ptr_high   .res KERNEL_MAX_PROCESS
+  ;kernel_init_string                   .res .strlen("init")+1
+  ;kernel_cwd_str                       .res .strlen("/")+1
+  ;fp_ptr                               .res KERNEL_MAX_FP_PER_PROCESS*2 ; fp for init for instance, only shell could be in it
+;.endstruct
+
     ldy     #$01 ; because init consume the first byte
     
 @NEXT_PROCESS:    
@@ -31,9 +41,7 @@
 
     lda     (ptr_kernel_process),y
     beq     @SKIP_NOPROCESS
-   ; tay
-;    iny
- ;   tya
+
     ldy     #$00
     PRINT_BINARY_TO_DECIMAL_16BITS 1
     CPUTC   ' '

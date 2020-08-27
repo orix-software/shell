@@ -61,8 +61,11 @@ ls_save_line_command_ptr := userzp+1 ; 2 bytes
     sta     BUFNOM+1
 
   @ZZ0002:
+
     jsr     _ch376_set_file_name
+
     jsr     _ch376_file_open
+
     ; Au retour, on peut avoir USB_INT_SUCCESS ou USB_INT_DISK_READ)
 
     ; $14 -> Fichier existant (USB_INT_SUCCESS) (cas 'ls fichie.ext')

@@ -46,12 +46,11 @@ displays_all_banks:
 
     sta     current_bank
 loop2:
-    PRINT   str_bank                  ; Displays "Bank : " string
     lda     current_bank              ; Load current bank
     clc 
     adc     #44+4                     ; displays the number of the bank
     BRK_ORIX XWR0
-    CPUTC ' '                         ; Displays a space
+    CPUTC ':'                         ; Displays a space
     sei
     lda     #<$FFF8
     sta     ptr1
@@ -102,7 +101,6 @@ exit:
     bne     loop2
 
     rts
-str_bank:
-    .asciiz "Bank "
+
 .endproc
 
