@@ -22,6 +22,6 @@ after_success:
     - cd build && tar -c * > ../shell.tar && cd ..
     - gzip shell.tar
     - mv shell.tar.gz shell.tgz
-    - echo $(RELEASE)
     - 'if [ "$TRAVIS_PULL_REQUEST" = "false" -a "$TRAVIS_BRANCH" = "master" ]; then VERSION=`cat VERSION`; else VERSION=alpha; fi'
+    - echo $VERSION
     - curl -X POST --data-binary '@shell.tgz' "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/$VERSION/tgz/6502/shell.tgz"
