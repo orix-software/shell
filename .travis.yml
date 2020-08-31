@@ -23,6 +23,5 @@ after_success:
 	- gzip shell.tar
 	- mv shell.tar.gz shell.tgz
 	- echo $(RELEASE)
-	- php buildTestAndRelease/publish/publish2repo.php shell.tgz ${hash} 6502 tgz $(RELEASE)
     - 'if [ "$TRAVIS_PULL_REQUEST" = "false" -a "$TRAVIS_BRANCH" = "master" ]; then VERSION=`cat VERSION`; else VERSION=alpha; fi'
     - curl -X POST --data-binary '@shell.tgz' "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/$VERSION/tgz/6502/shell.tgz"
