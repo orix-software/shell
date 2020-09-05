@@ -10,16 +10,36 @@ mkdir_malloc_ptr       := userzp+1 ; .word
 .proc _mkdir
 ; broken
 
-    ldx     #$01
-    jsr     _orix_get_opt
-    lda     ORIX_ARGV
-    beq     missing_operand
+  ldx     #$01
+  jsr     _orix_get_opt
+  lda     ORIX_ARGV
+  beq     @missing_operand
   
+  ldx     #$01
+  jsr     _orix_get_opt
+  lda     ORIX_ARGV
+  beq     @missing_operand
+
+  ldy     #$00
+@L20:
+  lda     ORIX_ARGV,y
+  beq     @out20
+  cmp     #'/'
+  beq     @slash_found
+  iny
+  bne     @L20
+@out20:
     lda     #<ORIX_ARGV
-    ;sta     RES
+
     ldy     #>ORIX_ARGV
     BRK_KERNEL XMKDIR
+    BRK_KERNEL XCLOSE
     rts
+@slash_found:
+  PRINT str_arg_not_managed_yet
+  rts
+
+
     ;sta     RES+1
 
     ;compute strlen of the argument
@@ -73,7 +93,7 @@ mkdir_malloc_ptr       := userzp+1 ; .word
 
     BRK_KERNEL XMKDIR
     rts
-missing_operand:
+@missing_operand:
     PRINT mkdir
     PRINT str_missing_operand
     rts

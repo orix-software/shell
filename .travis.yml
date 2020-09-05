@@ -8,4 +8,20 @@ before_install:
     - git clone https://github.com/oric-software/buildTestAndRelease.git
     - cd buildTestAndRelease/ && sh make.sh
     - cd ..
-
+after_success:
+    - mkdir -p build/usr/src/shell/src/
+    - mkdir -p build/usr/share/man/
+    - mkdir -p build/usr/share/fonts/
+    - mkdir -p build/usr/share/shell/
+    - cp data/USR/SHARE/FONTS/* build/usr/share/fonts/ -adpR
+    - cp shellsd.rom build/usr/share/shell/
+    - sh tools/builddocs.sh
+    - cp Makefile build/usr/src/shell/
+    - cp README.md build/usr/src/shell/
+    - cp src/* build/usr/src/shell/src/ -adpR
+    - cd build && tar -c * > ../shell.tar && cd ..
+    - gzip shell.tar
+    - mv shell.tar.gz shell.tgz
+    - 'if [ "$TRAVIS_PULL_REQUEST" = "false" -a "$TRAVIS_BRANCH" = "master" ]; then VERSION=`cat VERSION`; else VERSION=alpha; fi'
+    - echo $VERSION
+    - curl -X POST --data-binary '@shell.tgz' "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/$VERSION/tgz/6502/shell.tgz"

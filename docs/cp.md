@@ -12,4 +12,4 @@ Copy a file to another. Only 40KB can be copied. It's a software limit. cp tries
 + cp from.txt to.txt
 
 ## SOURCE
-located in Orix Kernel
+https://github.com/orix-software/shell/blob/master/src/commands/cp.asm

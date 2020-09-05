@@ -34,8 +34,8 @@
     jsr     mount_key
     BRK_KERNEL XCRLF
 
-    lda #$09
-    ldy #$02
+    lda     #$09
+    ldy     #$02
   
     BRK_KERNEL XMALLOC
     ; A & Y are the ptr here

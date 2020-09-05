@@ -289,6 +289,8 @@ _ch376_set_bytes_write:
     rts
 .endproc    
 
+
+
 .proc _ch376_wait_response
 
 ; 1 return 1 if usb controller does not respond

@@ -13,15 +13,17 @@
 
 ;.include   "dependencies/orix-sdk/macros/strnxxx.mac"
 
-exec_address                 :=userzp
+bash_struct_ptr              :=userzp ; 16bits
 sh_esc_pressed               :=userzp+2
 sh_length_of_command_line    :=userzp+3 ; 
-bash_struct_ptr              :=userzp+4 ; 16bits
+exec_address                 :=userzp+4
+
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 bash_tmp1                    :=userzp+8 
-sh_ptr_file                  :=userzp+10 ; 2 bytes
-sh_ptr_file_save             :=userzp+12
-sh_ptr_for_internal_command  :=userzp+14
+sh_ptr_for_internal_command  :=userzp+10
+sh_ptr1                      :=userzp+12
+
+STORE_CURRENT_DEVICE :=$99
 
 XEXEC = $63
 
@@ -140,52 +142,13 @@ start_commandline:
     RETURN_LINE
     jmp     start_prompt
 
-@sh_launch_command:    
-    RETURN_LINE
-    ldy    bash_struct_ptr+1
-
-    lda    bash_struct_ptr
-
-    clc
-    adc    #shell_bash_struct::command_line
-    bcc    @S7
-    iny
-@S7:
-    sta    bash_struct_command_line_ptr
-    sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
-
-    jsr    _bash
-    cmp    #EOK
-    bne    @call_xexec
-    jmp    start_prompt
-@call_xexec:   
-
-    lda    bash_struct_command_line_ptr
-    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
-    BRK_KERNEL XEXEC
-    cmp    #EOK
-    beq    @S20 
-
-    ldy    #$00
-@S30:
-    lda    (bash_struct_command_line_ptr),y
-    beq    @print_not_found
-    cmp    #$20
-    beq    @print_not_found
-    BRK_KERNEL XWR0
-    iny
-    bne    @S30
-@print_not_found:
-    PRINT   str_command_not_found
-@S20:    
-    jmp     start_prompt
 
 @function_key:
 
 
 @next_key:
     cmp     #KEY_DEL             ; is it del pressed ?
-    beq     key_del_routine      ; yes let's remove the char in the BUFEDT buffer
+    beq     @key_del_routine      ; yes let's remove the char in the BUFEDT buffer
     cmp     #KEY_ESC                   ; ESC key not managed, but could do autocompletion (Pressed twice)
     beq     @key_esc_routine 
 
@@ -225,6 +188,111 @@ start_commandline:
 
     jmp     start_commandline    ; and loop interpreter
 
+
+
+
+@key_esc_routine:
+    ldx     sh_esc_pressed
+    bne     @sh_launch_autocompletion
+    inx
+    stx     sh_esc_pressed
+    jmp     start_commandline
+
+@key_del_routine:
+    ldx     sh_length_of_command_line    ; load the length of the command line buffer
+    beq     send_oups_and_loop   ; command line is empty send oups sound
+    dex                          ; command line is NOT empty, remove last char in the buffer
+    
+    txa
+    clc
+    adc    #shell_bash_struct::command_line
+    tay
+
+    lda    #$00                 ; remove last char FIXME 65c02
+    sta    (bash_struct_ptr),y
+    stx    sh_length_of_command_line               ; and store the length
+
+    ldy    #shell_bash_struct::pos_command_line
+    lda    (bash_struct_ptr),y
+    tax
+    dex
+    txa
+    sta    (bash_struct_ptr),y
+
+    SWITCH_OFF_CURSOR
+    dec     SCRX                 ; go one step to the left on the screen
+
+    SWITCH_ON_CURSOR
+
+; no_action
+    jmp     start_commandline    ; and restart 
+
+
+@sh_launch_command:    
+    RETURN_LINE
+    ldy    bash_struct_ptr+1
+
+    lda    bash_struct_ptr
+
+    clc
+    adc    #shell_bash_struct::command_line
+    bcc    @S7
+    iny
+@S7:
+    sta    bash_struct_command_line_ptr
+    sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+
+    jsr    _bash
+    cmp    #EOK
+    bne    @call_xexec
+    jmp    start_prompt
+@call_xexec:   
+
+    lda    bash_struct_command_line_ptr
+    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+    jsr    ltrim ; Trim
+
+    lda    bash_struct_command_line_ptr
+    ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
+
+    BRK_KERNEL XEXEC
+    cmp    #EOK
+    beq    @S20
+    ; display error
+    ;cmp    #ENOENT 
+    ;bne    @print_not_found_command
+    ;PRINT  str_impossible_to_mount_sdcard
+    ;jmp     start_prompt
+
+@print_not_found_command:
+    ldy    #$00
+@S30:
+    lda    (bash_struct_command_line_ptr),y
+    beq    @print_not_found
+    cmp    #$20
+    beq    @print_not_found
+    BRK_KERNEL XWR0
+    iny
+    bne    @S30
+@print_not_found:
+    PRINT   str_command_not_found
+@S20:    
+    jmp     start_prompt
+
+@sh_launch_autocompletion:
+    RETURN_LINE
+    jsr     _ls
+    ldx     #$00
+    stx     sh_esc_pressed
+    jmp     sh_switch_on_prompt
+
+
+send_oups_and_loop:
+    BRK_KERNEL XOUPS
+    jmp     start_commandline
+
+
+; Key left
 @key_left_routine:
     ;adc    #shell_bash_struct::command_line
     ;    sta    (bash_struct_ptr),y
@@ -238,8 +306,7 @@ start_commandline:
     sta    (bash_struct_ptr),y
 
     SWITCH_OFF_CURSOR
-   ; ldx     SCRX
-   ; lda     CURSCR
+
     ldy      #$00
     lda     (ADSCR),y
     sta     CURSCR
@@ -248,56 +315,9 @@ start_commandline:
 @out_key_left:
     jmp     start_commandline
 
-@key_esc_routine:
-    ldx     sh_esc_pressed
-    bne     @sh_launch_autocompletion
-    inx
-    stx     sh_esc_pressed
-    jmp     start_commandline
-@sh_launch_autocompletion:
-    RETURN_LINE
-    jsr     _ls
-    ldx     #$00
-    stx     sh_esc_pressed
-    jmp     sh_switch_on_prompt
-
-key_del_routine:
-    ldx     sh_length_of_command_line    ; load the length of the command line buffer
-    beq     send_oups_and_loop   ; command line is empty send oups sound
-    dex                          ; command line is NOT empty, remove last char in the buffer
 
 
 
-
-    
-    txa
-    clc
-    adc    #shell_bash_struct::command_line
-    tay
-
-    lda    #$00                 ; remove last char FIXME 65c02
-    sta    (bash_struct_ptr),y
-    stx    sh_length_of_command_line               ; and store the length
-
-    ldy    #shell_bash_struct::pos_command_line
-    ; dec a
-    lda    (bash_struct_ptr),y
-    tax
-    dex
-    txa
-    sta    (bash_struct_ptr),y
-
-    SWITCH_OFF_CURSOR
-    dec     SCRX                 ; go one step to the left on the screen
-
-    SWITCH_ON_CURSOR
-
-no_action:
-    jmp     start_commandline    ; and restart 
-
-send_oups_and_loop:
-    BRK_KERNEL XOUPS
-    jmp     start_commandline
 
 .proc _bash
     sta     RES
@@ -397,9 +417,13 @@ execute_rom_command:
 
 .proc ltrim
 
-restart_test_space:
+
+    sta     sh_ptr1
+    sty     sh_ptr1+1
+restart_test_space:     
     ldy     #$00
-    lda     (RES),y
+   
+    lda     (sh_ptr1),y
     cmp     #' '
     beq     trimme
     rts
@@ -413,15 +437,17 @@ loop:
 .endif  
 trimme:
     iny ; 1
-    lda     (RES),y
+    lda     (sh_ptr1),y
+    beq     @out
     dey ; 0
-    sta     (RES),y
+    sta     (sh_ptr1),y
     iny ;1 
-    lda     (RES),y
-    beq     loop
-    bne     trimme
+    jmp     trimme
+@out:    
+    dey
+    sta     (sh_ptr1),y
+    jmp     restart_test_space
 
-    rts
 .endproc
 ; This routine is used to read into /bin directory, and tries to open a binary, if it's Not ok it return in A and X $ffff
 
@@ -666,10 +692,33 @@ internal_commands_length:
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
     sty     TR6
+    ;pha
+    ;sta     RES
+    ;sty     RES+1
+
+;    ldy     #$00
+;@myloop:    
+    ;lda     (RES),y
+    ;beq     @out
+    ;sta     $bb80,y
+    ;iny
+    ;bne     @myloop
+
+;@out:
+    ;pla
+
+
     ldy     #O_RDONLY
     ldx     TR6
     BRK_KERNEL XOPEN
+    cmp     #NULL
+    bne     @free
+    
+    cpy     #NULL
+    bne     @free    
+    rts
     ; get A&Y
+@free:
     BRK_KERNEL XFREE
     rts
 
@@ -1368,7 +1417,10 @@ xorix:
 ca65:
     .asciiz "c"
 .endif
-   
+
+str_impossible_to_mount_sdcard:
+    .asciiz "Impossible to mount sdcard"
+
 str_6502:                           ; use for lscpu
     .asciiz "6502"
 str_65C02:                          ; use for lscpu
@@ -1379,7 +1431,7 @@ str_cant_execute:
 str_not_found:
     .byte " : No such file or directory",$0D,$0A,0
 str_missing_operand:
-    .byte ": missing operand",$0d,$0a,0
+    .byte ": missing operand",$0D,$0A,0
 ; used by uname
 str_os:
     .asciiz "Orix"
@@ -1393,7 +1445,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2020.3"
+    .asciiz  "Shell v2020.4"
 str_compile_time:
     .byt    __DATE__
     .byt    " "

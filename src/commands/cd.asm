@@ -5,6 +5,8 @@
     cd_path := sh_ptr_for_internal_command
     cd_fp := userzp+2
     cd_fp_tmp := userzp+2
+
+
     ; Let's malloc
     MALLOC(KERNEL_MAX_PATH_LENGTH)
     cmp     #NULL
@@ -73,11 +75,16 @@
     sta     cd_path
     sty     cd_path+1
     ; loop until we reach 0
+    ; is it cd .. when we are in / ?
+    ldy     #$01
+    lda     (cd_path),y
+    beq     @free_cd_memory ; yes we go out
+
     ldy     #$00
 @L2:    
     lda     (cd_path),y
-
     beq     @end_of_string_found
+    
     iny
     bne     @L2
     rts     ; Error overflow return with no error
@@ -97,6 +104,7 @@
     rts
 
 @slash_found:
+
 
     lda     #$00
     sta     (cd_path),y
@@ -140,13 +148,24 @@
     BRK_KERNEL XFREE
     rts
 
-@try_to_recurse:  
+@try_to_recurse:
+    cpy     #$00
+    bne     @fill_eos
+    ;lda     #$11
+    ;sta     $bb80
+    iny
+@fill_eos:
+
     lda     #$00
     sta     (cd_path),y
 
     lda     cd_path
     ldy     cd_path+1
+    ;sta     $5000
+    ;sty     $5001
     BRK_KERNEL   XPUTCWD_ROUTINE
+    jmp     @free_cd_memory
+    
     ; cdpath++
     ; cdpath++
     ; remove ..
@@ -163,8 +182,10 @@
     bcc     @do_not_inc_3
     inc     cd_path+1
 @do_not_inc_3:
-;   at this step cd_path should be here : usr/    
-    bne     @not_dot    
+;   at this step cd_path should be here : usr/ 
+ jmp     @free_cd_memory   
+    bne     @not_dot
+    rts    
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
 .endproc

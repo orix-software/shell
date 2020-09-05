@@ -30,7 +30,7 @@ type_of_file:
 start_adress:
 
     .byte $00,$1A
-
+sei
 .P816
 .a8
 .i16
@@ -40,12 +40,15 @@ start_adress:
     ldx   #$00
 @L1:    
     lda   yessa,x
+	;lda	  #$41
     sta   $a000,x
     inx
-    cpx   #900
+    cpx   #8000
     bne   @L1
+
     sec 
     xce
+	cli
     rts
 
 yessa:

@@ -13,8 +13,8 @@ ORIX_ID_BANK                  = 5
 .org $4C7
 .bss
 ;*=end_of_copy_page4-begin_of_copy_page4
-FIXME_DUNNO:
-    .res 2
+;FIXME_DUNNO:
+    ;.res 2
 READ_BYTE_FROM_OVERLAY_RAM:
     .res 1
 

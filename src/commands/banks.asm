@@ -26,6 +26,17 @@
     sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
     sty     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
     stx     BNKCIB
+
+    ldx     #XVARS_KERNEL_CH376_MOUNT
+    BRK_KERNEL XVARS
+    sta     ptr2
+    sty     ptr2+1
+    ldy     #$00
+    lda     (ptr2),y
+    sta     STORE_CURRENT_DEVICE
+
+
+
     jmp     EXBNK
 	
 ; displays all bank	
@@ -35,21 +46,22 @@ displays_all_banks:
 
     sta     current_bank
 loop2:
-    PRINT   str_bank                  ; Displays "Bank : " string
     lda     current_bank              ; Load current bank
     clc 
     adc     #44+4                     ; displays the number of the bank
     BRK_ORIX XWR0
-    CPUTC ' '                         ; Displays a space
+    CPUTC ':'                         ; Displays a space
     sei
     lda     #<$FFF8
     sta     ptr1
     lda     #>$FFF8
     sta     ptr1+1
     ldy     #$00
+    ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     RES
-    iny 
+    iny
+    ldx     #$00 ; Read mode 
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
     sta     RES+1
    
@@ -69,9 +81,14 @@ loop2:
 
 @loopme:
     ldy     ptr2
+    ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM
     beq     exit
     cli
+    cmp     #' '                        ; 'a'
+    bcs     @skip
+    lda     #' '
+@skip:    
     BRK_ORIX XWR0
     iny
     sty     ptr2
@@ -84,7 +101,6 @@ exit:
     bne     loop2
 
     rts
-str_bank:
-    .asciiz "Bank "
+
 .endproc
 

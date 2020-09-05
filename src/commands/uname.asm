@@ -12,13 +12,13 @@
     bne     error
     PRINT   str_os
     lda     #' '                ; FIXME CGETC
-    BRK_TELEMON XWR0
+    BRK_KERNEL XWR0
     PRINT   str_compile_time 
-    BRK_TELEMON XCRLF
+    BRK_KERNEL XCRLF
     rts
 no_param:
     PRINT   str_os
-    BRK_TELEMON XCRLF
+    BRK_KERNEL XCRLF
 error:
     rts
 

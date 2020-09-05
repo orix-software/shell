@@ -5,7 +5,7 @@ mount_ptr1:= userzp ;
 
 .proc _mount
     ; mount /dev/sda1 /
-    ldx   #$02
+    ldx   #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
 
     sta   mount_ptr1

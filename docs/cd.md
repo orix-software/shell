@@ -11,4 +11,4 @@
 + cd /
 
 ## SOURCE
-Internal command in Oric (assembly)
+https://github.com/orix-software/shell/blob/master/src/commands/cd.asm
