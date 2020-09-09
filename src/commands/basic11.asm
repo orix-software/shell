@@ -9,24 +9,21 @@ basic11_tmp0 := userzp+5
 basic11_tmp1 := userzp+6
 basic11_found := userzp+7
 
+.define BASIC11_PATH_DB "/var/cache/basic11/"
 
 ;/etc/basic/a/12345678.cnf
-.define basic11_sizeof_max_length_of_conf_file_bin 100 ; used for the path but also for the cnf content
+.define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 
 .define basic11_sizeof_binary_conf_file 1+4+1+1 ; Rom + direction + fire1 + fire2 + fire3
-
-.struct  basic11_struct
-  path_conf                 .res basic11_sizeof_max_length_of_conf_file_bin ; /etc/basic/a/12345678.cnf + \0
-.endstruct
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
 
-    jmp     @start
+    ;jmp     @start
     ldx     #$01
     jsr     _orix_get_opt
     ; get parameter
-    bcc     @noparam      ; if there is no args, let's start
+    bcc     @start      ; if there is no args, let's start
 
 
     lda     #basic11_sizeof_max_length_of_conf_file_bin
@@ -46,6 +43,8 @@ basic11_found := userzp+7
     bne     @L2
 
 @outcpy:
+
+
     ; do strcat
     ; get letter
     ldx     #$01      ; skip double quote and get first char
@@ -56,7 +55,6 @@ basic11_found := userzp+7
     sta     (basic11_ptr1),y ; get another letter
    
     iny
-
 
 @L3:    
     lda     ORIX_ARGV,x
@@ -73,13 +71,10 @@ basic11_found := userzp+7
     lda     #'.'
     sta     (basic11_ptr1),y
     iny
-    lda     #'c'
+    lda     #'d'
     sta     (basic11_ptr1),y
     iny
-    lda     #'n'
-    sta     (basic11_ptr1),y    
-    iny
-    lda     #'f'
+    lda     #'b'
     sta     (basic11_ptr1),y    
     iny
     lda     #$00 ; store end of string
@@ -88,6 +83,7 @@ basic11_found := userzp+7
 
     ldx     basic11_ptr1+1
     lda     basic11_ptr1
+
     ldy     #O_RDONLY
 
     BRK_KERNEL XOPEN ; open current
@@ -103,11 +99,14 @@ basic11_found := userzp+7
     ;PRINT ORIX_ARGV
     ;rts
     ; Check if it's a .tap
-@noparam_free:  
+@noparam_free:
+
     lda     basic11_ptr1
     ldy     basic11_ptr1+1
 
     BRK_KERNEL XFREE
+    jmp     @start
+
 
 @noparam:
     ; Get current pwd and open
@@ -142,7 +141,7 @@ basic11_found := userzp+7
     ldx     #$00
 @loop:
     lda     #$00                                    ; FIXME 65C02
-    sta     $00,x
+  ;  sta     $00,x
     sta     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
     lda     @copy,x
     sta     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
@@ -159,15 +158,17 @@ basic11_found := userzp+7
     sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
     lda     #ATMOS_ID_BANK
     sta     VIA2::PRA
+
     jmp     $F88F ; NMI vector of ATMOS rom
 
 
 @parsecnf:
+
   ; define target address
-    lda     basic11_ptr1
+    lda     #$F4
     sta     PTR_READ_DEST
     
-    lda     basic11_ptr1+1
+    lda     #$00
     sta     PTR_READ_DEST+1
 
   ; We read the file with the correct
@@ -175,83 +176,11 @@ basic11_found := userzp+7
     ldy     #>basic11_sizeof_binary_conf_file
   ; reads byte 
     BRK_KERNEL XFREAD
+
     BRK_KERNEL XCLOSE
-
-    ; Find arg up
-    lda     #<str_up
-    sta     basic11_ptr2
-    lda     #>str_up
-    sta     basic11_ptr2+1
-
-    jsr     @find_param
-
-    rts
-@find_param:    
-    ; We found a conf
-    
-    ldy     #$00
-    sty     basic11_tmp0
-    sty     basic11_found
-@L4:    
-    lda     (basic11_ptr2),y ; Get char to string
-@loopme:
-    jmp @loopme    
-    sta     $bb80+120
-    beq     @getarg 
-    sty     basic11_tmp1
-
-    ldy     basic11_tmp0
-    cmp     (basic11_ptr1),y ; compare with conf loaded in RAM
-    bne     @S10
-    ; Found ?
-    sta     $bb80,y
-    lda     #$01
-    sta     basic11_found
-    inc     basic11_tmp1
-
-@S10:
-    iny
-    sty     basic11_tmp0    
-    ldy     basic11_tmp1
-
-    BRK_KERNEL XWR0
-    iny
-    cpy     #60
-    bne     @L4
-    rts
-@getarg:
-    lda     basic11_found
-    bne     @found
-    ; If not found return 0
-    lda     #$00
-    rts
-@found:    
-    RETURN_LINE
-    ldy     basic11_tmp0
-@L11:    
-    lda     (basic11_ptr1),y
-    cmp     #$0A
-    beq     @out_get_arg
-    cmp     #$0D
-    beq     @out_get_arg    
-    BRK_KERNEL XWR0
-    iny
-    bne     @L11
-@out_get_arg:    
-    rts
-str_up:
-    .asciiz "up="
-str_down:
-    .asciiz "down="
-str_right:
-    .asciiz "right="
-str_left:
-    .asciiz "left="
-str_fire1:
-    .asciiz "fire1="
-str_rom:
-    .asciiz "rom="            
+    jmp     @noparam_free
+      
 
 basic_conf_str:
-    .asciiz "/var/cache/basic11/"
+    .asciiz BASIC11_PATH_DB
 .endproc
