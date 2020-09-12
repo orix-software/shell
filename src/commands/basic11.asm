@@ -25,7 +25,12 @@ basic11_found := userzp+7
     ; get parameter
     bcc     @start      ; if there is no args, let's start
 
+    lda     ORIX_ARGV
+    cmp     #'-'
+    bne     @is_a_tape_file_in_arg
+    jmp     @basic11_option_management
 
+@is_a_tape_file_in_arg:
     lda     #basic11_sizeof_max_length_of_conf_file_bin
     ldy     #$00
     BRK_KERNEL XMALLOC
@@ -165,7 +170,7 @@ basic11_found := userzp+7
 @parsecnf:
 
   ; define target address
-    lda     #$F4
+    lda     #$F3 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
     
     lda     #$00
@@ -179,7 +184,20 @@ basic11_found := userzp+7
 
     BRK_KERNEL XCLOSE
     jmp     @noparam_free
-      
+
+@basic11_option_management:
+    ldx     #$01
+    lda     ORIX_ARGV,x
+    cmp     #'s'
+    bne     @option_not_known
+
+    rts
+@option_not_known:
+    PRINT   str_basic11_not_known        
+    rts
+
+str_basic11_not_known:
+    .byte "Unknown option",$0D,$0A,$00
 
 basic_conf_str:
     .asciiz BASIC11_PATH_DB
