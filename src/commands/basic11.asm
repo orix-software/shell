@@ -8,8 +8,10 @@ basic11_ptr2 := userzp+3
 basic11_tmp0 := userzp+5
 basic11_tmp1 := userzp+6
 basic11_found := userzp+7
+basic11_stop := userzp+8
 
 .define BASIC11_PATH_DB "/var/cache/basic11/"
+.define BASIC11_MAX_MAINDB_LENGTH 10000
 
 ;/etc/basic/a/12345678.cnf
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
@@ -38,6 +40,7 @@ basic11_found := userzp+7
 
     sty     basic11_ptr1+1
 
+@no_check_param:
 
     ldy     #$00
 @L2:    
@@ -188,17 +191,231 @@ basic11_found := userzp+7
 @basic11_option_management:
     ldx     #$01
     lda     ORIX_ARGV,x
-    cmp     #'s'
+    cmp     #'l'
     bne     @option_not_known
+    ; get second ARG
+    ldx     #$02
+    jsr     _orix_get_opt
+ 
+    lda     #<(.strlen(BASIC11_PATH_DB)+8+4+1)
+    ldy     #>(.strlen(BASIC11_PATH_DB)+8+4+1)
+    BRK_KERNEL XMALLOC
 
+    sta     basic11_ptr2
+    sty     basic11_ptr2+1
+
+    ldy     #$00
+@L10:    
+    lda     str_basic11_maindb,y
+    beq     @S10
+    sta     (basic11_ptr2),y
+    iny
+    bne     @L10
+@S10:
+    sta     (basic11_ptr2),y
+
+    lda     basic11_ptr2
+    ldx     basic11_ptr2+1
+
+
+    ldy     #O_RDONLY
+
+    BRK_KERNEL XOPEN ; open current
+    cpy     #$00
+    bne     @read_maindb ; not null then  start because we did not found a conf
+    cmp     #$00
+    bne     @read_maindb ; not null then  start because we did not found a conf
+    
+    PRINT   str_basic11_missing
     rts
+
 @option_not_known:
     PRINT   str_basic11_not_known        
     rts
 
+
+@read_maindb:
+    lda     basic11_ptr2
+    ldy     basic11_ptr2+1
+    BRK_KERNEL XFREE
+
+
+
+    lda     #<BASIC11_MAX_MAINDB_LENGTH
+    ldy     #>BASIC11_MAX_MAINDB_LENGTH
+    BRK_KERNEL XMALLOC
+
+    sta     basic11_ptr1
+    sty     basic11_ptr1+1
+
+  ; define target address
+    lda     basic11_ptr1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
+    sta     PTR_READ_DEST
+    
+    lda     basic11_ptr1+1
+    sta     PTR_READ_DEST+1
+
+  ; We read the file with the correct
+    lda     #<BASIC11_MAX_MAINDB_LENGTH
+    ldy     #>BASIC11_MAX_MAINDB_LENGTH
+  ; reads byte 
+    BRK_KERNEL XFREAD
+
+    BRK_KERNEL XCLOSE    
+
+    ; Search now
+    PRINT   basic_str_search
+    
+    lda     ORIX_ARGV
+    beq     @displays_all
+
+    ldx     #$00
+    ldy     #$00
+@L11:    
+    lda     (basic11_ptr1),y
+    beq     @end_of_line
+    cmp     ORIX_ARGV,x
+    beq     @found
+    cmp     #';' ; Check if end of key
+    beq     @end_of_key
+    cmp     #$FF 
+    beq     @exit
+    ; not found
+    lda     #$01
+    sta     basic11_found
+@continue:    
+    iny
+    bne     @L11
+    inc     basic11_ptr1+1
+    jmp     @L11
+@exit_search:
+    PRINT   basic_str_last_line
+
+@exit:
+    lda     basic11_ptr1
+    ldy     basic11_ptr1+1
+
+
+
+    BRK_KERNEL XFREE
+
+    ; Open
+    rts
+@end_of_line:    
+    rts
+@end_of_key:
+    rts    
+@found:
+    lda     #$00
+    sta     basic11_found
+    rts
+@displays_all:
+    lda     #$01
+    sta     basic11_stop ; Define that there is no space bar pressed
+
+    ldx     #$00
+    lda     #'|'
+    BRK_KERNEL XWR0
+    ldy     #$01
+@L12:
+    BRK_KERNEL XRD0
+    bcs     @no_char_action
+    pha
+    ASL     KBDCTC
+    bcc     @no_ctrl
+    pla
+    BRK_KERNEL XCRLF
+    rts
+@no_ctrl:
+    pla
+    cmp     #' '
+    bne     @no_char
+    lda     basic11_stop
+    beq     @inv_to_1
+
+    lda     #$00
+    sta     basic11_stop
+    jmp     @L12
+
+@inv_to_1:
+    inc     basic11_stop
+    jmp     @L12
+
+@no_char_action:
+    lda     basic11_stop
+    beq     @L12
+    ;bne     @L12
+@no_char:    
+    lda     (basic11_ptr1),y
+    beq     @end_of_line_all
+    cmp     #$FF
+    beq     @exit_search
+    cmp     #';'
+    beq     @end_of_key_all
+    cpx     #29
+    beq     @end_of_line_all
+    BRK_KERNEL XWR0
+    inx
+    
+    iny
+    bne     @L12
+    inc     basic11_ptr1+1
+    ldy     #$00
+    jmp     @L12
+
+@end_of_line_all:
+    cpx     #29
+    beq     @next2
+    lda     #' '
+    BRK_KERNEL XWR0
+    inx     
+    bne     @end_of_line_all
+@next2:
+    lda     (basic11_ptr1),y
+    beq     @end_of_line_all_column
+    iny
+    bne     @next2
+    inc     basic11_ptr1+1
+    jmp     @next2
+    ldy     #$FF
+@end_of_line_all_column:
+    lda     #'|'
+    BRK_KERNEL XWR0
+    lda     #'|'
+    BRK_KERNEL XWR0    
+    ldx     #$00
+    iny
+    jmp     @L12
+
+@end_of_key_all:
+    cpx     #$08
+    beq     @next
+    lda     #' '
+    BRK_KERNEL XWR0
+    inx     
+    bne     @end_of_key_all
+@next:    
+    lda     #'|'
+    BRK_KERNEL XWR0
+    ldx     #$00
+    iny
+    jmp     @L12
+
 str_basic11_not_known:
     .byte "Unknown option",$0D,$0A,$00
 
+str_basic11_missing:
+    .byte "Missing file : "
+; don't put any other string here, the is no EOS because we earn one byte to displays message error with next path
+str_basic11_maindb:
+    .byte BASIC11_PATH_DB
+    .asciiz "basic11.db"
 basic_conf_str:
     .asciiz BASIC11_PATH_DB
+basic_str_search:
+    .byte  "+--------+-----------------------------+"
+    .byte  "|  key   |            NAME             |"
+    .byte  "+--------+-----------------------------+",0
+basic_str_last_line:
+    .byte  "--------+-----------------------------+",0
 .endproc
