@@ -91,6 +91,8 @@ loop2:
 @skip:    
     BRK_ORIX XWR0
     iny
+    cpy     #37    ; Exit if signature is longer than 37 bytes
+    beq     exit
     sty     ptr2
     sei
     jmp     @loopme
