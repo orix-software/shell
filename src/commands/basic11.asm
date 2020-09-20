@@ -1,22 +1,23 @@
 .export _basic11
 
-basic11_tmp := userzp
+basic11_tmp   := userzp
 
-basic11_ptr1 := userzp+1
-basic11_ptr2 := userzp+3
+basic11_ptr1  := userzp+1
+basic11_ptr2  := userzp+3
 
-basic11_tmp0 := userzp+5
-basic11_tmp1 := userzp+6
+basic11_tmp0  := userzp+5
+basic11_tmp1  := userzp+6
 basic11_found := userzp+7
-basic11_stop := userzp+8
+basic11_stop  := userzp+8
 
 .define BASIC11_PATH_DB "/var/cache/basic11/"
+.define BASIC11_PATH_ROM "/usr/share/basic11/basic" ; basicsdX basicusX ...
 .define BASIC11_MAX_MAINDB_LENGTH 10000
 
 ;/etc/basic/a/12345678.cnf
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 
-.define basic11_sizeof_binary_conf_file 1+4+1+1 ; Rom + direction + fire1 + fire2 + fire3
+.define basic11_sizeof_binary_conf_file 7 ; Rom + direction + fire1 + fire2 + fire3
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
@@ -173,7 +174,7 @@ basic11_stop := userzp+8
 @parsecnf:
 
   ; define target address
-    lda     #$F3 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
+    lda     #$1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
     
     lda     #$00
@@ -321,7 +322,7 @@ basic11_stop := userzp+8
     BRK_KERNEL XRD0
     bcs     @no_char_action
     pha
-    ASL     KBDCTC
+    asl     KBDCTC
     bcc     @no_ctrl
     pla
     BRK_KERNEL XCRLF
@@ -418,4 +419,6 @@ basic_str_search:
     .byte  "+--------+-----------------------------+",0
 basic_str_last_line:
     .byte  "--------+-----------------------------+",0
+basic_rnd_init:
+    .byte   $00
 .endproc
