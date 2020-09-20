@@ -18,6 +18,8 @@ ls_save_line_command_ptr := userzp+1 ; 2 bytes
     jmp     @ZZ0001
 
     jsr     _cd_to_current_realpath_new
+    ;sta     $6000;
+    ;sty     $6001
     ldx     #$01
     jsr     _orix_get_opt
 

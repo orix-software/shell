@@ -14,15 +14,13 @@ basic11_stop  := userzp+8
 .define BASIC11_PATH_ROM "/usr/share/basic11/basic" ; basicsdX basicusX ...
 .define BASIC11_MAX_MAINDB_LENGTH 10000
 
-;/etc/basic/a/12345678.cnf
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 
-.define basic11_sizeof_binary_conf_file 7 ; Rom + direction + fire1 + fire2 + fire3
+.define basic11_sizeof_binary_conf_file 9 ; Rom + direction + fire1 + fire2 + fire3
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
 
-    ;jmp     @start
     ldx     #$01
     jsr     _orix_get_opt
     ; get parameter
@@ -76,7 +74,7 @@ basic11_stop  := userzp+8
     inx     
     bne     @L3
 @outstrcat:
-    ; concat .cnf
+    ; concat .db
     lda     #'.'
     sta     (basic11_ptr1),y
     iny
@@ -92,6 +90,8 @@ basic11_stop  := userzp+8
 
     ldx     basic11_ptr1+1
     lda     basic11_ptr1
+    ;sta     $6000
+    ;stx     $6001
 
     ldy     #O_RDONLY
 
@@ -106,10 +106,11 @@ basic11_stop  := userzp+8
 
     ;STRCPY  ORIX_ARGV,BUFNOM
     ;PRINT ORIX_ARGV
-    ;rts
+  ;  rts
     ; Check if it's a .tap
 @noparam_free:
 
+   ; rts
     lda     basic11_ptr1
     ldy     basic11_ptr1+1
 
@@ -159,6 +160,12 @@ basic11_stop  := userzp+8
     lda     #$00                                    ; FIXME 65C02
     sta     $2DF ; Flush keyboard for atmos rom
 
+    ldx     #$05
+@copy_rnd_value:    
+    lda     basic_rnd_init,x
+    sta     $FA,x
+    dex
+    bpl     @copy_rnd_value
 
     jmp     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
 @copy:
@@ -174,7 +181,7 @@ basic11_stop  := userzp+8
 @parsecnf:
 
   ; define target address
-    lda     #$1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
+    lda     #$F1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
     
     lda     #$00
@@ -420,5 +427,5 @@ basic_str_search:
 basic_str_last_line:
     .byte  "--------+-----------------------------+",0
 basic_rnd_init:
-    .byte   $00
+    .byte   $80,$4F,$C7,$52,$FF,$FF
 .endproc
