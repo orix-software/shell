@@ -393,6 +393,8 @@ basic11_stop  := userzp+8
     BRK_KERNEL XWR0    
     ldx     #$00
     iny
+    bne     @L12
+    inc     basic11_ptr1+1
     jmp     @L12
 
 @end_of_key_all:
@@ -407,6 +409,7 @@ basic11_stop  := userzp+8
     BRK_KERNEL XWR0
     ldx     #$00
     iny
+
     jmp     @L12
 
 str_basic11_not_known:
