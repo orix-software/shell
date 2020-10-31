@@ -79,8 +79,14 @@ start_sh_interactive:
 
 ;****************************************************************************/
 start_prompt_and_jump_a_line:
+    ; Flush keyboard buffer
 
 start_prompt:
+
+    ldx     #$00
+    BRK_KERNEL XVIDBU
+
+
     lda     #$00
     sta     sh_esc_pressed
 
@@ -691,6 +697,8 @@ internal_commands_length:
 
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
+    ;sta     $6000
+    ;sty     $6001
     sty     TR6
     ;pha
     ;sta     RES
