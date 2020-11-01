@@ -1,15 +1,44 @@
 .export _watch
 
-save_mainargs_ptr:=userzp
-
+save_mainargs_ptr  := userzp
+watch_ptr1         := userzp+2
 
 .proc _watch
     ldx     #$01
     jsr     _orix_get_opt
     bcc     @usage
-@L1: 
+
+    MALLOC_AND_TEST_OOM_EXIT 100 
+    sta     save_mainargs_ptr
+    sty     save_mainargs_ptr+1
+    
     lda     #<ORIX_ARGV
     ldy     #>ORIX_ARGV
+    
+    sta     watch_ptr1
+    sty     watch_ptr1+1
+
+    ; copy command
+    ldy     #$00
+@L5:
+    lda     (watch_ptr1),y
+    beq     @S3
+    sta     (save_mainargs_ptr),y
+    iny
+    bne     @L5
+@S3:
+    sta     (save_mainargs_ptr),y
+
+
+
+@L1:
+    asl     KBDCTC
+    bcc     @no_ctrl
+    rts
+
+@no_ctrl:    
+    lda     save_mainargs_ptr
+    ldy     save_mainargs_ptr+1
 
     BRK_KERNEL XEXEC
     jmp     @L1
