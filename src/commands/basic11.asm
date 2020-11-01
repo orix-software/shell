@@ -1,3 +1,5 @@
+
+
 .export _basic11
 
 basic11_tmp   := userzp
@@ -10,8 +12,11 @@ basic11_tmp1  := userzp+6
 basic11_found := userzp+7
 basic11_stop  := userzp+8
 
+basic11_fp    := userzp+10
+basic11_ptr3  := userzp+12
+basic11_ptr4  := userzp+14
+
 .define BASIC11_PATH_DB "/var/cache/basic11/"
-.define BASIC11_PATH_ROM "/usr/share/basic11/basic" ; basicsdX basicusX ...
 .define BASIC11_MAX_MAINDB_LENGTH 10000
 
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
@@ -35,8 +40,10 @@ basic11_stop  := userzp+8
     lda     #basic11_sizeof_max_length_of_conf_file_bin
     ldy     #$00
     BRK_KERNEL XMALLOC
-    sta     basic11_ptr1
 
+    TEST_OOM 
+
+    sta     basic11_ptr1
     sty     basic11_ptr1+1
 
 @no_check_param:
@@ -90,8 +97,7 @@ basic11_stop  := userzp+8
 
     ldx     basic11_ptr1+1
     lda     basic11_ptr1
-    ;sta     $6000
-    ;stx     $6001
+
 
     ldy     #O_RDONLY
 
@@ -104,18 +110,7 @@ basic11_stop  := userzp+8
     bne     @parsecnf
 
 
-    ;STRCPY  ORIX_ARGV,BUFNOM
-    ;PRINT ORIX_ARGV
-  ;  rts
-    ; Check if it's a .tap
-@noparam_free:
 
-   ; rts
-    lda     basic11_ptr1
-    ldy     basic11_ptr1+1
-
-    BRK_KERNEL XFREE
-    jmp     @start
 
 
 @noparam:
@@ -131,15 +126,14 @@ basic11_stop  := userzp+8
     sei
     
 
-    ldx   #XVARS_KERNEL_CH376_MOUNT
+    ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
-    sta   basic11_ptr2
-    sty   basic11_ptr2+1
+    sta     basic11_ptr2
+    sty     basic11_ptr2+1
     
-    ldy   #$00
-    lda   (basic11_ptr2),y
+    ldy     #$00
+    lda     (basic11_ptr2),y
     pha
-
 
     ; stop t2 from via1
     lda     #$00+32
@@ -147,11 +141,10 @@ basic11_stop  := userzp+8
     ; stop via 2
     lda     #$00+32+64
     sta     VIA2::IER
-	
+
     ldx     #$00
 @loop:
     lda     #$00                                    ; FIXME 65C02
-  ;  sta     $00,x
     sta     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
     lda     @copy,x
     sta     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
@@ -171,14 +164,24 @@ basic11_stop  := userzp+8
 @copy:
     sei
     pla
+
     sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
     lda     #ATMOS_ID_BANK
     sta     VIA2::PRA
 
     jmp     $F88F ; NMI vector of ATMOS rom
+    ; Check if it's a .tap
+@noparam_free:
 
+    lda     basic11_ptr1
+    ldy     basic11_ptr1+1
+
+    BRK_KERNEL XFREE
+    jmp     @start
 
 @parsecnf:
+    sta     basic11_fp
+    sty     basic11_fp+1
 
   ; define target address
     lda     #$F1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
@@ -194,7 +197,19 @@ basic11_stop  := userzp+8
     BRK_KERNEL XFREAD
 
     BRK_KERNEL XCLOSE
-    jmp     @noparam_free
+
+    ; Close fp
+    lda     basic11_fp
+    ldy     basic11_fp+1
+    BRK_KERNEL XFREE
+
+    ; Let's free
+    lda     basic11_ptr1
+    ldy     basic11_ptr1+1
+    BRK_KERNEL XFREE
+
+    jmp     @load_ROM_in_memory_and_start
+    ;jmp     @noparam_free
 
 @basic11_option_management:
     ldx     #$01
@@ -302,9 +317,6 @@ basic11_stop  := userzp+8
 @exit:
     lda     basic11_ptr1
     ldy     basic11_ptr1+1
-
-
-
     BRK_KERNEL XFREE
 
     ; Open
@@ -411,6 +423,275 @@ basic11_stop  := userzp+8
     iny
 
     jmp     @L12
+
+@load_ROM_in_memory_and_start:
+
+    lda     #<16384 ; size if a rom
+    ldy     #>16384
+    BRK_KERNEL XMALLOC
+    
+    TEST_OOM
+
+    sta     basic11_ptr1
+    sty     basic11_ptr1+1
+
+    ; Manage path now
+
+    ; copy path
+    ldy     #$00
+@L100:    
+    lda     rom_path,y
+    beq     @end_copy
+    sta     (basic11_ptr1),y
+
+
+    iny
+    bne     @L100
+@end_copy:
+    ; Now check if we are in USB or not
+    sty     basic11_tmp0  ; Save Y
+    iny
+    sta     (basic11_ptr1),y
+ 
+    ; Get value
+    ldx     #XVARS_KERNEL_CH376_MOUNT
+    BRK_KERNEL XVARS
+    sta     basic11_ptr2
+    sty     basic11_ptr2+1
+
+    ldy     #$00
+    lda     (basic11_ptr2),y   ; 
+    cmp     #CH376_SET_USB_MODE_CODE_SDCARD
+    beq     @sdcard
+    ldy     basic11_tmp0
+    ; concat 'us' 
+    lda     #'u'
+    sta     (basic11_ptr1),y
+    iny
+    lda     #'s'
+    sta     (basic11_ptr1),y
+    iny
+    jmp     @concat_end
+
+@sdcard:
+    ldy     basic11_tmp0
+    ; concat 'sd' 
+    lda     #'s'
+    sta     (basic11_ptr1),y
+    iny
+    lda     #'d'
+    sta     (basic11_ptr1),y
+    iny
+@concat_end:    
+    lda     $F2 ; Load id ROM
+    clc
+    adc     #$30 ; Add '0' to get the right ascii rom
+    ; add rom id
+    sta     (basic11_ptr1),y
+    iny
+    ; add .rom
+    lda     #'.'
+    sta     (basic11_ptr1),y
+    iny
+    lda     #'r'
+    sta     (basic11_ptr1),y
+    iny
+    lda     #'o'
+    sta     (basic11_ptr1),y
+    iny
+    lda     #'m'
+    sta     (basic11_ptr1),y
+    iny
+    ; Add EOS
+    lda     #$00
+    sta     (basic11_ptr1),y
+
+   
+
+
+    lda     basic11_ptr1
+    ldx     basic11_ptr1+1
+    
+    ldy     #O_RDONLY
+
+    BRK_KERNEL XOPEN 
+    cpy     #$00
+    bne     @read_rom 
+    cmp     #$00
+    bne     @read_rom 
+
+    ldx     #$04 ; Get kernel ERRNO
+    BRK_KERNEL XVARS
+    sta     basic11_ptr2
+    sty     basic11_ptr2+1
+
+    ldy     #$00
+    lda     (basic11_ptr2),y ; FIXME ERRNO
+    cmp     #ENOMEM
+    bne     @no_enomem_kernel_error
+    PRINT   str_enomem
+
+@no_enomem_kernel_error:
+    cmp     #ENOENT
+    bne     @no_enoent_kernel_error
+    PRINT   str_not_found
+   ; rts
+@no_enoent_kernel_error:    
+
+    PRINT   str_basic11_missing_rom
+
+    ldy     basic11_ptr1+1
+    lda     basic11_ptr1
+
+    BRK_KERNEL XWSTR0
+    BRK_KERNEL XCRLF
+
+    rts
+@read_rom:
+    sta     basic11_fp
+    sty     basic11_fp+1
+ ; define target address
+    lda     basic11_ptr1 
+    sta     PTR_READ_DEST
+    
+    lda     basic11_ptr1+1
+    sta     PTR_READ_DEST+1
+
+  ; We read the file with the correct
+    lda     #<$FFFF
+    ldy     #>$FFFF
+  ; reads byte 
+    BRK_KERNEL XFREAD
+
+    BRK_KERNEL XCLOSE
+
+    lda     basic11_fp
+    ldy     basic11_fp+1
+    BRK_KERNEL XFREE
+
+    ldy     #$00
+    lda     (basic11_ptr2),y
+    sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
+
+    lda     #$00
+    sta     basic11_ptr2
+
+    lda     #$C0
+    sta     basic11_ptr2+1
+
+    ; Copy the driver
+    ; and start
+    lda     #<100
+    ldy     #>100
+    BRK_KERNEL XMALLOC
+    
+    TEST_OOM
+
+    sta     basic11_ptr3
+    sty     basic11_ptr3+1
+
+    ldy     #$00
+@L200:
+    lda     basic11_driver,y
+    sta     (basic11_ptr3),y
+    iny
+    cpy     #100
+    bne     @L200
+
+
+
+
+    ; and start
+    lda     basic11_ptr3
+    sta     VEXBNK+1
+    lda     basic11_ptr3+1
+    sta     VEXBNK+2
+  
+  basic11_ptr3  := userzp+12
+
+    ; stop t2 from via1
+    lda     #$00+32
+    sta     VIA::IER
+    ; stop via 2
+    lda     #$00+32+64
+    sta     VIA2::IER
+
+    ldx     #$00
+    lda     #$00                                    ; FIXME 65C02
+@loop12:
+
+    sta     $200,x
+    dex
+    bne     @loop12
+
+
+    lda     #$00                                    ; FIXME 65C02
+    sta     $2DF ; Flush keyboard for atmos rom
+
+    jsr     prepare_rom_rnd
+
+    jmp     VEXBNK
+
+
+basic11_driver:
+    sei
+
+    lda     #$00 ; RAM bank
+    sta     VIA2::PRA
+
+    ldx     #$00
+    ldy     #$00
+@loop_copy_rom:
+    lda     (basic11_ptr1),y
+    sta     (basic11_ptr2),y
+    iny
+    bne     @loop_copy_rom
+    inc     basic11_ptr1+1
+    inc     basic11_ptr2+1
+    inx     
+    cpx     #64
+    bne     @loop_copy_rom
+
+    ; Let's forge path
+    ldx     #$00
+    ldy     #tapes_path-basic11_driver
+@L300:    
+    lda     (basic11_ptr3),y
+    beq     @end
+    sta     $FE70,x
+    iny
+    inx
+    bne     @L300
+@end:    
+    sta     $FE70,x
+    dex
+    stx     $FE6F
+
+    ;$FE6F
+
+
+    jmp     $F88F ; NMI vector of ATMOS rom
+tapes_path:
+    .asciiz "/usr/share/basic11/"    
+
+
+prepare_rom_rnd:
+
+    ldx     #$05
+@copy_rnd_value2:    
+    lda     basic_rnd_init,x
+    sta     $FA,x
+    dex
+    bpl     @copy_rnd_value2
+    rts
+
+str_basic11_missing_rom:
+    .asciiz "Missing ROM file : "
+rom_path:
+    .asciiz "/usr/share/basic11/basic"
+
+str_enomem:
+    .byte "Kernel error : Out of Memory",$0D,$0A,$00
 
 str_basic11_not_known:
     .byte "Unknown option",$0D,$0A,$00
