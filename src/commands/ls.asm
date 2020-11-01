@@ -221,6 +221,19 @@ display_catalog:
 
   @skip:
     BRK_KERNEL XWR0
+
+   ; BRK_KERNEL XRD0     ; Should be removed but when we do ctrl+c we can not launch another command after
+    bcs     @no_char_action
+    
+    asl     KBDCTC
+    bcc     @no_ctrl
+
+
+    rts
+
+@no_ctrl:
+
+@no_char_action:
     inx
     bne     @loop
   @end:
@@ -245,8 +258,50 @@ display_catalog:
 optstring:
 .BYT     'l',0
 
+
+
 .endproc
 
+.proc display_conio
+    ldy     SCRX
+    sta     (ADSCR),y
+    iny
+    cpy     #SCREEN_XSIZE
+    bne     @no_inc
+    ldy     #$00
+    sty     SCRX
+    
+    jmp     update_adscr
+    
+@no_inc:    
+    sty     SCRX
+    rts
+.endproc
+
+
+.proc update_adscr
+
+    lda     #>SCREEN
+    sta     ADSCR+1
+
+    lda     #<SCREEN
+    sta     ADSCR
+
+    ldy     SCRY
+    beq     out
+loop:
+    lda     ADSCR
+    clc
+    adc     #SCREEN_XSIZE
+    bcc     skip
+    inc     ADSCR+1
+skip:
+    sta     ADSCR
+    dey
+    bne     loop
+out:        
+    rts
+.endproc
 ; ==============================================================================
 ;
 ; Entrée:
