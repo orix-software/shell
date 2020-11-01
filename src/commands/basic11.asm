@@ -14,7 +14,8 @@ basic11_stop  := userzp+8
 
 basic11_fp    := userzp+10
 basic11_ptr3  := userzp+12
-basic11_ptr4  := userzp+14
+basic11_first_letter := userzp+14
+
 
 .define BASIC11_PATH_DB "/var/cache/basic11/"
 .define BASIC11_MAX_MAINDB_LENGTH 10000
@@ -64,6 +65,7 @@ basic11_ptr4  := userzp+14
     ldx     #$01      ; skip double quote and get first char
     lda     ORIX_ARGV,x
     sta     (basic11_ptr1),y
+    sta     basic11_first_letter
     iny
     lda     #'/' ; add /
     sta     (basic11_ptr1),y ; get another letter
@@ -82,17 +84,28 @@ basic11_ptr4  := userzp+14
     bne     @L3
 @outstrcat:
     ; concat .db
-    lda     #'.'
+    ldx     #$00
+@L400:    
+    lda     str_dot_db,x
+    beq     @out_concat
     sta     (basic11_ptr1),y
+    inx
     iny
-    lda     #'d'
+    bne     @L400
+@out_concat:
     sta     (basic11_ptr1),y
-    iny
-    lda     #'b'
-    sta     (basic11_ptr1),y    
-    iny
-    lda     #$00 ; store end of string
-    sta     (basic11_ptr1),y    
+    
+    ;lda     #'.'
+    ;sta     (basic11_ptr1),y
+    ;iny
+    ;lda     #'d'
+    ;sta     (basic11_ptr1),y
+    ;iny
+    ;lda     #'b'
+    ;sta     (basic11_ptr1),y    
+    ;iny
+    ;lda     #$00 ; store end of string
+    ;sta     (basic11_ptr1),y    
 
 
     ldx     basic11_ptr1+1
@@ -530,7 +543,7 @@ basic11_ptr4  := userzp+14
     cmp     #ENOMEM
     bne     @no_enomem_kernel_error
     PRINT   str_enomem
-
+    rts
 @no_enomem_kernel_error:
     cmp     #ENOENT
     bne     @no_enoent_kernel_error
@@ -652,6 +665,11 @@ basic11_driver:
     cpx     #64
     bne     @loop_copy_rom
 
+    ; If the rom id is equal to 0, it means that it's for the hobbit. 
+    ; The hobbit rom does not handle path
+    lda     $F2 ; Load id ROM
+    beq     @hobbit_rom_do_not_forge_path
+
     ; Let's forge path
     ldx     #$00
     ldy     #tapes_path-basic11_driver
@@ -663,10 +681,18 @@ basic11_driver:
     inx
     bne     @L300
 @end:    
+    lda     basic11_first_letter
     sta     $FE70,x
-    dex
+    inx
+
+    lda     #'/'
+    sta     $FE70,x
+        
+
+   ; dex
     stx     $FE6F
 
+@hobbit_rom_do_not_forge_path:
     ;$FE6F
 
 
@@ -692,6 +718,8 @@ rom_path:
 
 str_enomem:
     .byte "Kernel error : Out of Memory",$0D,$0A,$00
+str_dot_db:
+    .asciiz ".db"
 
 str_basic11_not_known:
     .byte "Unknown option",$0D,$0A,$00
