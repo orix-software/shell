@@ -49,29 +49,7 @@ watch_ptr2         := userzp+4
     rts
 
 @no_ctrl:
-    ; reset prompt position
-    lda     #<(SCREEN)
-    sta     ADSCR
-    lda     #>(SCREEN)
-    sta     ADSCR+1
-
-    lda     #$00
-    sta     SCRDY
-
-    ; reset display position
-    ldx     #$00
-    stx     SCRY
-    stx     SCRX
-
-    lda     #<SCREEN                                ; Get position screen
-    ldy     #>SCREEN
-    sta     RES
-    sty     RES+1
-
-    ldy     #<(SCREEN+SCREEN_XSIZE*SCREEN_YSIZE)
-    ldx     #>(SCREEN+SCREEN_XSIZE*SCREEN_YSIZE)
-    lda     #' '
-    BRK_TELEMON XFILLM                              ; Calls XFILLM : it fills A value from RES address and size of X and Y value
+    jsr     _clrscr
 
     lda     save_mainargs_ptr
     ldy     save_mainargs_ptr+1
