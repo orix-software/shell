@@ -28,6 +28,9 @@ sh_ptr1                      :=userzp+12
 STORE_CURRENT_DEVICE :=$99
 
 XEXEC = $63
+XMAINARGS = $2C
+XMAINARGS_GETV = $2E
+XGETARGV = $2E
 
 BASH_NUMBER_OF_USERZP = 8
 
@@ -257,7 +260,12 @@ start_commandline:
     sta    bash_struct_command_line_ptr
     sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
 
+    ; jsr    _history
+
+    ;lda    bash_struct_command_line_ptr
+    ;ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
     jsr    _bash
+
     cmp    #EOK
     bne    @call_xexec
     jmp    start_prompt
@@ -1476,8 +1484,12 @@ cpu_build:
 cpu_build_:
     .asciiz "6502"
 .endif
-    .include "tables/text_first_line_adress.asm"  
+
 ; .include "tables/malloc_table.asm"  
+end_rom:
+.out   .sprintf("Size of ROM : %d bytes", end_rom-$c000)
+
+;.out     .sprintf("kernel_end_of_memory_for_kernel (malloc will start at this adress) : %x", kernel_end_of_memory_for_kernel)
 
     .res $FFF1-*
     .org $FFF1
