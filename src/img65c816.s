@@ -40,7 +40,6 @@ sei
     ldx   #$00
 @L1:    
     lda   yessa,x
-	;lda	  #$41
     sta   $a000,x
     inx
     cpx   #8000
