@@ -375,12 +375,14 @@ basic11_ptr4 := userzp+15
     iny
     bne     @L12
     inc     basic11_ptr1+1
-    ldy     #$00
+    ;rts
+   ; ldy     #$00
     jmp     @L12
 
 @end_of_line_all:
     cpx     #29
     beq     @next2
+    ; Displays a space until we reached the end of line
     lda     #' '
     BRK_KERNEL XWR0
     inx     
@@ -390,7 +392,8 @@ basic11_ptr4 := userzp+15
     beq     @end_of_line_all_column
     iny
     bne     @next2
-    inc     basic11_ptr1+1
+  ;  inc     basic11_ptr1+1
+    rts
     jmp     @next2
     ldy     #$FF
 @end_of_line_all_column:
@@ -402,6 +405,7 @@ basic11_ptr4 := userzp+15
     iny
     bne     @L12
     inc     basic11_ptr1+1
+    ;rts
     jmp     @L12
 
 @end_of_key_all:
@@ -416,7 +420,8 @@ basic11_ptr4 := userzp+15
     BRK_KERNEL XWR0
     ldx     #$00
     iny
-
+    bne     @L12
+    inc     basic11_ptr1+1
     jmp     @L12
 ; #############################################################
 ; # Code to load ROM into RAM bank
