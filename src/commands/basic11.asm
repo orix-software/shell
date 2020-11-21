@@ -230,7 +230,7 @@ basic11_ptr4 := userzp+15
     BRK_KERNEL XFREAD
 
     ; Close fp
-    fclose basic11_fp
+    fclose (basic11_fp)
 
     ; Let's free
     lda     basic11_ptr1
@@ -763,7 +763,7 @@ tapes_path:
   ; reads byte 
     BRK_KERNEL XFREAD
    
-    fclose  basic11_fp
+    fclose  (basic11_fp)
     ;BRK_KERNEL XCLOSE   
     lda     basic11_fp
     ldy     basic11_fp+1
