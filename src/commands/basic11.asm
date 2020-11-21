@@ -269,7 +269,10 @@ basic11_ptr4 := userzp+15
     jsr     _orix_get_opt
  
     jsr     basic11_read_main_dbfile
-    beq     @continue_l_option
+    cmp     #$00
+    bne     @continue_l_option
+    cpy     #$00
+    bne     @continue_l_option
     rts
 
 
@@ -740,7 +743,7 @@ tapes_path:
     BRK_KERNEL XFREE
 
     malloc BASIC11_MAX_MAINDB_LENGTH,basic11_ptr1,str_enomem ; Index ptr
-
+    
     ;lda     #<BASIC11_MAX_MAINDB_LENGTH
     ;ldy     #>BASIC11_MAX_MAINDB_LENGTH
     ;BRK_KERNEL XMALLOC
