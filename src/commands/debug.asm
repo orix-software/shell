@@ -1,4 +1,30 @@
+
 .proc _debug
+    debug_mainargs_ptr := userzp
+
+
+;    BRK_KERNEL XMAINARGS
+    sta   debug_mainargs_ptr
+  ;  sty   debug_mainargs_ptr+1
+    
+    ; Get argv
+   ; txa
+    ;clc 
+    ;adc    #$30
+
+    
+
+    ;BRK_KERNEL XWR0
+    ;BRK_KERNEL XCRLF
+    ;ldx   #$02
+    ;lda   debug_mainargs_ptr
+    ;ldy   debug_mainargs_ptr+1
+
+    ;BRK_KERNEL XMAINARGS_GETV
+    ;BRK_KERNEL XWSTR0
+    ;RETURN_LINE
+
+
 
 ;CPU_6502
     ; routine used for some debug
