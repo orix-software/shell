@@ -15,11 +15,12 @@ basic11_saveY := userzp+7 ; used in menu
 basic11_found := userzp+7 ; used in menu
 basic11_first_letter := userzp+7 ;
 
-basic11_current_letter_index  := userzp+8 ; used in menu/gui current letter (menu only)
+
 basic11_stop  := userzp+8
 basic11_current_parse_software  := userzp+8
 
 basic11_fp    := userzp+9
+basic11_current_letter_index  := userzp+9 ; used in menu/gui current letter (menu only)
 basic11_ptr3  := userzp+11
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui:= userzp+14
@@ -40,13 +41,14 @@ basic11_ptr4 := userzp+15
     ldx     #$01
     jsr     _orix_get_opt
     ; get parameter
-    bcc     @start      ; if there is no args, let's start
+    bcc     @no_arg      ; if there is no args, let's start
 
     lda     ORIX_ARGV
     cmp     #'-'
     bne     @is_a_tape_file_in_arg
     jmp     @basic11_option_management
-
+@no_arg:    
+    jmp     @start
 @is_a_tape_file_in_arg:
 
     ;malloc basic11_sizeof_max_length_of_conf_file_bin,basic11_ptr1,str_enomem ; Index ptr
@@ -111,20 +113,10 @@ basic11_ptr4 := userzp+15
     bne     @L400
 @out_concat:
     sta     (basic11_ptr1),y
-    
-    ;lda     #'.'
-    ;sta     (basic11_ptr1),y
-    ;iny
-    ;lda     #'d'
-    ;sta     (basic11_ptr1),y
-    ;iny
-    ;lda     #'b'
-    ;sta     (basic11_ptr1),y    
-    ;iny
-    ;lda     #$00 ; store end of string
-    ;sta     (basic11_ptr1),y    
+  
 
- 
+
+
     ldx     basic11_ptr1+1
     lda     basic11_ptr1
 
@@ -143,17 +135,9 @@ basic11_ptr4 := userzp+15
 
 
 
-@noparam:
-   ;rts
-    ; Get current pwd and open
-    BRK_KERNEL XGETCWD  ; Get A & Y 
-    sty     basic11_tmp
-    ldx     basic11_tmp
-    ldy     #O_RDONLY
-
-    BRK_KERNEL XOPEN ; open current
 
 @start:
+
 
     sei
     
@@ -167,12 +151,8 @@ basic11_ptr4 := userzp+15
     lda     (basic11_ptr2),y
     pha
 
-    ; stop t2 from via1
-    lda     #$00+32
-    sta     VIA::IER
-    ; stop via 2
-    lda     #$00+32+64
-    sta     VIA2::IER
+    jsr     basic11_stop_via
+
 
     ldx     #$00
 @loop:
@@ -185,12 +165,7 @@ basic11_ptr4 := userzp+15
     lda     #$00                                    ; FIXME 65C02
     sta     $2DF ; Flush keyboard for atmos rom
 
-    ldx     #$05
-@copy_rnd_value:    
-    lda     basic_rnd_init,x
-    sta     $FA,x
-    dex
-    bpl     @copy_rnd_value
+    jsr     prepare_rom_rnd
 
     jmp     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
 @copy:
@@ -204,6 +179,7 @@ basic11_ptr4 := userzp+15
     jmp     $F88F ; NMI vector of ATMOS rom
     ; Check if it's a .tap
 @noparam_free:
+
     
     lda     basic11_ptr1
     ldy     basic11_ptr1+1
@@ -585,16 +561,6 @@ basic11_ptr4 := userzp+15
 
     malloc 100,basic11_ptr3,str_enomem ; Index ptr
 
-    ;lda     #<100
-    ;ldy     #>100
-
-    
-    ;BRK_KERNEL XMALLOC
-    
-    ;TEST_OOM
-
-    ;sta     basic11_ptr3
-    ;sty     basic11_ptr3+1
 
     ldy     #$00
 @L200:
@@ -603,9 +569,6 @@ basic11_ptr4 := userzp+15
     iny
     cpy     #100
     bne     @L200
-
-
-
 
     ; and start
     lda     basic11_ptr3
@@ -616,11 +579,8 @@ basic11_ptr4 := userzp+15
   basic11_ptr3  := userzp+12
 
     ; stop t2 from via1
-    lda     #$00+32
-    sta     VIA::IER
-    ; stop via 2
-    lda     #$00+32+64
-    sta     VIA2::IER
+    jsr     basic11_stop_via
+
 
     ldx     #$00
     lda     #$00                                    ; FIXME 65C02
@@ -669,14 +629,22 @@ basic11_driver:
 @L300:    
     lda     (basic11_ptr3),y
     beq     @end
+    cmp     #'a'                        ; 'a'
+    bcc     @do_not_uppercase
+    cmp     #'z'+1                        ; 'z'
+    bcs     @do_not_uppercase
+    sbc     #$1F
+@do_not_uppercase:
     sta     $FE70,x
     iny
     inx
     bne     @L300
-@end:    
+@end:
+
+
     lda     basic11_first_letter
-    
     sta     $FE70,x
+    
     inx
 
     lda     #'/'
@@ -698,17 +666,6 @@ tapes_path:
 
     malloc (.strlen(BASIC11_PATH_DB)+8+4+1),basic11_ptr2,str_enomem ; Index ptr
 
-    ;lda     #<(.strlen(BASIC11_PATH_DB)+8+4+1)
-    ;ldy     #>(.strlen(BASIC11_PATH_DB)+8+4+1)
-    ;BRK_KERNEL XMALLOC
-    ;cmp	    #$00
-    ;bne     @continue
-    ;cpy	    #$00
-    ;bne     @continue
-    ;rts
-;@continue:
-    ;sta     basic11_ptr2
-    ;sty     basic11_ptr2+1
 
     ldy     #$00
 @L10:    
@@ -749,14 +706,6 @@ tapes_path:
 
     malloc BASIC11_MAX_MAINDB_LENGTH,basic11_ptr1,str_enomem ; Index ptr
     
-    ;lda     #<BASIC11_MAX_MAINDB_LENGTH
-    ;ldy     #>BASIC11_MAX_MAINDB_LENGTH
-    ;BRK_KERNEL XMALLOC
-
-    ;sta     basic11_ptr1
-    ;sty     basic11_ptr1+1
-
- ;   fread basic11_ptr1, BASIC11_MAX_MAINDB_LENGTH, 1, fp
 
   ; define target address
     lda     basic11_ptr1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
@@ -781,7 +730,7 @@ tapes_path:
     rts
 .endproc
 
-prepare_rom_rnd:
+.proc prepare_rom_rnd
 
     ldx     #$05
 @copy_rnd_value2:    
@@ -790,6 +739,16 @@ prepare_rom_rnd:
     dex
     bpl     @copy_rnd_value2
     rts
+.endproc    
+
+.proc basic11_stop_via
+    lda     #$00+32
+    sta     VIA::IER
+    ; stop via 2
+    lda     #$00+32+64
+    sta     VIA2::IER
+    rts
+.endproc    
 
 .include "basic11/basic11_gui.asm"
 
@@ -797,7 +756,8 @@ str_basic11_missing_rom:
     .asciiz "Missing ROM file : "
 rom_path:
     .asciiz "/usr/share/basic11/basic"
-
+str_can_not:
+    .asciiz "Can not open"
 str_enomem:
     .byte "Kernel error : Out of Memory",$0D,$0A,$00
 str_dot_db:

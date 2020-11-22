@@ -29,7 +29,7 @@
 @L200:    
     sta     (basic11_ptr4),y
     iny
-    cpy     #basic11_gui_struct::index+46
+    cpy     #(basic11_gui_struct::index+46)
     bne     @L200
 
     ; init posy_screen
@@ -60,7 +60,8 @@
     
     lda     #'1'
     sta     basic11_first_letter_gui
-
+    lda     #$00
+    sta     basic11_current_letter_index
     ; Skip version DB
 
     lda     basic11_ptr1+1
@@ -122,7 +123,7 @@
 @change_letter_right:
     
     ldx     basic11_current_letter_index
-    cpx     #35
+    cpx     #34
     beq     @loopinformations
     inx     
     stx     basic11_current_letter_index
