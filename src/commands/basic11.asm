@@ -22,6 +22,7 @@ basic11_current_parse_software  := userzp+8
 basic11_fp    := userzp+9
 basic11_current_letter_index  := userzp+9 ; used in menu/gui current letter (menu only)
 basic11_ptr3  := userzp+11
+basic11_mainargs_ptr := userzp+11
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui:= userzp+14
 
@@ -37,11 +38,33 @@ basic11_ptr4 := userzp+15
 
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
+    
+    BRK_KERNEL XMAINARGS
+    sta   basic11_mainargs_ptr
+    sty   basic11_mainargs_ptr+1
 
+    ;BRK_KERNEL XFREE
+    ;rts
+    ;basic11_mainargs_ptr
+    
+    ; get parameter
+
+    cpx     #$01 ; Only one arg ?
+    beq     @no_arg
+    ;bcc     @no_arg      ; if there is no args, let's start
     ldx     #$01
     jsr     _orix_get_opt
-    ; get parameter
-    bcc     @no_arg      ; if there is no args, let's start
+    
+    ldx     #$01
+    lda     basic11_mainargs_ptr
+    ldy   basic11_mainargs_ptr+1
+
+   ; BRK_KERNEL XMAINARGS_GETV
+   ; sta   basic11_ptr2
+   ; sty   basic11_ptr2+1
+    ;ldy   #$00
+   ; lda   (basic11_ptr2),y
+
 
     lda     ORIX_ARGV
     cmp     #'-'
@@ -345,6 +368,7 @@ basic11_ptr4 := userzp+15
     beq     @end_of_key_all
     cpx     #29
     beq     @end_of_line_all
+    BRK_KERNEL XMINMA
     BRK_KERNEL XWR0
     inx
     
@@ -354,6 +378,7 @@ basic11_ptr4 := userzp+15
     ;rts
    ; ldy     #$00
     jmp     @L12
+
 
 @end_of_line_all:
     cpx     #29
@@ -369,8 +394,8 @@ basic11_ptr4 := userzp+15
     iny
     bne     @next2
   ;  inc     basic11_ptr1+1
-    rts
-    jmp     @next2
+    ;rts
+    ;jmp     @next2
     ldy     #$FF
 @end_of_line_all_column:
     lda     #'|'
@@ -641,10 +666,12 @@ basic11_driver:
     bne     @L300
 @end:
 
-
     lda     basic11_first_letter
     sta     $FE70,x
-    
+
+
+
+
     inx
 
     lda     #'/'
@@ -664,7 +691,9 @@ tapes_path:
 
 .proc   basic11_read_main_dbfile
 
-    malloc (.strlen(BASIC11_PATH_DB)+8+4+1),basic11_ptr2,str_enomem ; Index ptr
+
+    ;
+    malloc #(.strlen("/var/cache/basic11/")+8+4+1),basic11_ptr2,str_enomem ; Index ptr
 
 
     ldy     #$00
