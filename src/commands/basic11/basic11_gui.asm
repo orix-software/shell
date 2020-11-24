@@ -136,10 +136,11 @@
 
 @change_letter_left:
     
-    lda     basic11_first_letter_gui
+    lda     basic11_current_letter_index
     cmp     #$00
     beq     @donot_dex
     dec     basic11_first_letter_gui
+    dec     basic11_current_letter_index
 @donot_dex:       
     lda     basic11_first_letter_gui
     
@@ -497,9 +498,6 @@ str_basic11:
     lda     #$00
     sta     (basic11_ptr4),y
 
-    
-
-
     lda     #<($bb80+42)
     sta     basic11_ptr3
     
@@ -548,16 +546,21 @@ str_basic11:
 @skip_displays:    
     iny
     bne     @L1
+    inc     basic11_ptr2+1
+    jmp     @L1
 @read_end_of_file:    
     rts
 @end_key_reached:
     ; Max entries 
     sty     basic11_saveY
+    jmp         @it_s_the_same_letter_to_parse
     ; Test if the next software char is equal to the current.
     iny
     lda     (basic11_ptr2),y
     cmp     basic11_first_letter_gui
-    beq     @it_s_the_same_letter_to_parse      
+    beq     @it_s_the_same_letter_to_parse
+;@loopme:    
+    ;jmp     @loopme
     ; Exit
     rts
 @it_s_the_same_letter_to_parse:
