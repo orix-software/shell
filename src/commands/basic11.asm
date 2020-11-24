@@ -536,7 +536,7 @@ basic11_ptr4 := userzp+15
 @no_enomem_kernel_error:
     cmp     #ENOENT
     bne     @no_enoent_kernel_error
-    PRINT   str_not_found
+   ; PRINT   str_not_found
    ; rts
 @no_enoent_kernel_error:    
 
@@ -720,7 +720,9 @@ tapes_path:
     
     PRINT   str_basic11_missing
     BRK_KERNEL XCRLF
-    lda     #$01 ; error
+    lda     #$00
+    ldy     #$00
+    ldx     #$01
     rts
 
 
