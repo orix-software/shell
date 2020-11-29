@@ -39,25 +39,13 @@ basic11_ptr4 := userzp+15
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
     
-    BRK_KERNEL XMAINARGS
-    sta   basic11_mainargs_ptr
-    sty   basic11_mainargs_ptr+1
-
-    ;BRK_KERNEL XFREE
-    ;rts
-    ;basic11_mainargs_ptr
-    
-    ; get parameter
-
-    cpx     #$01 ; Only one arg ?
-    beq     @no_arg
-    ;bcc     @no_arg      ; if there is no args, let's start
-    ldx     #$01
-    jsr     _orix_get_opt
     
     ldx     #$01
-    lda     basic11_mainargs_ptr
-    ldy   basic11_mainargs_ptr+1
+    jsr     _orix_get_opt2
+    bcc     @no_arg      ; if there is no args, let's start
+    ldx     #$01
+    jsr     _orix_get_opt2
+    
 
    ; BRK_KERNEL XMAINARGS_GETV
    ; sta   basic11_ptr2
@@ -203,6 +191,7 @@ basic11_ptr4 := userzp+15
     ; Check if it's a .tap
 @noparam_free:
 
+
     
     lda     basic11_ptr1
     ldy     basic11_ptr1+1
@@ -214,6 +203,7 @@ basic11_ptr4 := userzp+15
 @parsecnf:
     sta     basic11_fp
     sty     basic11_fp+1
+
 
   ; define target address
     lda     #$F1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
@@ -733,6 +723,7 @@ tapes_path:
 
     lda     basic11_ptr2
     ldy     basic11_ptr2+1
+
     BRK_KERNEL XFREE
 
     malloc BASIC11_MAX_MAINDB_LENGTH,basic11_ptr1,str_enomem ; Index ptr
@@ -752,10 +743,7 @@ tapes_path:
     BRK_KERNEL XFREAD
    
     fclose  (basic11_fp)
-    ;BRK_KERNEL XCLOSE   
-    lda     basic11_fp
-    ldy     basic11_fp+1
-    BRK_KERNEL XFREE
+
 
     lda     #$00 ; OK
     rts

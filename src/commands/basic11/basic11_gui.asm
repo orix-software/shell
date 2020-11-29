@@ -19,9 +19,11 @@
   .error  "basic11_gui_struct size can not be greater than 255. It's impossible because code does not handle a struct greater than 255"
 .endif
 
+; basic11_ptr1 ptr of the maindb
+
 .proc basic11_start_gui
     cursor off
-    malloc .sizeof(basic11_gui_struct),basic11_ptr4,str_enomem ; Index ptr
+    malloc #.sizeof(basic11_gui_struct),basic11_ptr4,str_enomem ; Index ptr
 
     ; init index
     ldy     #basic11_gui_struct::index
@@ -81,6 +83,11 @@
 
     jsr     basic11_menu_letter_management_right
 
+    ; Initialize position bar to posY)0
+    ldy     #basic11_gui_struct::basic11_posy_screen
+    lda     #$00
+    sta     (basic11_ptr4),y
+
 ; Display initial bar
 
 
@@ -88,8 +95,7 @@
 
     jsr     displays_gui_list
     
-    jsr     compute_position_bar
-    jsr     displays_bar    
+    jsr     basic11_init_bar
 
 
 
@@ -117,6 +123,9 @@
     jmp     _clrscr
 @keyenter:
     ; get
+    lda     basic11_ptr1
+    ldy     basic11_ptr1+1
+    BRK_KERNEL XFREE    
     jmp     basic11_launch
     ;jmp     @exitgui
 
@@ -131,7 +140,7 @@
     inc     basic11_first_letter_gui
     jsr     basic11_menu_letter_management_right
     ; init posy_screen
-    jsr     basic11_init_bar     
+  
     jmp     @manage_display
 
 @change_letter_left:
@@ -139,28 +148,32 @@
     lda     basic11_current_letter_index
     cmp     #$00
     beq     @donot_dex
+    
+    jsr     basic11_menu_letter_management_left
+
     dec     basic11_first_letter_gui
     dec     basic11_current_letter_index
-@donot_dex:       
+     
     lda     basic11_first_letter_gui
     
     jsr     basic11_update_ptr_fp
-    inc     basic11_first_letter_gui    
-    jsr     basic11_menu_letter_management_left
-    jsr     basic11_init_bar
 
+
+    jsr     basic11_init_bar
+@donot_dex:
     jmp     @manage_display
 @keyup:
-    jsr     keyup_bar
+    jsr     basic11_keyup_bar
     jmp     @loopinformations
 @keydown:
-    jsr     keydown_bar
+    jsr     basic11_keydown_bar
     jmp     @loopinformations
 
 @manage_display:
     jsr     basic11_clear_menu
     
     jsr     displays_gui_list
+    jsr     basic11_init_bar   
     ;basic11_first_letter_gui
     jmp     @loopinformations
 
@@ -176,228 +189,18 @@
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     #$00
     sta     (basic11_ptr4),y
-    jsr     compute_position_bar
-    jsr     displays_bar    
-    rts
+    jmp     compute_position_bar
+   
+    
 .endproc
 
-.proc   basic11_launch
-    lda     basic11_ptr1
-    ldy     basic11_ptr1+1
-    BRK_KERNEL XFREE
-
-    ldy     #basic11_gui_struct::current_entry_id
-    lda     (basic11_ptr4),y
-    sta     basic11_saveA
-    clc
-    adc     #basic11_gui_struct::key_software_index_low
-    
-    tay
-    lda     (basic11_ptr4),y
-    sta     basic11_ptr3
-    
-    lda     basic11_saveA
-    clc
-    adc     #basic11_gui_struct::key_software_index_high
-    sta     basic11_ptr3+1
-    tay
-    lda     (basic11_ptr4),y
-    sta     basic11_ptr3+1
-
-    tay
-    lda     basic11_ptr3
-    BRK_KERNEL XWSTR0
-    
-    lda     basic11_ptr4
-    sta     basic11_ptr1
-    lda     basic11_ptr4+1
-    sta     basic11_ptr1+1
-
-    ldy     #basic11_gui_struct::command_launch
-    clc
-    adc     basic11_ptr1
-    bcc     @S500
-    inc     basic11_ptr1+1
-@S500:    
-    sta     basic11_ptr1
-
-    ldx     #$00
-    ldy     #$00
-@L500:    
-    lda     str_basic11,x
-    beq     @out500
-    sta     (basic11_ptr1),y
-    inx
-    iny
-    jmp     @L500
-@out500:
-
-    ldy     #$00
-@L600:    
-    lda     (basic11_ptr3),y
-    cmp     #';'
-    beq     @end_of_command
-    sta     basic11_saveA
-    iny
-    sty     basic11_saveY
-    txa
-    tay
-    lda     basic11_saveA
-    sta     (basic11_ptr1),y
-    iny
-    tya
-    tax
-    ldy     basic11_saveY
-    jmp     @L600
-    ; X
-
-@end_of_command:
-    txa
-    tay
-    lda     #$00
-    sta     (basic11_ptr1),y
-
-    ; free all
-    lda     basic11_ptr4
-    ldy     basic11_ptr4+1
-    BRK_KERNEL XFREE
-
-    lda     basic11_ptr2
-    ldy     basic11_ptr2+1
-    BRK_KERNEL XFREE
-
-    ldy     basic11_ptr1+1
-    lda     basic11_ptr1
-    BRK_KERNEL XEXEC
-    ;BRK_KERNEL XWSTR0
-
-    
+.include "basic11_launch.asm"
+.include "basic11_clear_menu.asm"
+.include "basic11_displays_frame.asm"
+.include "basic11_menu_letter_management_right.asm"
+.include "basic11_menu_letter_management_left"
 
 
-    rts
-str_basic11:     
-    .byte "basic11 "
-    .byte $22,$00 ; "
-.endproc
-
-.proc basic11_clear_menu
-    ; displays line
-    ldy     #$00
-@display_line:    
-
-    lda     basic_str_emptyline,y    
-    beq     @outline
-    sta     $bb80+40,y
-    sta     $bb80+80,y
-    sta     $bb80+120,y
-    sta     $bb80+160,y
-    sta     $bb80+200,y
-    sta     $bb80+240,y
-    sta     $bb80+280,y
-    sta     $bb80+320,y
-    sta     $bb80+360,y
-    sta     $bb80+400,y
-    sta     $bb80+440,y
-    sta     $bb80+480,y
-    sta     $bb80+520,y
-    sta     $bb80+560,y
-    sta     $bb80+600,y
-    sta     $bb80+640,y
-    sta     $bb80+680,y
-    sta     $bb80+720,y
-    sta     $bb80+760,y
-    sta     $bb80+800,y
-    sta     $bb80+840,y
-    sta     $bb80+880,y
-    sta     $bb80+920,y
-    sta     $bb80+960,y
-    sta     $bb80+1000,y
-
-    iny
-    bne     @display_line
-@outline:
-    rts
-.endproc    
-
-.proc basic11_displays_frame
-    ; displays line
-    ldy     #$00
-@display_line:    
-    lda     basic_str_fullline_title,y
-    
-    beq     @outline
-    
-    sta     $bb80,y
-
-    lda     basic_str_fullline,y
-    sta     $bb80+26*40,y
-
-
-    iny
-    bne     @display_line
-@outline:
-    jsr     basic11_clear_menu
-    lda     #'!'
-    sta     $bb80+27*40+2
-
-    ldx     #'1'
-    ldy     #$00
-@L1_menu:    
-    txa
-    sta     $bb80+27*40+3,y
-    iny
-    inx
-    cpx     #':'
-    bne     @L1_menu
-
-    ldx     #'A'
-    ldy     #$00
-@L2_menu:    
-    txa
-    sta     $bb80+27*40+10+2,y
-    iny
-    inx
-    cpx     #'Z'+1
-    bne     @L2_menu    
-    rts
-.endproc
-
-.proc basic11_menu_letter_management_right
-    lda     basic11_first_letter_gui
-    sec
-    sbc     #'1'
-    ;beq     @no_move
-
-    tax
-    lda     $bb80+27*40+2,x
-    and     #%01111111
-    sta     $bb80+27*40+2,x
-    inx
-    lda     $bb80+27*40+2,x
-    ora     #$80
-    sta     $bb80+27*40+2,x
-@no_move:
-
-    rts
-.endproc
-
-.proc basic11_menu_letter_management_left
-    lda     basic11_first_letter_gui
-    sec
-    sbc     #'1'
-
-    tax
-    lda     $bb80+27*40+2,x
-    and     #%01111111
-    sta     $bb80+27*40+2,x
-    dex
-    lda     $bb80+27*40+2,x
-    ora     #$80
-    sta     $bb80+27*40+2,x
-@no_move:
-
-    rts
-.endproc
 
 .proc compute_position_bar
     lda     #>($bb80+40+1)
@@ -433,60 +236,10 @@ str_basic11:
     rts
 .endproc
 
-.proc keyup_bar
-    ldy    #basic11_gui_struct::basic11_posy_screen
-    lda    (basic11_ptr4),y
-    beq    @out
-    jsr    compute_position_bar
-    pha
-    jsr     erase_bar
-    pla
-    tax
-    dex
-    txa
-    ldy     #basic11_gui_struct::basic11_posy_screen
-    sta     (basic11_ptr4),y
-    jsr     compute_position_bar
 
-    jsr     displays_bar    
-@out:
-    rts
-.endproc
+.include  "basic11_keyup_bar.asm"
+.include  "basic11_keydown_bar.asm"
 
-.proc keydown_bar
-    ldy     #basic11_gui_struct::max_current_entries
-    lda     (basic11_ptr4),y
-    pha
-    pla
-
-    ; add index now
-    ldy     #basic11_gui_struct::current_entry_id
-    lda     (basic11_ptr4),y
-    sec
-    adc     #$00
-    sta     (basic11_ptr4),y
-
-
-    lda     (basic11_ptr4),y
-    sec
-    adc     #$00
-    sta     (basic11_ptr4),y
-
-    jsr     compute_position_bar
-    pha
-    jsr     erase_bar
-    pla
-    tax
-    inx
-    txa
-    ldy     #basic11_gui_struct::basic11_posy_screen
-    sta     (basic11_ptr4),y
-    jsr     compute_position_bar
-
-    jsr     displays_bar    
-
-    rts
-.endproc
 
 .proc  displays_gui_list
 
@@ -553,7 +306,7 @@ str_basic11:
 @end_key_reached:
     ; Max entries 
     sty     basic11_saveY
-    jmp         @it_s_the_same_letter_to_parse
+    jmp     @it_s_the_same_letter_to_parse
     ; Test if the next software char is equal to the current.
     iny
     lda     (basic11_ptr2),y
@@ -695,6 +448,7 @@ str_basic11:
 .proc displays_bar
     ldy     #$00
     lda     #$11
+  
     sta     (basic11_ptr3),y
     ldy     #37
     lda     #$10

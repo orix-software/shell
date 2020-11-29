@@ -708,6 +708,7 @@ internal_commands_length:
 .include "lib/strlen.asm"
 .include "lib/fread.asm"
 .include "lib/get_opt.asm"
+.include "lib/get_opt2.asm"
 .include "lib/_clrscr.asm"
 
 ; hardware
@@ -717,25 +718,8 @@ internal_commands_length:
 
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
-    ;sta     $6000
-    ;sty     $6001
+
     sty     TR6
-    ;pha
-    ;sta     RES
-    ;sty     RES+1
-
-;    ldy     #$00
-;@myloop:    
-    ;lda     (RES),y
-    ;beq     @out
-    ;sta     $bb80,y
-    ;iny
-    ;bne     @myloop
-
-;@out:
-    ;pla
-
-
     ldy     #O_RDONLY
     ldx     TR6
     BRK_KERNEL XOPEN
