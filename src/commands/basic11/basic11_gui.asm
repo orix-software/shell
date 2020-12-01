@@ -101,7 +101,14 @@
 
 @loopinformations:
 
-    BRK_KERNEL XRDW0            ; read keyboard
+  ;  BRK_KERNEL XWR0
+    jsr     basic11_read_joystick
+    cmp     #$00
+    bne     @joystick_pressed
+    BRK_KERNEL XRD0     ; Should be removed but when we do ctrl+c we can not launch another command after
+    bcs     @loopinformations
+@joystick_pressed:
+   ; BRK_KERNEL XRDW0            ; read keyboard
     cmp     #KEY_RIGHT
     beq     @change_letter_right    ; right key not managed
 
@@ -198,9 +205,7 @@
 .include "basic11_clear_menu.asm"
 .include "basic11_displays_frame.asm"
 .include "basic11_menu_letter_management_right.asm"
-.include "basic11_menu_letter_management_left"
-
-
+.include "basic11_menu_letter_management_left.asm"
 
 .proc compute_position_bar
     lda     #>($bb80+40+1)
@@ -418,6 +423,25 @@
     jmp     @skip_displays
     
 
+.endproc
+
+.proc   basic11_read_joystick
+    lda     $320
+    and     #%00011111
+    tax
+    eor     #%11100100
+    cmp     #$04
+    bne     @S1
+    lda     #KEY_RETURN
+    rts
+@S1:
+    txa
+    eor     #%11100001
+    cmp     #$01
+    bne     @S2
+@S2:        
+    lda     #$00
+    rts
 .endproc
 
 .proc basic11_build_index_software
