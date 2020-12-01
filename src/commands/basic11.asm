@@ -644,11 +644,11 @@ basic11_driver:
 @L300:    
     lda     (basic11_ptr3),y
     beq     @end
-    ;cmp     #'a'                        ; 'a'
-    ;bcc     @do_not_uppercase
-    ;cmp     #'z'+1                        ; 'z'
-    ;bcs     @do_not_uppercase
-    ;sbc     #$1F
+    cmp     #'a'                        ; 'a'
+    bcc     @do_not_uppercase
+    cmp     #'z'+1                        ; 'z'
+    bcs     @do_not_uppercase
+    sbc     #$1F
 @do_not_uppercase:
     sta     $FE70,x
     iny
