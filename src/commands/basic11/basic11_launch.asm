@@ -83,8 +83,8 @@
 
     ldy     basic11_ptr1+1
     lda     basic11_ptr1
-   ; BRK_KERNEL XEXEC
-    BRK_KERNEL XWSTR0
+    BRK_KERNEL XEXEC
+   ; BRK_KERNEL XWSTR0
 
     
 

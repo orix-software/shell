@@ -21,8 +21,9 @@
     sbc     #$30
     tax
     stx     VAPLIC
-    lda     #<$C000
-    ldy     #>$C000
+    ; NMI
+    lda     #$FC
+    ldy     #$FF
     sta     VAPLIC+1
     sty     VAPLIC+2
     sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW

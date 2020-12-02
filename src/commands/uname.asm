@@ -6,8 +6,8 @@
 
 
     BRK_KERNEL XMAINARGS
-    sta   uname_mainargs_ptr
-    sty   uname_mainargs_ptr+1
+    sta     uname_mainargs_ptr
+    sty     uname_mainargs_ptr+1
     stx   uname_mainargs_argc
     
     ldx   #$01

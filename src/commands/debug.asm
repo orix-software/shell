@@ -4,7 +4,7 @@
 
 
 ;    BRK_KERNEL XMAINARGS
-    sta   debug_mainargs_ptr
+    ;sta   debug_mainargs_ptr
   ;  sty   debug_mainargs_ptr+1
     
     ; Get argv
