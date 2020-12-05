@@ -1,5 +1,10 @@
 .proc basic11_menu_letter_management_right
     lda     basic11_first_letter_gui
+    ;cmp     #':'
+    ;bne     @skip
+    ;lda     #'A'
+    ;sta     basic11_first_letter_gui
+@skip:    
     sec
     sbc     #'1'
     tax

@@ -143,6 +143,11 @@
     beq     @loopinformations
     inx     
     stx     basic11_current_letter_index
+    
+    ldy     #basic11_gui_struct::max_current_entries
+    lda     #$00
+    sta     (basic11_ptr4),y
+
     jsr     basic11_update_ptr_fp
     inc     basic11_first_letter_gui
     jsr     basic11_menu_letter_management_right
@@ -189,9 +194,7 @@
 
 .proc basic11_init_bar
     ; init posy_screen
-    ldy     #basic11_gui_struct::max_current_entries
-    lda     #$00
-    sta     (basic11_ptr4),y
+
 
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     #$00
@@ -280,10 +283,10 @@
 @L1:    
     lda     (basic11_ptr2),y
     beq     @end_name_software_reached
-    cmp     #$FF
+    cmp     #$FF            ; End of file found
     beq     @read_end_of_file
     
-    cmp     #';'
+    cmp     #';'  ; We reached the end of key
     beq     @end_key_reached
     
     sta     basic11_saveA
@@ -293,6 +296,7 @@
     sty     basic11_saveY
 
     ldy     basic11_tmp
+    ; Displays
     lda     basic11_saveA
     sta     (basic11_ptr3),y
     iny
@@ -311,15 +315,15 @@
 @end_key_reached:
     ; Max entries 
     sty     basic11_saveY
-    jmp     @it_s_the_same_letter_to_parse
+    ;jmp     @it_s_the_same_letter_to_parse
     ; Test if the next software char is equal to the current.
+
+    ; Exit    
     iny
     lda     (basic11_ptr2),y
     cmp     basic11_first_letter_gui
     beq     @it_s_the_same_letter_to_parse
-;@loopme:    
-    ;jmp     @loopme
-    ; Exit
+
     rts
 @it_s_the_same_letter_to_parse:
     ldy     #basic11_gui_struct::max_current_entries
@@ -327,7 +331,7 @@
     sec
     adc     #$00
     sta     (basic11_ptr4),y
-    
+
 
     inc     basic11_gui_key_reached
     jmp     @reload_y

@@ -2,9 +2,15 @@
 .proc basic11_keydown_bar
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
-    pha
-    pla
-
+    beq     @out
+    sta     basic11_saveY
+    dec     basic11_saveY 
+    ldy     #basic11_gui_struct::basic11_posy_screen
+    lda     (basic11_ptr4),y
+    cmp     basic11_saveY
+    bne     @skip
+    rts
+@skip:
     ; add index now
     ldy     #basic11_gui_struct::current_entry_id
     lda     (basic11_ptr4),y
@@ -30,6 +36,6 @@
     jsr     compute_position_bar
 
     jsr     displays_bar    
-
+@out:
     rts
 .endproc
