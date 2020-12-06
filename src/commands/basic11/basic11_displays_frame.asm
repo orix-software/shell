@@ -16,8 +16,8 @@
     bne     @display_line
 @outline:
     jsr     basic11_clear_menu
-    lda     #'!'
-    sta     $bb80+27*40+2
+    ;lda     #'!'
+    ;sta     $bb80+27*40+2
 
     ldx     #'1'
     ldy     #$00

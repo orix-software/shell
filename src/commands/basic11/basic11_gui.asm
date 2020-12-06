@@ -10,6 +10,7 @@
   max_current_entries                 .res 1
   current_entry_id                    .res 1
   current_key                         .res 8
+
   command_launch                      .res 7+1+1+8+1 ; basic11 "12345678\0
   key_software_index_low              .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
   key_software_index_high             .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
@@ -62,8 +63,7 @@
     
     lda     #'1'
     sta     basic11_first_letter_gui
-    lda     #$00
-    sta     basic11_current_letter_index
+
     ; Skip version DB
 
     lda     basic11_ptr1+1
@@ -81,7 +81,12 @@
   
     jsr     basic11_displays_frame
 
-    jsr     basic11_menu_letter_management_right
+    ;jsr     basic11_menu_letter_management_right
+    ldx     #$00
+    lda     $bb80+27*40+3,x
+    ora     #$80
+    sta     $bb80+27*40+3,x
+
 
     ; Initialize position bar to posY)0
     ldy     #basic11_gui_struct::basic11_posy_screen
@@ -108,6 +113,8 @@
     BRK_KERNEL XRD0     ; Should be removed but when we do ctrl+c we can not launch another command after
     bcs     @loopinformations
 @joystick_pressed:
+
+
    ; BRK_KERNEL XRDW0            ; read keyboard
     cmp     #KEY_RIGHT
     beq     @change_letter_right    ; right key not managed
@@ -137,34 +144,35 @@
     ;jmp     @exitgui
 
 @change_letter_right:
-    
-    ldx     basic11_current_letter_index
-    cpx     #34
+
+    ldy     basic11_gui_struct::current_index_letter
+    lda     (basic11_ptr4),y
+    cmp     #34
     beq     @loopinformations
-    inx     
-    stx     basic11_current_letter_index
+
     
     ldy     #basic11_gui_struct::max_current_entries
     lda     #$00
     sta     (basic11_ptr4),y
 
     jsr     basic11_update_ptr_fp
-    inc     basic11_first_letter_gui
+    
     jsr     basic11_menu_letter_management_right
     ; init posy_screen
   
     jmp     @manage_display
 
 @change_letter_left:
+    ldy     basic11_gui_struct::current_index_letter
+    lda     (basic11_ptr4),y
     
-    lda     basic11_current_letter_index
-    cmp     #$00
-    beq     @donot_dex
+    beq     @loopinformations    
+
     
     jsr     basic11_menu_letter_management_left
 
-    dec     basic11_first_letter_gui
-    dec     basic11_current_letter_index
+    
+
      
     lda     basic11_first_letter_gui
     
@@ -348,7 +356,7 @@
     inx
     cpx     basic11_first_letter_gui
     beq     @compute_next_letter
-    ; THe next letter is not the current + 1, will fill the next index with 0
+    ; The next letter is not the current + 1, will fill the next index with 0
 @compute_next_letter:
     tya    
     clc
@@ -363,7 +371,7 @@
     
 
 
-
+    ; Trying to build index
     lda     basic11_first_letter_gui
     sec 
     sbc     #'1'
