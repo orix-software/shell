@@ -8,7 +8,7 @@
 @skip:
     dec     basic11_first_letter_gui
     lda     basic11_first_letter_gui
-    sta     $bb80+20       
+    sta     $bb80+16    
 
     ldy     basic11_gui_struct::current_index_letter
     lda     (basic11_ptr4),y

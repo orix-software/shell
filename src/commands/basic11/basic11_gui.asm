@@ -252,10 +252,8 @@
     rts
 .endproc
 
-
 .include  "basic11_keyup_bar.asm"
 .include  "basic11_keydown_bar.asm"
-
 
 .proc  displays_gui_list
 
@@ -279,34 +277,37 @@
 
     lda     #$00
     sta     basic11_gui_key_reached
-    sta     basic11_current_parse_software
-
-    
+    sta     basic11_do_not_display
     
     ;       index first software
     jsr     basic11_build_index_software
 
     ldx     #$00
     ldy     #$00
-@L1:    
-    lda     (basic11_ptr2),y
+;$cd2C
+@L1:
+
+    lda     (basic11_ptr2),y ; $8f
     beq     @end_name_software_reached
     cmp     #$FF            ; End of file found
     beq     @read_end_of_file
     
     cmp     #';'  ; We reached the end of key
-    beq     @end_key_reached
-    
+    beq     @end_key_reached ; Now displays string ?
+    ; Yes save A (with the char to displays)
     sta     basic11_saveA
-
+    
     lda     basic11_gui_key_reached
-    beq     @skip_displays
-    sty     basic11_saveY
+    beq     @skip_displays ; skip because we are still looking to key
+    
+    lda     basic11_do_not_display 
+    bne     @skip_displays ; skip because we reached 24 software on screen
+    sty     basic11_saveY ; Save position
 
     ldy     basic11_tmp
     ; Displays
     lda     basic11_saveA
-    sta     (basic11_ptr3),y
+    sta     (basic11_ptr3),y ; Displays
     iny
     sty     basic11_tmp
 
@@ -321,7 +322,8 @@
 @read_end_of_file:    
     rts
 @end_key_reached:
-    ; Max entries 
+    ; Max entries
+
     sty     basic11_saveY
     ;jmp     @it_s_the_same_letter_to_parse
     ; Test if the next software char is equal to the current.
@@ -332,26 +334,44 @@
     cmp     basic11_first_letter_gui
     beq     @it_s_the_same_letter_to_parse
 
+    sta     $bb80+18
+    ;jsr     basic11_build_index_software
+
+    jsr     update_index
+
     rts
 @it_s_the_same_letter_to_parse:
+    lda     basic11_do_not_display 
+    bne     @skip_compute_max_current_entries ; skip because we reached 24 software on screen
+
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
     sec
     adc     #$00
     sta     (basic11_ptr4),y
-
+@skip_compute_max_current_entries:
 
     inc     basic11_gui_key_reached
     jmp     @reload_y
 
 @end_name_software_reached:
-    ;
+    ; $cd71
 
+    iny     ; skip $00 of the software
+    sty     basic11_saveY
+@L301:    
+    lda     (basic11_ptr2),y
+    cmp     #';'     ; Trying to find name software 
+    beq     @compare_letter
     iny
-    lda     (basic11_ptr2),y   
+    jmp     @L301
+@compare_letter:
+    iny
+    lda     (basic11_ptr2),y    
     cmp     basic11_first_letter_gui
     beq     @same_firt_letter
     ; test if the next letters is basic11_first_letter_gui+1
+    ldy     basic11_saveY
     tax
     inx
     cpx     basic11_first_letter_gui
@@ -369,25 +389,11 @@
 
     ldy     #basic11_gui_struct::current_entry_id
     
-
-
-    ; Trying to build index
-    lda     basic11_first_letter_gui
-    sec 
-    sbc     #'1'
-    asl
-    tay
-    clc
-    adc     #basic11_gui_struct::index
-    tay
-    lda     basic11_ptr2
-    sta     (basic11_ptr4),y
-    iny
-    lda     basic11_ptr2+1
-    sta     (basic11_ptr4),y
-
+    jsr     update_index
+ 
     rts
-@same_firt_letter:    
+@same_firt_letter:
+    ldy     basic11_saveY    
     dey
 
 
@@ -405,7 +411,6 @@
     tax ; Save Y
 
     jsr     basic11_build_index_software
-    inc     basic11_current_parse_software
     txa
 
     clc
@@ -419,13 +424,19 @@
     lda     (basic11_ptr4),y
     cmp     #24
     bne     @continue
-    rts
+
+
+    lda     #$01
+    sta     basic11_do_not_display
+
+    jmp     @next_entry
+
 @continue:
     tax
     inx
     txa
-    sta     (basic11_ptr4),y
-
+    sta     (basic11_ptr4),y  ; fill #basic11_gui_struct::number_of_lines_displayed offset
+@next_entry:
     ldy     #$00
 
     sty     basic11_tmp
@@ -456,7 +467,13 @@
     rts
 .endproc
 
+
 .proc basic11_build_index_software
+
+    ldy     #basic11_gui_struct::current_index_letter
+    
+    lda     (basic11_ptr4),y
+    sta     basic11_current_parse_software
 
     lda     #basic11_gui_struct::key_software_index_low
     clc
@@ -492,20 +509,37 @@
     rts
 .endproc
 
-.proc  basic11_display_bar_compute
 
+.proc update_index
+    ;$ce31
+    
+    ldy     basic11_gui_struct::current_index_letter
+    lda     (basic11_ptr4),y
+
+    asl
+    tay
+    clc
+    adc     #basic11_gui_struct::index
+    tay
+    lda     basic11_ptr2
+    sta     (basic11_ptr4),y
+    iny
+    lda     basic11_ptr2+1
+    sta     (basic11_ptr4),y
     rts
 .endproc
 
 .proc basic11_update_ptr_fp
-    lda     basic11_first_letter_gui
-    sec
-    sbc     #'1'
+    ; ce47
+    ;jmp basic11_update_ptr_fp
+    ldy     basic11_gui_struct::current_index_letter
+    lda     (basic11_ptr4),y
     asl
     clc
     adc     #basic11_gui_struct::index
     tay
     lda     (basic11_ptr4),y
+    ; ce53
     sta     basic11_ptr2
     iny
     lda     (basic11_ptr4),y
