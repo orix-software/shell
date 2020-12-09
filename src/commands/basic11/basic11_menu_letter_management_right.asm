@@ -8,6 +8,7 @@
 @skip:
     inc     basic11_first_letter_gui
     lda     basic11_first_letter_gui
+    ;ora     #$80
     sta     $bb80+16
 
     ldy     basic11_gui_struct::current_index_letter
@@ -26,6 +27,12 @@
     txa
     sta     (basic11_ptr4),y
 @no_move:
+    ; Displays key
+
+    
+
+
+    
 
     rts
 .endproc

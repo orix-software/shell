@@ -47,6 +47,16 @@
     jmp     @L500
 @out500:
 
+
+    ldy     #basic11_gui_struct::software_key_to_launch_low
+    lda     (basic11_ptr4),y   
+    sta     basic11_ptr3
+    
+    ldy     #basic11_gui_struct::software_key_to_launch_high
+    lda     (basic11_ptr4),y
+    sta     basic11_ptr3+1
+
+
     ldy     #$00
 @L600:    
     lda     (basic11_ptr3),y
@@ -80,6 +90,7 @@
     lda     basic11_ptr2
     ldy     basic11_ptr2+1
     BRK_KERNEL XFREE
+
 
     ldy     basic11_ptr1+1
     lda     basic11_ptr1

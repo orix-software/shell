@@ -14,6 +14,8 @@
   command_launch                      .res 7+1+1+8+1 ; basic11 "12345678\0
   key_software_index_low              .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
   key_software_index_high             .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
+  software_key_to_launch_low          .res 1
+  software_key_to_launch_high         .res 1
 .endstruct
 
 .if     .sizeof(basic11_gui_struct) > 255
@@ -105,13 +107,14 @@
 
 
 @loopinformations:
-
+    jsr     basic11_display_current_key
+@read_input:
   ;  BRK_KERNEL XWR0
     jsr     basic11_read_joystick
     cmp     #$00
     bne     @joystick_pressed
     BRK_KERNEL XRD0     ; Should be removed but when we do ctrl+c we can not launch another command after
-    bcs     @loopinformations
+    bcs    @read_input
 @joystick_pressed:
 
 
@@ -200,6 +203,39 @@
 
 .endproc
 
+.proc basic11_display_current_key
+    ldy     #basic11_gui_struct::software_key_to_launch_low
+    lda     (basic11_ptr4),y   
+    sta     basic11_ptr3
+    
+    ldy     #basic11_gui_struct::software_key_to_launch_high
+    lda     (basic11_ptr4),y
+    sta     basic11_ptr3+1
+
+
+    ldy     #$00
+    lda     #' '
+@L2:    
+
+    sta     $bb80+25,y
+    iny     
+    cpy     #$08
+    bne     @L2
+
+    ldy     #$00
+@L1:    
+    lda     (basic11_ptr3),y
+    beq     @out
+    cmp     #';'
+    beq     @out
+    sta     $bb80+25,y
+    iny     
+    bne     @L1
+
+@out:
+    rts
+.endproc
+
 .proc basic11_init_bar
     ; init posy_screen
 
@@ -274,6 +310,15 @@
     ldy     #$00
     sty     basic11_tmp 
 
+    lda     basic11_ptr2
+    ldy     #basic11_gui_struct::software_key_to_launch_low
+    sta     (basic11_ptr4),y
+
+    lda     basic11_ptr2+1
+    ldy     #basic11_gui_struct::software_key_to_launch_high
+    sta     (basic11_ptr4),y   
+    
+
 
     lda     #$00
     sta     basic11_gui_key_reached
@@ -305,8 +350,8 @@
     sty     basic11_saveY ; Save position
 
     ldy     basic11_tmp
-    cpy     #36
-    beq     @reload_y 
+    cpy     #36             ; Does the name length needs to be truncated ?
+    beq     @reload_y       ; Yes
     ; Displays
     lda     basic11_saveA
     sta     (basic11_ptr3),y ; Displays
