@@ -15,22 +15,22 @@ basic11_saveY := userzp+7 ; used in menu
 basic11_found := userzp+7 ; used in menu
 basic11_first_letter := userzp+7 ;
 
-
 basic11_stop  := userzp+8
 basic11_current_parse_software  := userzp+8
 
 basic11_fp    := userzp+9
-basic11_current_letter_index  := userzp+9 ; used in menu/gui current letter (menu only)
+
 basic11_ptr3  := userzp+11
 basic11_mainargs_ptr := userzp+11
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui:= userzp+14
 
-basic11_ptr4 := userzp+15
+basic11_ptr4 := userzp+15 ; Contains basic11 gui struct
+basic11_do_not_display := userzp+17
 
 
 .define BASIC11_PATH_DB "/var/cache/basic11/"
-.define BASIC11_MAX_MAINDB_LENGTH 10000
+.define BASIC11_MAX_MAINDB_LENGTH 12000
 
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 

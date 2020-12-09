@@ -373,16 +373,19 @@
 
     sty     basic11_saveY
     ;jmp     @it_s_the_same_letter_to_parse
-    ; Test if the next software char is equal to the current.
+    ; Test if the next software char is equal to the current. 223D
 
     ; Exit    
     iny
+;   $ce11
     lda     (basic11_ptr2),y
     cmp     basic11_first_letter_gui
     beq     @it_s_the_same_letter_to_parse
 
     sta     $bb80+18
     ;jsr     basic11_build_index_software
+    ; $ce1A
+
 
     jsr     update_index
 
@@ -434,7 +437,7 @@
 @S300:
     sta     basic11_ptr2
 
-    ldy     #basic11_gui_struct::current_entry_id
+    ldy     #basic11_gui_struct::current_entry_id ; ???
     
     jsr     update_index
  
@@ -558,8 +561,9 @@
 
 
 .proc update_index
-    ;$ce31
-    
+
+    ;$cee6
+
     ldy     basic11_gui_struct::current_index_letter
     lda     (basic11_ptr4),y
 
@@ -577,13 +581,13 @@
 .endproc
 
 .proc basic11_update_ptr_fp
-    ; ce47
+    ; cefc
     ;jmp basic11_update_ptr_fp
-    ldy     basic11_gui_struct::current_index_letter
+    ldy     basic11_gui_struct::current_index_letter ; 3705 $17
     lda     (basic11_ptr4),y
     asl
     clc
-    adc     #basic11_gui_struct::index
+    adc     #basic11_gui_struct::index ; 3735
     tay
     lda     (basic11_ptr4),y
     ; ce53

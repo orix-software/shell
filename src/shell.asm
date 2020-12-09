@@ -125,7 +125,7 @@ sh_switch_on_prompt:
 
     ; Displays current path
     BRK_KERNEL XGETCWD
-   ; sta     $6000
+    ;sta     $6000
     ;sty     $6001
 
     BRK_KERNEL XWSTR0
@@ -718,6 +718,7 @@ internal_commands_length:
 
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
+    
 
     sty     TR6
     ldy     #O_RDONLY

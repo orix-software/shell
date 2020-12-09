@@ -27,8 +27,7 @@
     lda     (basic11_ptr4),y   
     sta     basic11_ptr3
 
-@loopme:
-    jmp     @loopme
+
     ; dec : ptr is now on previous '0'
     lda     basic11_ptr3
     bne     @dec1
