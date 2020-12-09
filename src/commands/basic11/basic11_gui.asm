@@ -305,6 +305,8 @@
     sty     basic11_saveY ; Save position
 
     ldy     basic11_tmp
+    cpy     #36
+    beq     @reload_y 
     ; Displays
     lda     basic11_saveA
     sta     (basic11_ptr3),y ; Displays
