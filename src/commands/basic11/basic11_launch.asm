@@ -11,6 +11,7 @@
     lda     (basic11_ptr4),y
     sta     basic11_ptr3
     
+    ; Probably not useful
     lda     basic11_saveA
     clc
     adc     #basic11_gui_struct::key_software_index_high
@@ -21,7 +22,8 @@
 
     tay
     lda     basic11_ptr3
-    BRK_KERNEL XWSTR0
+    ;BRK_KERNEL XWSTR0
+    ; end of Probably not useful
     
     lda     basic11_ptr4
     sta     basic11_ptr1

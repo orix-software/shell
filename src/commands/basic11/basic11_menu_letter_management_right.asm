@@ -11,7 +11,7 @@
     ;ora     #$80
     sta     $bb80+16
 
-    ldy     basic11_gui_struct::current_index_letter
+    ldy     #basic11_gui_struct::current_index_letter
     lda     (basic11_ptr4),y
     tax
    

@@ -1,14 +1,19 @@
 
 .proc basic11_keydown_bar
+    ; Do  we have 0 entries ?
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
-    beq     @out
+    beq     @out ; yes : do not compute
     sta     basic11_saveY
     dec     basic11_saveY 
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     (basic11_ptr4),y
     cmp     basic11_saveY
     bne     @skip
+    ; Scroll 
+    ;ldx     #$01
+    ;ldy     #$10
+    ;BRK_KERNEL XSCROH
     rts
 @skip:
     ; add index now

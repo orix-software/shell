@@ -1,9 +1,13 @@
 
 .define BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE 26
 
+.define BASIC11_SIZE_INDEX 72 ; 26 letters 10 chars * 2
+
+
 .struct basic11_gui_struct
   current_index_letter                .res 1 
-  index                               .res 46 ; index letter
+  index                               .res BASIC11_SIZE_INDEX ; 26 letters 10 chars * 2
+  
   basic11_posy_screen                 .res 1
   number_of_lines_displayed           .res 1
   key_found                           .res 1
@@ -45,6 +49,16 @@
     ldy     #basic11_gui_struct::max_current_entries
     lda     #$00
     sta     (basic11_ptr4),y
+
+    ; Init index
+
+    ldy     #basic11_gui_struct::index
+    lda     #$00
+@init_index:    
+    sta     (basic11_ptr4),y
+    iny
+    cpy     #basic11_gui_struct::index+BASIC11_SIZE_INDEX
+    bne     @init_index
 
     ldy     #basic11_gui_struct::index
     lda     basic11_ptr1
@@ -148,7 +162,7 @@
 
 @change_letter_right:
 
-    ldy     basic11_gui_struct::current_index_letter
+    ldy     #basic11_gui_struct::current_index_letter
     lda     (basic11_ptr4),y
     cmp     #34
     beq     @loopinformations
@@ -166,23 +180,21 @@
     jmp     @manage_display
 
 @change_letter_left:
-    ldy     basic11_gui_struct::current_index_letter
+    ldy     #basic11_gui_struct::current_index_letter
     lda     (basic11_ptr4),y
     
     beq     @loopinformations    
 
+
     
     jsr     basic11_menu_letter_management_left
-
-    
-
-     
-    lda     basic11_first_letter_gui
-    
     jsr     basic11_update_ptr_fp
 
+    lda     basic11_first_letter_gui
+    
 
-    jsr     basic11_init_bar
+
+    ;jsr     basic11_init_bar
 @donot_dex:
     jmp     @manage_display
 @keyup:
@@ -196,7 +208,7 @@
     jsr     basic11_clear_menu
     
     jsr     displays_gui_list
-    jsr     basic11_init_bar   
+ 
     ;basic11_first_letter_gui
     jmp     @loopinformations
 
@@ -293,6 +305,7 @@
 
 .proc  displays_gui_list
 
+    jsr     basic11_init_bar  
     ldy     #basic11_gui_struct::number_of_lines_displayed
     lda     #$00
     sta     (basic11_ptr4),y
@@ -563,8 +576,24 @@
 .proc update_index
 
     ;$cee6
+    ; $y=$2F ($9b)
+    ;ldy     #basic11_gui_struct::current_index_letter ; $17
+    ;lda     (basic11_ptr4),y
 
-    ldy     basic11_gui_struct::current_index_letter
+    ;asl
+    ;tay
+    ;clc
+    ;adc     #basic11_gui_struct::index
+    ;tay
+    ;lda     (basic11_ptr4),y ; $3734
+    ;bne     @out
+    ;iny
+
+    ;lda     (basic11_ptr4),y
+    ;beq     @out2
+
+;@out:
+    ldy     #basic11_gui_struct::current_index_letter ; $17
     lda     (basic11_ptr4),y
 
     asl
@@ -573,17 +602,18 @@
     adc     #basic11_gui_struct::index
     tay
     lda     basic11_ptr2
-    sta     (basic11_ptr4),y
+    sta     (basic11_ptr4),y ; $3734
     iny
     lda     basic11_ptr2+1
     sta     (basic11_ptr4),y
+@out2:    
     rts
 .endproc
 
 .proc basic11_update_ptr_fp
     ; cefc
     ;jmp basic11_update_ptr_fp
-    ldy     basic11_gui_struct::current_index_letter ; 3705 $17
+    ldy     #basic11_gui_struct::current_index_letter ; 3705 $17
     lda     (basic11_ptr4),y
     asl
     clc

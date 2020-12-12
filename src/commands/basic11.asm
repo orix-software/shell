@@ -20,8 +20,8 @@ basic11_current_parse_software  := userzp+8
 
 basic11_fp    := userzp+9
 
-basic11_ptr3  := userzp+11
-basic11_mainargs_ptr := userzp+11
+basic11_ptr3  := userzp+12
+basic11_mainargs_ptr := userzp+12
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui:= userzp+14
 
@@ -597,10 +597,10 @@ basic11_do_not_display := userzp+17
     jsr     basic11_stop_via
 
 
-    ldx     #$00
+    ldx     #$98 ; to avoid to remove $99 value
     lda     #$00                                    ; FIXME 65C02
 @loop12:
-
+    sta     $00
     sta     $200,x
     dex
     bne     @loop12
