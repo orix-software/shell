@@ -17,11 +17,12 @@ basic11_first_letter := userzp+7 ;
 
 basic11_stop  := userzp+8
 basic11_current_parse_software  := userzp+8
+basic11_skip_dec  := userzp+8
 
 basic11_fp    := userzp+9
 
-basic11_ptr3  := userzp+12
-basic11_mainargs_ptr := userzp+12
+basic11_ptr3  := userzp+11
+basic11_mainargs_ptr := userzp+11
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui:= userzp+14
 

@@ -60,12 +60,6 @@
     cpy     #basic11_gui_struct::index+BASIC11_SIZE_INDEX
     bne     @init_index
 
-    ldy     #basic11_gui_struct::index
-    lda     basic11_ptr1
-    sta     (basic11_ptr4),y
-    iny
-    lda     basic11_ptr1+1
-    sta     (basic11_ptr4),y
 
 
     ldy     #basic11_gui_struct::current_index_letter
@@ -93,7 +87,16 @@
 @add_to_ptr:    
     sta     basic11_ptr2
 
-    
+    ; this block must be after the skip version DB
+    ldy     #basic11_gui_struct::index
+    lda     basic11_ptr2
+    sta     (basic11_ptr4),y
+    iny
+    lda     basic11_ptr2+1
+    sta     (basic11_ptr4),y
+    ; end of block
+
+
   
     jsr     basic11_displays_frame
 
@@ -115,7 +118,7 @@
     ; end of initial bar
 
     jsr     displays_gui_list
-    
+
     jsr     basic11_init_bar
 
 
@@ -172,6 +175,9 @@
     lda     #$00
     sta     (basic11_ptr4),y
 
+
+    lda     #$01
+    sta     basic11_skip_dec
     jsr     basic11_update_ptr_fp
     
     jsr     basic11_menu_letter_management_right
@@ -180,17 +186,20 @@
     jmp     @manage_display
 
 @change_letter_left:
-    ldy     #basic11_gui_struct::current_index_letter
+    ldy     #basic11_gui_struct::current_index_letter ; Are we on the first letter '1' ?)
     lda     (basic11_ptr4),y
     
-    beq     @loopinformations    
+    beq     @loopinformations     ; Yes we do nothing
 
 
     
     jsr     basic11_menu_letter_management_left
+
+    lda     #$00
+    sta     basic11_skip_dec
     jsr     basic11_update_ptr_fp
 
-    lda     basic11_first_letter_gui
+    ;lda     basic11_first_letter_gui
     
 
 
@@ -391,18 +400,24 @@
     ; Exit    
     iny
 ;   $ce11
-    lda     (basic11_ptr2),y
+    lda     (basic11_ptr2),y                    ; Get next entry
     cmp     basic11_first_letter_gui
-    beq     @it_s_the_same_letter_to_parse
-
+    beq     @it_s_the_same_letter_to_parse      ; if the next software name begins with the current letter then we jump
+    ; Not the same letter, we jump
     sta     $bb80+18
+    tya
+    clc
+    adc     basic11_ptr2
+    bcc     @skip200
+    inc     basic11_ptr2+1
+@skip200:    
     ;jsr     basic11_build_index_software
     ; $ce1A
 
 
-    jsr     update_index
+    jmp     update_index
 
-    rts
+    ;rts
 @it_s_the_same_letter_to_parse:
     lda     basic11_do_not_display 
     bne     @skip_compute_max_current_entries ; skip because we reached 24 software on screen
@@ -536,6 +551,10 @@
     ldy     #basic11_gui_struct::current_index_letter
     
     lda     (basic11_ptr4),y
+    
+    clc
+    adc     #$01
+
     sta     basic11_current_parse_software
 
     lda     #basic11_gui_struct::key_software_index_low
@@ -592,15 +611,22 @@
     ;lda     (basic11_ptr4),y
     ;beq     @out2
 
-;@out:
+@out:
+    ;jmp     @out
+
     ldy     #basic11_gui_struct::current_index_letter ; $17
     lda     (basic11_ptr4),y
+    clc
+    adc     #$01
 
     asl
     tay
     clc
     adc     #basic11_gui_struct::index
     tay
+    
+    
+
     lda     basic11_ptr2
     sta     (basic11_ptr4),y ; $3734
     iny
@@ -613,8 +639,22 @@
 .proc basic11_update_ptr_fp
     ; cefc
     ;jmp basic11_update_ptr_fp
+
     ldy     #basic11_gui_struct::current_index_letter ; 3705 $17
     lda     (basic11_ptr4),y
+    beq     @not_the_first_letter
+
+
+
+
+
+@not_the_first_letter:
+    ldx     basic11_skip_dec
+    beq     @100    
+    clc
+    adc     #$01
+@100:
+
     asl
     clc
     adc     #basic11_gui_struct::index ; 3735
@@ -625,6 +665,8 @@
     iny
     lda     (basic11_ptr4),y
     sta     basic11_ptr2+1
+
+
 
     rts
 .endproc    
