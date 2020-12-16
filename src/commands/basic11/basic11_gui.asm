@@ -199,11 +199,6 @@
     sta     basic11_skip_dec
     jsr     basic11_update_ptr_fp
 
-    ;lda     basic11_first_letter_gui
-    
-
-
-    ;jsr     basic11_init_bar
 @donot_dex:
     jmp     @manage_display
 @keyup:
@@ -218,7 +213,7 @@
     
     jsr     displays_gui_list
  
-    ;basic11_first_letter_gui
+
     jmp     @loopinformations
 
 
@@ -257,6 +252,13 @@
     rts
 .endproc
 
+
+.include "basic11_launch.asm"
+.include "basic11_clear_menu.asm"
+.include "basic11_displays_frame.asm"
+.include "basic11_menu_letter_management_right.asm"
+.include "basic11_menu_letter_management_left.asm"
+
 .proc basic11_init_bar
     ; init posy_screen
 
@@ -264,16 +266,12 @@
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     #$00
     sta     (basic11_ptr4),y
-    jmp     compute_position_bar
+
    
-    
+    ; no rts 
 .endproc
 
-.include "basic11_launch.asm"
-.include "basic11_clear_menu.asm"
-.include "basic11_displays_frame.asm"
-.include "basic11_menu_letter_management_right.asm"
-.include "basic11_menu_letter_management_left.asm"
+; Don't put any routine here, because previous proc needs to go to compute_position_bar
 
 .proc compute_position_bar
     lda     #>($bb80+40+1)

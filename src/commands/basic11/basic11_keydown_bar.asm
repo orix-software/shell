@@ -3,17 +3,34 @@
     ; Do  we have 0 entries ?
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
-    beq     @out ; yes : do not compute
+    beq     @myout ; yes : do not compute
     sta     basic11_saveY
     dec     basic11_saveY 
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     (basic11_ptr4),y
     cmp     basic11_saveY
     bne     @skip
-    ; Scroll 
-    ;ldx     #$01
-    ;ldy     #$10
-    ;BRK_KERNEL XSCROH
+    cmp     #24
+    beq     @scroll
+@myout:    
+    rts
+@scroll:
+    ; erase_red_bar
+    ; Scroll
+    lda     #$10
+    sta     $bb80+1001
+
+    ldx     #$01
+    ldy     #25
+    BRK_KERNEL XSCROH
+    lda     #'|'
+    sta     $bb80+1000
+    sta     $bb80+1000+39
+    ; and displays again bar
+    lda     #$11
+    sta     $bb80+1001
+    lda     #$10
+    sta     $bb80+1000+38
     rts
 @skip:
     ; add index now

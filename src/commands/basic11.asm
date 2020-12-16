@@ -1,5 +1,7 @@
 .export _basic11
 
+.define basic11_color_bar $11
+
 basic11_tmp   := userzp  ; One byte (used in gui)
 basic11_ptr1  := userzp+1 ; Two bytes
 basic11_ptr2  := userzp+3 ; Two bytes
