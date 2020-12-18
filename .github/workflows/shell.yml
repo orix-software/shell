@@ -6,8 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Build
-      run: mkdir -p build/usr/src/shell/src/
-
+      run: |
+        git clone https://github.com/cc65/cc65.git
+        ls
+        cd cc65 && make && make install && cd ..
+        ls
+        mkdir -p build/usr/src/shell/src/
 #    - sudo apt-get update -qq
 #    - mkdir -p build/usr/src/shell/src/
 #    - mkdir -p build/usr/share/man/
