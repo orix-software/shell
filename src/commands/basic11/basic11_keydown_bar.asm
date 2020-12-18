@@ -15,6 +15,7 @@
 @myout:    
     rts
 @scroll:
+
     ; erase_red_bar
     ; Scroll
     lda     #$10
@@ -31,20 +32,85 @@
     sta     $bb80+1001
     lda     #$10
     sta     $bb80+1000+38
+    ; Now displays software
+
+;@loopme:
+    ;jmp     @loopme
+
+    ldy     #basic11_gui_struct::current_entry_id
+    lda     (basic11_ptr4),y
+    clc
+    adc     #$01
+    sta     (basic11_ptr4),y
+
+
+    ldy     #basic11_gui_struct::current_entry_id 
+ 
+    lda     (basic11_ptr4),y
+    sta     basic11_current_parse_software
+
+    ;tax
+    ldy     #basic11_gui_struct::key_software_index_low
+    tya
+    clc
+    adc     basic11_current_parse_software
+    tay
+    lda     (basic11_ptr4),y
+    sta     basic11_ptr3
+
+    ldy     #basic11_gui_struct::key_software_index_high
+    tya
+    clc
+    adc     basic11_current_parse_software
+    tay
+    lda     (basic11_ptr4),y
+    sta     basic11_ptr3+1
+    
+
+    ldy     #basic11_gui_struct::software_key_to_launch_low
+    lda     basic11_ptr3
+    sta     (basic11_ptr4),y   
+    
+    
+    ldy     #basic11_gui_struct::software_key_to_launch_high
+    lda     basic11_ptr3+1
+    sta     (basic11_ptr4),y
+    
+    ldy     #$FF
+@L1:
+    iny    
+    lda     (basic11_ptr3),y
+    cmp     #';'
+    bne     @L1
+    iny
+    ldx     #$00
+@L2000:
+
+    lda     (basic11_ptr3),y
+    beq     @out500
+    sta     $bb80+40*25+2,x
+    inx
+    cpx     #35         ; Cut title (35 chars)
+    beq     @out500
+    iny
+
+    bne     @L2000
+@out500:    
+
+  ;key_software_index_low              .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
+  ;key_software_index_high             .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
+
     rts
 @skip:
+    ;jmp     @skip
     ; add index now
     ldy     #basic11_gui_struct::current_entry_id
     lda     (basic11_ptr4),y
-    sec
-    adc     #$00
+    clc
+    adc     #$01
     sta     (basic11_ptr4),y
 
 
-    lda     (basic11_ptr4),y
-    sec
-    adc     #$00
-    sta     (basic11_ptr4),y
 
     jsr     compute_position_bar
     pha
@@ -93,6 +159,9 @@
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     basic11_ptr3+1
     sta     (basic11_ptr4),y
+
+
+
 
 @out:
     ; Compute software

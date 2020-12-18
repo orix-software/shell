@@ -26,6 +26,14 @@
     ;dex
     txa
     sta     (basic11_ptr4),y
+
+    ; reset now       #basic11_gui_struct::current_entry_id ; ???
+
+    ldy     #basic11_gui_struct::current_entry_id ; ???
+    lda     #$00
+    sta     (basic11_ptr4),y
+
+
 @no_move:
 
     rts

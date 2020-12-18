@@ -14,10 +14,7 @@
     jsr     compute_position_bar
 
     jsr     displays_bar    
-
-
     ; Compute key
-    
     
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
@@ -73,6 +70,11 @@
     lda     basic11_ptr3+1
     sta     (basic11_ptr4),y
 
+    ldy     #basic11_gui_struct::current_entry_id 
+    lda     (basic11_ptr4),y
+    sec
+    sbc     #$01
+    sta     (basic11_ptr4),y
 
 @out:
     rts

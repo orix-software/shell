@@ -1,5 +1,5 @@
 
-.define BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE 26
+.define BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE 75
 
 .define BASIC11_SIZE_INDEX 72 ; 26 letters 10 chars * 2
 
@@ -13,7 +13,6 @@
   key_found                           .res 1
   max_current_entries                 .res 1
   current_entry_id                    .res 1
-  current_key                         .res 8
 
   command_launch                      .res 7+1+1+8+1 ; basic11 "12345678\0
   key_software_index_low              .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
@@ -119,6 +118,12 @@
 
     jsr     displays_gui_list
 
+    ldy     #basic11_gui_struct::current_entry_id
+    lda     #$00
+    lda     (basic11_ptr4),y
+
+
+
     jsr     basic11_init_bar
 
 
@@ -212,7 +217,9 @@
     jsr     basic11_clear_menu
     
     jsr     displays_gui_list
- 
+    ldy     #basic11_gui_struct::current_entry_id ; ???
+    lda     #$00
+    sta     (basic11_ptr4),y 
 
     jmp     @loopinformations
 
@@ -347,6 +354,11 @@
     ;       index first software
     jsr     basic11_build_index_software
 
+    ldy     #basic11_gui_struct::current_entry_id
+    lda     #$00
+    sta     (basic11_ptr4),y
+
+
     ldx     #$00
     ldy     #$00
 ;$cd2C
@@ -422,8 +434,8 @@
 
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
-    sec
-    adc     #$00
+    clc
+    adc     #$01
     sta     (basic11_ptr4),y
 @skip_compute_max_current_entries:
 
@@ -486,7 +498,14 @@
     tya
     tax ; Save Y
 
-    jsr     basic11_build_index_software
+    
+    ;        inc #basic11_gui_struct::current_entry_id
+    ldy     #basic11_gui_struct::current_entry_id
+    lda     (basic11_ptr4),y
+    clc
+    adc     #$01
+    sta     (basic11_ptr4),y
+    
     txa
 
     clc
@@ -496,16 +515,18 @@
 @S10:
     sta     basic11_ptr2
 
+    jsr     basic11_build_index_software
+
     ldy     #basic11_gui_struct::number_of_lines_displayed
     lda     (basic11_ptr4),y
     cmp     #24
     bne     @continue
 
 
-    lda     #$01
-    sta     basic11_do_not_display
+    ldx     #$01
+    stx     basic11_do_not_display
 
-    jmp     @next_entry
+  ; jmp     @next_entry
 
 @continue:
     tax
@@ -545,29 +566,49 @@
 
 
 .proc basic11_build_index_software
-
-    ldy     #basic11_gui_struct::current_index_letter
+    ;jmp   basic11_build_index_software
+    ; $4D
     
+    ldy     #basic11_gui_struct::current_entry_id
+        ; $3705+$4d
     lda     (basic11_ptr4),y
-    
-    clc
-    adc     #$01
-
     sta     basic11_current_parse_software
 
-    lda     #basic11_gui_struct::key_software_index_low
-    clc
-    adc     basic11_current_parse_software
-    tay
-    lda     basic11_ptr2
-    sta     (basic11_ptr4),y
-    
-    lda     #basic11_gui_struct::key_software_index_high
+    lda     #basic11_gui_struct::key_software_index_high ; $AB
     clc
     adc     basic11_current_parse_software
     tay
     lda     basic11_ptr2+1
-    sta     (basic11_ptr4),y
+    sta     (basic11_ptr4),y ; $AB ($08)
+    tya
+    pha
+
+    lda     #basic11_gui_struct::key_software_index_low ;$60
+    clc
+    adc     basic11_current_parse_software
+    tay 
+@skip:
+    lda     #$00
+    sta     basic11_current_parse_software
+
+    lda     basic11_ptr2
+    clc
+    adc     #$01
+    bcc     @skip2    
+    lda     #$01
+    sta     basic11_current_parse_software
+@skip2:    
+    sta     (basic11_ptr4),y   ; $25 ($3705+#60)
+    
+    pla
+    tay
+  
+    
+    lda     (basic11_ptr4),y ; $AB ($08)    
+    clc
+    adc     basic11_current_parse_software
+    sta     (basic11_ptr4),y ; $AB ($08)    
+    
     rts
 .endproc
 
