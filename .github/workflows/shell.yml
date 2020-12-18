@@ -31,7 +31,7 @@ jobs:
         mkdir -p build/usr/share/shell/
         #cp data/USR/SHARE/FONTS/* build/usr/share/fonts/ -adpR
         cp shellsd.rom build/usr/share/shell/
-        sh tools/builddocs.sh
+        #sh tools/builddocs.sh
         cp Makefile build/usr/src/shell/
         cp README.md build/usr/src/shell/
         cp src/* build/usr/src/shell/src/ -adpR
