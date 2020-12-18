@@ -1,7 +1,19 @@
 .proc basic11_keyup_bar
-    ldy    #basic11_gui_struct::basic11_posy_screen
+
+    
+    ldy     #basic11_gui_struct::current_entry_id
+    lda     (basic11_ptr4),y
+    beq     @out
+   
+    ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
     lda    (basic11_ptr4),y
-    beq    @out
+    bne    @manage_position
+    
+    ldx     #$01
+    ldy     #25
+    BRK_KERNEL XSCROB
+
+@manage_position:
     jsr    compute_position_bar
     pha
     jsr     erase_bar

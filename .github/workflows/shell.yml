@@ -9,7 +9,7 @@ jobs:
     - name: Build
       run: |
         git clone https://github.com/cc65/cc65.git
-        cd cc65 && make install PREFIX=/usr && cd ..
+        cd cc65 && make && make install PREFIX=/usr && cd ..
         echo $PATH
         make
         ls
