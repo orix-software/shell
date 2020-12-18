@@ -13,7 +13,7 @@ jobs:
         cd cc65 && make && make install PREFIX=~/local && cd ..
         pwd
         echo $PATH
-        PATH=$PATH:`pwd`/local/bin
+        PATH=$PATH:/home/runner/local/bin
         echo $PATH
         make
         ls
