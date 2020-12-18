@@ -8,8 +8,7 @@ jobs:
     - name: Build
       run: |
         git clone https://github.com/cc65/cc65.git
-        ls
-        cd cc65 && make && make install && cd ..
+        cd cc65 && make && cd ..
         ls
         mkdir -p build/usr/src/shell/src/
 #    - sudo apt-get update -qq
