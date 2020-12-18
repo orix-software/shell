@@ -3,15 +3,49 @@
     
     ldy     #basic11_gui_struct::current_entry_id
     lda     (basic11_ptr4),y
-    beq     @out
+    beq     @out3
    
     ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
     lda    (basic11_ptr4),y
     bne    @manage_position
     
+    lda     #$10
+    sta     $bb80+40+1
+
     ldx     #$01
     ldy     #25
     BRK_KERNEL XSCROB
+    lda     #'|'
+    sta     $bb80+40
+    sta     $bb80+40+39
+    ; and displays again bar
+    lda     #$11
+    sta     $bb80+40+1
+    lda     #$10
+    sta     $bb80+40+38
+
+    ldy     #basic11_gui_struct::current_entry_id
+    lda     (basic11_ptr4),y
+    sec
+    sbc     #$01
+    sta     (basic11_ptr4),y
+
+    jsr     basic11_compute_software_to_display
+@L2000:
+
+    lda     (basic11_ptr3),y
+    beq     @out500
+    sta     $bb80+40+2,x
+    inx
+    cpx     #35         ; Cut title (35 chars)
+    beq     @out500
+    iny
+
+    bne     @L2000
+@out500:    
+   ; jsr     basic11_key_to_launch
+@out3:
+    rts
 
 @manage_position:
     jsr    compute_position_bar
@@ -27,60 +61,6 @@
 
     jsr     displays_bar    
     ; Compute key
-    
-    ldy     #basic11_gui_struct::software_key_to_launch_high
-    lda     (basic11_ptr4),y
-    sta     basic11_ptr3+1
-
-    ldy     #basic11_gui_struct::software_key_to_launch_low
-    lda     (basic11_ptr4),y   
-    sta     basic11_ptr3
-
-
-    ; dec : ptr is now on previous '0'
-    lda     basic11_ptr3
-    bne     @dec1
-    dec     basic11_ptr3+1
-@dec1:
-    dec     basic11_ptr3
-
-; dec : ptr is now brefore previous '0'
-    lda     basic11_ptr3
-    bne     @dec2
-    dec     basic11_ptr3+1
-@dec2:
-    dec     basic11_ptr3
-
-
-
-    ldy     #$00
-@L1000:    
-    lda     (basic11_ptr3),y
-    beq     @out2
-    
-    lda     basic11_ptr3
-    bne     @dec3
-    dec     basic11_ptr3+1
-@dec3:
-    dec     basic11_ptr3
-    jmp     @L1000
- @out2:  
-
-    inc     basic11_ptr3
-    bcc     @inc1
-    inc     basic11_ptr3+1
-@inc1:
-    
-
-
-    ldy     #basic11_gui_struct::software_key_to_launch_low
-    lda     basic11_ptr3
-    sta     (basic11_ptr4),y   
-    
-    
-    ldy     #basic11_gui_struct::software_key_to_launch_high
-    lda     basic11_ptr3+1
-    sta     (basic11_ptr4),y
 
     ldy     #basic11_gui_struct::current_entry_id 
     lda     (basic11_ptr4),y
@@ -88,6 +68,13 @@
     sbc     #$01
     sta     (basic11_ptr4),y
 
+    jsr     basic11_compute_software_to_display
+
+   
+
+
+
 @out:
     rts
 .endproc
+
