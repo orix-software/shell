@@ -14,7 +14,9 @@ jobs:
     - name: Build
       run: |
         git clone https://github.com/cc65/cc65.git
-        mkdir local
+        git clone https://github.com/assinie/md2hlp.git
+        mkdir -p local/bin
+        cp  md2hlp/src/md2hlp.py local/bin
         cd cc65 && make && make install PREFIX=~/local && cd ..
         pwd
         echo $PATH
