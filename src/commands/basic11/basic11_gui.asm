@@ -589,16 +589,24 @@
     clc
     adc     basic11_current_parse_software
     tay 
-@skip:
+
     lda     #$00
-    sta     basic11_current_parse_software
+    sta     basic11_saveA
 
     lda     basic11_ptr2
+    
+    ldx     basic11_current_parse_software
+    beq     @do_not_inc ; First software of the letter, we don't need to skip \0
+    
+
     clc
-    adc     #$01
-    bcc     @skip2    
+    adc     #$01 ; Skip
+    bcc     @skip2
+ ;   pha
     lda     #$01
-    sta     basic11_current_parse_software
+    sta     basic11_saveA
+  ;  pla
+@do_not_inc:  
 @skip2:    
     sta     (basic11_ptr4),y   ; $25 ($3705+#60)
     
@@ -608,7 +616,7 @@
     
     lda     (basic11_ptr4),y ; $AB ($08)    
     clc
-    adc     basic11_current_parse_software
+    adc     basic11_saveA
     sta     (basic11_ptr4),y ; $AB ($08)    
     
     rts
