@@ -432,11 +432,7 @@
     lda     basic11_do_not_display 
     bne     @skip_compute_max_current_entries ; skip because we reached 24 software on screen
 
-    ldy     #basic11_gui_struct::max_current_entries
-    lda     (basic11_ptr4),y
-    clc
-    adc     #$01
-    sta     (basic11_ptr4),y
+
 @skip_compute_max_current_entries:
 
     inc     basic11_gui_key_reached
@@ -506,6 +502,12 @@
     adc     #$01
     sta     (basic11_ptr4),y
     
+    ldy     #basic11_gui_struct::max_current_entries
+    lda     (basic11_ptr4),y
+    clc
+    adc     #$01
+    sta     (basic11_ptr4),y
+
     txa
 
     clc

@@ -4,17 +4,26 @@
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
     beq     @myout ; yes : do not compute
-    sta     basic11_saveY
-    dec     basic11_saveY 
-    ldy     #basic11_gui_struct::basic11_posy_screen
+
+    ldy     #basic11_gui_struct::current_entry_id
     lda     (basic11_ptr4),y
-    cmp     basic11_saveY
-    bne     @skip
     cmp     #24
-    beq     @scroll
+    bcs     @scroll
+    jmp     @skip
+
+
 @myout:    
     rts
 @scroll:
+
+    ldy     #basic11_gui_struct::max_current_entries
+    lda     (basic11_ptr4),y
+    sta     basic11_saveY
+
+    ldy     #basic11_gui_struct::current_entry_id
+    lda     (basic11_ptr4),y
+    cmp     basic11_saveY
+    beq     @myout
 
     ; erase_red_bar
     ; Scroll
