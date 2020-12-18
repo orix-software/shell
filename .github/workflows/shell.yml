@@ -9,10 +9,11 @@ jobs:
     - name: Build
       run: |
         git clone https://github.com/cc65/cc65.git
-        make bin/
+        mkdir bin/
         cd cc65 && make && make install PREFIX=../bin && cd ..
         pwd
         echo $PATH
+        PATH=$PATH:`pwd`/bin
         make
         ls
         mkdir -p build/usr/src/shell/src/
