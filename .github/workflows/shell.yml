@@ -6,6 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
+      with:
+        remote: true    
+
     - name: Build
       run: |
         git clone https://github.com/cc65/cc65.git
