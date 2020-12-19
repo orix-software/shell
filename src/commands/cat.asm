@@ -1,23 +1,23 @@
 .export _cat
 
 .proc _cat
-    ldx #$01
-    jsr _orix_get_opt
-    bcc print_usage
+    ldx      #$01
+    jsr     _orix_get_opt
+    bcc     print_usage
 
-    jsr _ch376_verify_SetUsbPort_Mount
+    jsr     _ch376_verify_SetUsbPort_Mount
     ;cmp #$01
     ;BEQ cat_error_param
     ; Suppose que _ch376_verify_SetUsbPort_Mount renvoie C=1 si tout va bien
-    bcc cat_error_param
+    bcc     cat_error_param
 
-    jsr _cd_to_current_realpath_new
+    jsr     _cd_to_current_realpath_new
 
-    ldx #$01
-    jsr _orix_get_opt
+    ldx     #$01
+    jsr     _orix_get_opt
 
     STRCPY  ORIX_ARGV,BUFNOM
-    jsr _ch376_set_file_name
+    jsr     _ch376_set_file_name
 
     jsr _ch376_file_open
     cmp #CH376_ERR_MISS_FILE

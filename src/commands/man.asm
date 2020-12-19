@@ -8,7 +8,7 @@
     ; 
     MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+4)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
-    TEST_OOM_AND_MAX_MALLOC
+    TEST_OOM
 
 start_man:   
     sta     MAN_SAVE_MALLOC_PTR

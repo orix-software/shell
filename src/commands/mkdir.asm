@@ -94,7 +94,7 @@ mkdir_malloc_ptr       := userzp+1 ; .word
     BRK_KERNEL XMKDIR
     rts
 @missing_operand:
-    PRINT mkdir
+    PRINT str_mkdir
     PRINT str_missing_operand
     rts
 .endproc

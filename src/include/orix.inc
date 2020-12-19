@@ -129,6 +129,23 @@ ORIX_ARGC:
 @TEST_OOM_AND_MAX_MALLOC: 
 .endmacro
 
+; This macro must be placed after MALLOC call
+.macro TEST_OOM
+    ; check if malloc is null, if it's equal, displays Out of Memory
+    cmp     #NULL
+    bne     *+15
+    cpy     #NULL
+    bne     *+11
+    lda     #<str_out_of_memory
+    ldy     #>str_out_of_memory
+    BRK_KERNEL XWSTR0
+    BRK_KERNEL XCRLF
+    ; We reached OOM
+    rts
+
+.endmacro
+
+
 .macro  CGETC
     BRK_KERNEL XRDW0 
 .endmacro    
@@ -137,6 +154,14 @@ ORIX_ARGC:
   lda #<size
   ldy #>size
   BRK_KERNEL XMALLOC
+.endmacro
+
+
+.macro MALLOC_AND_TEST_OOM_EXIT size 
+  lda #<size
+  ldy #>size
+  BRK_KERNEL XMALLOC
+  TEST_OOM
 .endmacro
 
 .macro CPUTC char

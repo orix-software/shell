@@ -5,9 +5,10 @@ before_install:
     - sudo pip install --upgrade pip
     - sudo apt-get install mkdocs
     - git clone https://github.com/orix-software/orix-software.github.io.git
-    - git clone https://github.com/oric-software/buildTestAndRelease.git
-    - cd buildTestAndRelease/ && sh make.sh
-    - cd ..
+    #- git clone https://github.com/oric-software/buildTestAndRelease.git
+    #- cd buildTestAndRelease/ && sh make.sh
+    #- cd ..
+    #- ca65 -V
 after_success:
     - mkdir -p build/usr/src/shell/src/
     - mkdir -p build/usr/share/man/

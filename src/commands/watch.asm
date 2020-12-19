@@ -1,48 +1,93 @@
 .export _watch
 
-save_mainargs_ptr:=userzp
-
+save_mainargs_ptr  := userzp
+watch_ptr1         := userzp+2
+watch_ptr2         := userzp+4
 
 .proc _watch
     ldx     #$01
     jsr     _orix_get_opt
+    
+
+    MALLOC_AND_TEST_OOM_EXIT 100 
+    sta     save_mainargs_ptr
+    sty     save_mainargs_ptr+1
+    
+    ldx     #$01
+    jsr     _orix_get_opt
     bcc     @usage
-@L1: 
+
     lda     #<ORIX_ARGV
-    ldy     #>ORIX_ARGV
+    sta     watch_ptr1
+    lda     #>ORIX_ARGV
+    sta     watch_ptr1+1
+    
+
+
+    ; copy command
+    ldy     #$00
+@L5:
+    lda     (watch_ptr1),y
+    beq     @S3
+    sta     (save_mainargs_ptr),y
+    iny
+    bne     @L5
+@S3:
+    sta     (save_mainargs_ptr),y
+
+    lda     save_mainargs_ptr
+    ldy     save_mainargs_ptr+1
+    BRK_KERNEL XWSTR0
+    SWITCH_OFF_CURSOR
+@L1:
+    asl     KBDCTC
+    bcc     @no_ctrl
+
+    SWITCH_ON_CURSOR
+
+    
+    rts
+
+@no_ctrl:
+    jsr     _clrscr
+
+    lda     save_mainargs_ptr
+    ldy     save_mainargs_ptr+1
 
     BRK_KERNEL XEXEC
+    cmp     #ENOENT
+    beq     @notfound
+    jsr     @wait
     jmp     @L1
+
+@notfound:
+    lda     save_mainargs_ptr
+    ldy     save_mainargs_ptr+1
+    BRK_KERNEL XWSTR0 
+    PRINT str_not_found
+    rts
 
 @usage:    
     rts
-    PRINT   str_argc
-
-    BRK_KERNEL $2C ; XMAINARGS
-    ; Return in A & Y struct
-    ; save ptr
-    sta save_mainargs_ptr
-    sty save_mainargs_ptr+1
+ 
 
 
-    BRK_KERNEL $2D ; XGETARGC
-    PRINT_BINARY_TO_DECIMAL_16BITS 2
-    RETURN_LINE 
-    PRINT str_param
+@wait:
+    ldy     #$00
     ldx     #$00
-    lda     save_mainargs_ptr
-    ldy     save_mainargs_ptr+1
-    BRK_KERNEL $2E ; XGETARGV
-    BRK_KERNEL XWSTR0 
-    RETURN_LINE 
-    
-    ldx     #$01
-    lda     save_mainargs_ptr
-    ldy     save_mainargs_ptr+1
-    BRK_KERNEL $2E ; XGETARGV
-    BRK_KERNEL XWSTR0 
-    RETURN_LINE 
-
+@lwait:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    inx
+    bne     @lwait
+    iny
+    bne     @lwait
     rts
 str_argc:
     .asciiz "Argc: "  

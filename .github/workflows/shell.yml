@@ -1,0 +1,46 @@
+name: shell
+on: [push]
+
+jobs:
+  ubuntu-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
+      with:
+        remote: true    
+
+    - name: Build
+      run: |
+        git clone https://github.com/cc65/cc65.git
+        git clone https://github.com/assinie/md2hlp.git
+        mkdir -p local/bin
+        cp  md2hlp/src/md2hlp.py local/bin
+        cd cc65 && make && make install PREFIX=~/local && cd ..
+        pwd
+        echo $PATH
+        PATH=$PATH:/home/runner/local/bin
+        echo $PATH
+        make
+        ls
+        mkdir -p build/usr/src/shell/src/
+        mkdir -p build/usr/share/man/
+        mkdir -p build/usr/share/man/
+        mkdir -p build/usr/share/fonts/
+        mkdir -p build/usr/share/shell/
+        #cp data/USR/SHARE/FONTS/* build/usr/share/fonts/ -adpR
+        cp shellsd.rom build/usr/share/shell/
+        #sh tools/builddocs.sh
+        cp Makefile build/usr/src/shell/
+        cp README.md build/usr/src/shell/
+        cp src/* build/usr/src/shell/src/ -adpR
+        cd build && tar -c * > ../shell.tar && cd ..
+        gzip shell.tar
+        mv shell.tar.gz shell.tgz
+        GITHUB_BRANCH=${{ github.ref }}
+        echo $GITHUB_BRANCH
+        if [ "$GITHUB_BRANCH" = "master" ]; then VERSION=`cat VERSION`; else VERSION=alpha; fi
+        echo $VERSION
+        echo $hash
+    #- curl -X POST --data-binary '@shell.tgz' "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/$VERSION/tgz/6502/shell.tgz"

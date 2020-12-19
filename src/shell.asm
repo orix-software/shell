@@ -11,7 +11,9 @@
 .include   "dependencies/kernel/src/include/files.inc"
 .include   "dependencies/twilighte/src/include/io.inc"
 
-;.include   "dependencies/orix-sdk/macros/strnxxx.mac"
+.include   "dependencies/orix-sdk/macros/SDK.mac"
+
+
 
 bash_struct_ptr              :=userzp ; 16bits
 sh_esc_pressed               :=userzp+2
@@ -26,6 +28,9 @@ sh_ptr1                      :=userzp+12
 STORE_CURRENT_DEVICE :=$99
 
 XEXEC = $63
+XMAINARGS = $2C
+XMAINARGS_GETV = $2E
+XGETARGV = $2E
 
 BASH_NUMBER_OF_USERZP = 8
 
@@ -79,8 +84,14 @@ start_sh_interactive:
 
 ;****************************************************************************/
 start_prompt_and_jump_a_line:
+    ; Flush keyboard buffer
 
 start_prompt:
+
+    ldx     #$00
+    BRK_KERNEL XVIDBU
+
+
     lda     #$00
     sta     sh_esc_pressed
 
@@ -114,6 +125,8 @@ sh_switch_on_prompt:
 
     ; Displays current path
     BRK_KERNEL XGETCWD
+    ;sta     $6000
+    ;sty     $6001
 
     BRK_KERNEL XWSTR0
     
@@ -125,7 +138,12 @@ start_commandline:
     sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
 
     BRK_KERNEL XRDW0            ; read keyboard
+    asl     KBDCTC
+    bcc     @checkkey
+    BRK_KERNEL XCRLF
+    jmp     start_prompt   
 
+@checkkey:    
     cmp     #KEY_LEFT
     beq     start_commandline    ; left key not managed
     cmp     #KEY_RIGHT
@@ -153,7 +171,7 @@ start_commandline:
     beq     @key_esc_routine 
 
     ldx     sh_length_of_command_line  ; get the length of the current line
-    cpx     #BASH_MAX_LENGTH_COMMAND_LINE-1 ; do we reach the size of command line buffer ?
+    cpx     #(BASH_MAX_LENGTH_COMMAND_LINE-1) ; do we reach the size of command line buffer ?
     beq     start_commandline    ; yes restart command line until enter or del keys are pressed, but
     BRK_KERNEL XWR0             ; write key on the screen (it's really a key pressed
 
@@ -169,7 +187,7 @@ start_commandline:
     adc     #shell_bash_struct::command_line
     tay
     pla
-    sta    (bash_struct_ptr),y
+    sta     (bash_struct_ptr),y
     iny
 
     ldx     sh_length_of_command_line               ; get the position on the command line
@@ -179,11 +197,11 @@ start_commandline:
 .IFPC02
 .pc02         
     
-    sta    (bash_struct_ptr),y
+    sta     (bash_struct_ptr),y
 .p02    
 .else
     lda     #$00
-    sta    (bash_struct_ptr),y
+    sta     (bash_struct_ptr),y
 .endif		
 
     jmp     start_commandline    ; and loop interpreter
@@ -205,7 +223,7 @@ start_commandline:
     
     txa
     clc
-    adc    #shell_bash_struct::command_line
+    adc     #shell_bash_struct::command_line
     tay
 
     lda    #$00                 ; remove last char FIXME 65c02
@@ -242,7 +260,12 @@ start_commandline:
     sta    bash_struct_command_line_ptr
     sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
 
+    ; jsr    _history
+
+    ;lda    bash_struct_command_line_ptr
+    ;ldy    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
     jsr    _bash
+
     cmp    #EOK
     bne    @call_xexec
     jmp    start_prompt
@@ -258,6 +281,7 @@ start_commandline:
     BRK_KERNEL XEXEC
     cmp    #EOK
     beq    @S20
+
     ; display error
     ;cmp    #ENOENT 
     ;bne    @print_not_found_command
@@ -684,6 +708,9 @@ internal_commands_length:
 .include "lib/strlen.asm"
 .include "lib/fread.asm"
 .include "lib/get_opt.asm"
+.include "lib/get_opt2.asm"
+.include "lib/_clrscr.asm"
+
 ; hardware
 .include "lib/ch376.s"
 .include "lib/ch376_verify.s"
@@ -691,23 +718,9 @@ internal_commands_length:
 
 _cd_to_current_realpath_new:
     BRK_KERNEL XGETCWD ; Return A and Y the string
+    
+
     sty     TR6
-    ;pha
-    ;sta     RES
-    ;sty     RES+1
-
-;    ldy     #$00
-;@myloop:    
-    ;lda     (RES),y
-    ;beq     @out
-    ;sta     $bb80,y
-    ;iny
-    ;bne     @myloop
-
-;@out:
-    ;pla
-
-
     ldy     #O_RDONLY
     ldx     TR6
     BRK_KERNEL XOPEN
@@ -1303,7 +1316,7 @@ meminfo:
 .endif    
 ; 24
 .ifdef WITH_MKDIR
-mkdir:
+str_mkdir:
     .asciiz "mkdir"
 .endif    
 ; 25
@@ -1445,7 +1458,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2020.4"
+    .asciiz  "Shell v2021.1"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
@@ -1456,8 +1469,12 @@ cpu_build:
 cpu_build_:
     .asciiz "6502"
 .endif
-    .include "tables/text_first_line_adress.asm"  
+
 ; .include "tables/malloc_table.asm"  
+end_rom:
+.out   .sprintf("Size of ROM : %d bytes", end_rom-$c000)
+
+;.out     .sprintf("kernel_end_of_memory_for_kernel (malloc will start at this adress) : %x", kernel_end_of_memory_for_kernel)
 
     .res $FFF1-*
     .org $FFF1

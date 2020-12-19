@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/orix-software/shell.svg?branch=master)](https://travis-ci.org/orix-software/shell)
+Github action : ![shell](https://github.com/orix-software/shell/workflows/shell/badge.svg)
+
+Travis : [![Build Status](https://travis-ci.org/orix-software/shell.svg?branch=master)](https://travis-ci.org/orix-software/shell)
 
 Maintainers :
 

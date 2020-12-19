@@ -17,37 +17,37 @@ XORIX_STRUCT_ptr:=userzp
 ;unsigned char posx;
 ;unsigned char posy;
 ;ptr1_tmp   := userzp+2
-pos_cursor := userzp+4
+pos_cursor     := userzp+4
 
-posx         := userzp+2
-posy         := userzp+6
+posx           := userzp+2
+posy           := userzp+6
 
 posx_old       := userzp+7
 posy_old       := userzp+8
 
-cursor       := userzp+9
+cursor         := userzp+9
 cursor_read_sprite       := userzp+12
 posx_byte_cur       := userzp+13
 
 
 
   BRK_KERNEL XHIRES
-  MALLOC .sizeof(xorix_struct)
+  malloc .sizeof(xorix_struct)
   sta XORIX_STRUCT_ptr
   sty XORIX_STRUCT_ptr+1
   ; init pos
 
-  ldx #10
-  stx posx
-  stx posx_old
+  ldx     #10
+  stx     posx
+  stx     posx_old
 
-  ldx #10
-  stx posy
-  stx posy_old
+  ldx     #10
+  stx     posy
+  stx     posy_old
 
-  ldy #$00
-  lda #$00
-  sta (XORIX_STRUCT_ptr),y
+  ldy     #$00
+  lda     #$00
+  sta     (XORIX_STRUCT_ptr),y
   iny
   sta (XORIX_STRUCT_ptr),y
  
