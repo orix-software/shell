@@ -38,7 +38,9 @@ jobs:
         cd build && tar -c * > ../shell.tar && cd ..
         gzip shell.tar
         mv shell.tar.gz shell.tgz
-        GITHUB_BRANCH: ${{ github.ref }}
-        if [ "GITHUB_BRANCH" = "master" ]; then VERSION=`cat VERSION`; else VERSION=alpha; fi
+        GITHUB_BRANCH=${{ github.ref }}
+        echo $GITHUB_BRANCH
+        if [ "$GITHUB_BRANCH" = "master" ]; then VERSION=`cat VERSION`; else VERSION=alpha; fi
         echo $VERSION
+        echo $hash
     #- curl -X POST --data-binary '@shell.tgz' "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/$VERSION/tgz/6502/shell.tgz"
