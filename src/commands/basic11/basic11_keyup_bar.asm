@@ -1,14 +1,33 @@
 .proc basic11_keyup_bar
 
     
-    ldy     #basic11_gui_struct::current_entry_id
-    lda     (basic11_ptr4),y
-    beq     @out3
-   
+    ldy    #basic11_gui_struct::current_entry_id
+    lda    (basic11_ptr4),y
+    beq    @out3
+
+    cmp    #24
+    bne    @skipme
+
+    
+
+@loopme:
+    ;jmp    @loopme
+    ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
+    ;sta    $6000
+    lda    (basic11_ptr4),y
+    ;sta    $6000
+
+    sec
+    sbc    #$01
+   ; sta    (basic11_ptr4),y
+
+@skipme:    
+
     ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
     lda    (basic11_ptr4),y
     bne    @manage_position
-    
+   
+    ; erase bar
     lda     #$10
     sta     $bb80+40+1
 
@@ -44,6 +63,11 @@
     bne     @L2000
 @out500:    
    ; jsr     basic11_key_to_launch
+    ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
+    lda    (basic11_ptr4),y
+    sec
+    sbc    #$01
+    ;sta    (basic11_ptr4),y
 @out3:
     rts
 
@@ -55,8 +79,18 @@
     tax
     dex
     txa
+
+    ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
+    ;sta    $6000
+    lda    (basic11_ptr4),y
+    ;sta    $6000
+
+    sec
+    sbc    #$01
+    sta    (basic11_ptr4),y
+
     ldy     #basic11_gui_struct::basic11_posy_screen
-    sta     (basic11_ptr4),y
+    ;sta     (basic11_ptr4),y
     jsr     compute_position_bar
 
     jsr     displays_bar    
@@ -67,6 +101,16 @@
     sec
     sbc     #$01
     sta     (basic11_ptr4),y
+
+    ;ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
+    ;sta    $6000
+    ;lda    (basic11_ptr4),y
+    ;sta    $6000
+
+    ;sec
+    ;sbc    #$01
+    ;sta    (basic11_ptr4),y
+
 
     jsr     basic11_compute_software_to_display
 

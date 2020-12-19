@@ -1,13 +1,15 @@
 
 .proc basic11_keydown_bar
     ; Do  we have 0 entries ?
+
+
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
     beq     @myout ; yes : do not compute
 
     sta     basic11_current_parse_software
 
-    ldy     #basic11_gui_struct::current_entry_id
+    ldy     #basic11_gui_struct::basic11_posy_screen
     lda     (basic11_ptr4),y
     cmp     basic11_current_parse_software ; Max entry ?
     beq     @myout
