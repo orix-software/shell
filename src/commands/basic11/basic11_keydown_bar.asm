@@ -2,7 +2,6 @@
 .proc basic11_keydown_bar
     ; Do  we have 0 entries ?
 
-
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
     beq     @myout ; yes : do not compute
@@ -16,7 +15,6 @@
     cmp     #24
     bcs     @scroll
     jmp     @skip
-
 
 @myout:    
     rts
@@ -49,9 +47,6 @@
     sta     $bb80+1000+38
     ; Now displays software
 
-;@loopme:
-    ;jmp     @loopme
-
     ldy     #basic11_gui_struct::current_entry_id
     lda     (basic11_ptr4),y
     clc
@@ -65,6 +60,7 @@
 
     lda     (basic11_ptr3),y
     beq     @out500
+
     sta     $bb80+40*25+2,x
     inx
     cpx     #35         ; Cut title (35 chars)
@@ -90,14 +86,24 @@
 
 
     jsr     compute_position_bar
-    pha
+
     jsr     erase_bar
-    pla
-    tax
-    inx
-    txa
+
+
+
+
+    
     ldy     #basic11_gui_struct::basic11_posy_screen
+    lda     (basic11_ptr4),y
+    cmp     #24
+    beq     @skip_inc
+    clc
+    adc     #$01
+
+
     sta     (basic11_ptr4),y
+@skip_inc:    
+
     jsr     compute_position_bar
 
     jsr     displays_bar    

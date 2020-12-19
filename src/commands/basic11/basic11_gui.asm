@@ -129,7 +129,9 @@
 
 
 @loopinformations:
+.ifdef basic11_debug
     jsr     basic11_display_current_key
+.endif    
 @read_input:
   ;  BRK_KERNEL XWR0
     jsr     basic11_read_joystick
@@ -226,6 +228,7 @@
 
 .endproc
 
+.ifdef basic11_debug
 .proc basic11_display_current_key
     ldy     #basic11_gui_struct::software_key_to_launch_low
     lda     (basic11_ptr4),y   
@@ -251,13 +254,17 @@
     beq     @out
     cmp     #';'
     beq     @out
+   
     sta     $bb80+25,y
+  
     iny     
     bne     @L1
 
 @out:
     rts
 .endproc
+
+.endif
 
 
 .include "basic11_launch.asm"
@@ -419,7 +426,9 @@
     cmp     basic11_first_letter_gui
     beq     @it_s_the_same_letter_to_parse      ; if the next software name begins with the current letter then we jump
     ; Not the same letter, we jump
+.ifdef basic11_debug    
     sta     $bb80+18
+.endif    
     tya
     clc
     adc     basic11_ptr2
