@@ -416,7 +416,6 @@
     ; Max entries
 
     sty     basic11_saveY
-    ;jmp     @it_s_the_same_letter_to_parse
     ; Test if the next software char is equal to the current. 223D
 
     ; Exit    
