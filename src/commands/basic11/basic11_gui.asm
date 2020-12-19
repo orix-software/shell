@@ -398,7 +398,12 @@
     bne     @L1
     inc     basic11_ptr2+1
     jmp     @L1
-@read_end_of_file:    
+@read_end_of_file:
+    ldy     #basic11_gui_struct::max_current_entries
+    lda     (basic11_ptr4),y
+    sec
+    sbc     #$01
+    sta     (basic11_ptr4),y
     rts
 @end_key_reached:
     ; Max entries
@@ -602,10 +607,10 @@
     clc
     adc     #$01 ; Skip
     bcc     @skip2
- ;   pha
+    pha
     lda     #$01
     sta     basic11_saveA
-  ;  pla
+    pla
 @do_not_inc:  
 @skip2:    
     sta     (basic11_ptr4),y   ; $25 ($3705+#60)
@@ -642,27 +647,6 @@
 
 
 .proc update_index
-
-    ;$cee6
-    ; $y=$2F ($9b)
-    ;ldy     #basic11_gui_struct::current_index_letter ; $17
-    ;lda     (basic11_ptr4),y
-
-    ;asl
-    ;tay
-    ;clc
-    ;adc     #basic11_gui_struct::index
-    ;tay
-    ;lda     (basic11_ptr4),y ; $3734
-    ;bne     @out
-    ;iny
-
-    ;lda     (basic11_ptr4),y
-    ;beq     @out2
-
-@out:
-    ;jmp     @out
-
     ldy     #basic11_gui_struct::current_index_letter ; $17
     lda     (basic11_ptr4),y
     clc
@@ -673,8 +657,6 @@
     clc
     adc     #basic11_gui_struct::index
     tay
-    
-    
 
     lda     basic11_ptr2
     sta     (basic11_ptr4),y ; $3734
@@ -686,16 +668,10 @@
 .endproc
 
 .proc basic11_update_ptr_fp
-    ; cefc
-    ;jmp basic11_update_ptr_fp
 
     ldy     #basic11_gui_struct::current_index_letter ; 3705 $17
     lda     (basic11_ptr4),y
     beq     @not_the_first_letter
-
-
-
-
 
 @not_the_first_letter:
     ldx     basic11_skip_dec
