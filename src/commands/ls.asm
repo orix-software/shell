@@ -388,6 +388,18 @@ _verbose:
 
   skip:
     BRK_KERNEL XWR0
+    
+    ;bcs     @no_char_action
+    
+    asl     KBDCTC
+    bcc     @no_ctrl
+
+
+    rts
+
+@no_ctrl:
+
+@no_char_action:    
     inx
     bne loop
   end:
