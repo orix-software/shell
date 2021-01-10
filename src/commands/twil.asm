@@ -157,9 +157,9 @@ str_version:
 str_unknown:    
 	.asciiz "Unknown version"
 str_swap_root_to_usbkey:
-    .asciiz "Swap / to usbkey"        
+    .asciiz "Swap / to /dev/usb1"        
 str_swap_root_to_sdcard:
-    .asciiz "Swap / to sdcard"    
+    .asciiz "Swap / to /dev/sda1"    
 str_swap_to_bank_sram:
     .asciiz "Swapped to RAM banking"    
 str_swap_to_bank_rom:
