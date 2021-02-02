@@ -6,11 +6,11 @@
     
     
     ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
-    ptr2         := userzp+10    ; 2 bytes
     tmp2         := userzp+2    ; 1 bytes
     bank_save_banking_register := userzp+3	
     bank_address_driver := userzp+5
     bank_decimal_current_bank := userzp+7
+    ptr2         := userzp+10    ; 2 bytes
 
     ldx     #$01
     jsr     _orix_get_opt           ; get arg 
@@ -21,13 +21,39 @@
     sbc     #$30
     tax
     stx     VAPLIC
+    sta     current_bank
+    sei
+    lda     #<$FFFC
+    sta     ptr1
+    lda     #>$FFFC
+    sta     ptr1+1
+    ldy     #$00
+    ldx     #$00 ; Read mode
+    jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
+    sta     tmp2
+    sta     $6000
+
+    lda     #<$FFFD
+    sta     ptr1
+    lda     #>$FFFD
+    sta     ptr1+1
+    ldy     #$00
+    ldx     #$00 ; Read mode
+
+    jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
+     
+    sta     $6001
+      
+    tay 
+    cli
     ; NMI
-    lda     #<$c000
-    ldy     #>$c000
+    lda     tmp2
+
     sta     VAPLIC+1
     sty     VAPLIC+2
     sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
     sty     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
+    ldx     VAPLIC
     stx     BNKCIB
 
     ldx     #XVARS_KERNEL_CH376_MOUNT
@@ -138,8 +164,8 @@ bank_address_driver_code:
 
   sei
 ;.ifdef    TWILIGHTEBOARD_BANK_LINEAR
-  lda     #$00
-  sta     $343
+    lda     #$00
+    sta     $343
 ;.endif
 
 
@@ -160,26 +186,26 @@ bank_address_driver_code:
 
     CPUTC ':'                         ; Displays a space
     sei
-  lda     VIA2::PRA
-  and     #%11111000                     
-  ora     current_bank                           ; but select a bank in $410
-  sta     VIA2::PRA    
-  lda     #<$FFF8
-  sta     ptr1
-  lda     #>$FFF8
-  sta     ptr1+1
-  ldy     #$00
-  lda     (ptr1),y
-  sta     RES
-  iny
-  lda     (ptr1),y
-  sta     RES+1
+    lda     VIA2::PRA
+    and     #%11111000                     
+    ora     current_bank                           ; but select a bank in $410
+    sta     VIA2::PRA    
+    lda     #<$FFF8
+    sta     ptr1
+    lda     #>$FFF8
+    sta     ptr1+1
+    ldy     #$00
+    lda     (ptr1),y
+    sta     RES
+    iny
+    lda     (ptr1),y
+    sta     RES+1
    
-  lda     RES
-  sta     ptr1
+    lda     RES
+    sta     ptr1
   
-  lda     RES+1
-  sta     ptr1+1
+    lda     RES+1
+    sta     ptr1+1
 
 
     lda     #$00
@@ -205,9 +231,9 @@ bank_address_driver_code:
     sei
     jmp     @loopme
 @exit:
-  lda     VIA2::PRA
-  and     #%11111111                     
-  sta     VIA2::PRA
+    lda     VIA2::PRA
+    and     #%11111111                     
+    sta     VIA2::PRA
   ;ora     current_bank                           ; but select a bank in $410
     cli
     RETURN_LINE
