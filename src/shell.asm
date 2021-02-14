@@ -125,8 +125,7 @@ sh_switch_on_prompt:
 
     ; Displays current path
     BRK_KERNEL XGETCWD
-    ;sta     $6000
-    ;sty     $6001
+
 
     BRK_KERNEL XWSTR0
     
@@ -134,7 +133,7 @@ sh_switch_on_prompt:
     SWITCH_ON_CURSOR
 
 start_commandline:
-    lda     #ORIX_ID_BANK    ; Kernel bank
+    lda     #ORIX_ID_BANK       ; Kernel bank
     sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
 
     BRK_KERNEL XRDW0            ; read keyboard
@@ -165,15 +164,15 @@ start_commandline:
 
 
 @next_key:
-    cmp     #KEY_DEL             ; is it del pressed ?
-    beq     @key_del_routine      ; yes let's remove the char in the BUFEDT buffer
+    cmp     #KEY_DEL                   ; is it del pressed ?
+    beq     @key_del_routine           ; yes let's remove the char in the BUFEDT buffer
     cmp     #KEY_ESC                   ; ESC key not managed, but could do autocompletion (Pressed twice)
     beq     @key_esc_routine 
 
     ldx     sh_length_of_command_line  ; get the length of the current line
     cpx     #(BASH_MAX_LENGTH_COMMAND_LINE-1) ; do we reach the size of command line buffer ?
-    beq     start_commandline    ; yes restart command line until enter or del keys are pressed, but
-    BRK_KERNEL XWR0             ; write key on the screen (it's really a key pressed
+    beq     start_commandline          ; yes restart command line until enter or del keys are pressed, but
+    BRK_KERNEL XWR0                    ; write key on the screen (it's really a key pressed
 
     pha
     ldy    #shell_bash_struct::pos_command_line
@@ -206,44 +205,17 @@ start_commandline:
 
     jmp     start_commandline    ; and loop interpreter
 
-
-
-
 @key_esc_routine:
     ldx     sh_esc_pressed
     bne     @sh_launch_autocompletion
     inx
     stx     sh_esc_pressed
     jmp     start_commandline
-
 @key_del_routine:
-    ldx     sh_length_of_command_line    ; load the length of the command line buffer
-    beq     send_oups_and_loop   ; command line is empty send oups sound
-    dex                          ; command line is NOT empty, remove last char in the buffer
-    
-    txa
-    clc
-    adc     #shell_bash_struct::command_line
-    tay
+    jmp     key_del
 
-    lda    #$00                 ; remove last char FIXME 65c02
-    sta    (bash_struct_ptr),y
-    stx    sh_length_of_command_line               ; and store the length
 
-    ldy    #shell_bash_struct::pos_command_line
-    lda    (bash_struct_ptr),y
-    tax
-    dex
-    txa
-    sta    (bash_struct_ptr),y
 
-    SWITCH_OFF_CURSOR
-    dec     SCRX                 ; go one step to the left on the screen
-
-    SWITCH_ON_CURSOR
-
-; no_action
-    jmp     start_commandline    ; and restart 
 
 
 @sh_launch_command:    
@@ -342,6 +314,52 @@ send_oups_and_loop:
 
 
 
+
+.proc key_del
+
+    ldx     sh_length_of_command_line    ; load the length of the command line buffer
+    beq     send_oups_and_loop   ; command line is empty send oups sound
+    dex                          ; command line is NOT empty, remove last char in the buffer
+    
+    txa
+    clc
+    adc     #shell_bash_struct::command_line
+    tay
+
+    lda    #$00                 ; remove last char FIXME 65c02
+    sta    (bash_struct_ptr),y
+    stx    sh_length_of_command_line               ; and store the length
+
+    ldy    #shell_bash_struct::pos_command_line
+    lda    (bash_struct_ptr),y
+    tax
+    dex
+    txa
+    sta    (bash_struct_ptr),y
+
+    SWITCH_OFF_CURSOR
+
+    dec     SCRX                 ; go one step to the left on the screen
+    bpl     @skip_dec_scrx
+    dec     SCRY
+    lda     #39
+    sta     SCRX
+    ldx     SCRY
+    lda     TABLE_LOW_TEXT,x
+    sta     ADSCR
+    lda     TABLE_HIGH_TEXT,x
+    sta     ADSCR+1
+
+
+@skip_dec_scrx:    
+
+    SWITCH_ON_CURSOR
+
+; no_action
+    jmp     start_commandline    ; and restart 
+.endproc
+
+.include "tables/text_first_line_adress.asm"
 
 .proc _bash
     sta     RES
@@ -1458,7 +1476,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2021.1"
+    .asciiz  "Shell v2021.2"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
