@@ -13,17 +13,17 @@
 
 
 .proc vi_command_line_vi_editor_switch_on_cursor
-    ldy     vi_screen_x_position_command
-    lda     VI_COMMANDLINE_VIDEO_ADRESS,y ; display cursor
-    ORA     #$80
-    sta     VI_COMMANDLINE_VIDEO_ADRESS,y
-    rts
+  ldy     vi_screen_x_position_command
+  lda     VI_COMMANDLINE_VIDEO_ADRESS,y ; display cursor
+  ora     #$80
+  sta     VI_COMMANDLINE_VIDEO_ADRESS,y
+  rts
 .endproc    
 
 .proc vi_editor_switch_off_cursor
 	ldy     #$00
 	lda     (vi_screen_address_position_edition),y
-	AND     #%01111111
+	and     #%01111111
 	sta     (vi_screen_address_position_edition),y ; display cursor
 	rts
 .endproc    
@@ -32,7 +32,7 @@
 .IFPC02
 .pc02
 	lda     (vi_screen_address_position_edition) ; display cursor
-	ORA     #$80
+	ora     #$80
 	sta     (vi_screen_address_position_edition) ; display cursor
 .p02    
 .else
@@ -157,8 +157,6 @@ display_nofilename_error:
   bne     @loop
 @skip:
   jmp     command_edition
-
-
 
 .proc display_message_on_command_line
   sta 	  tmp0_16
@@ -317,29 +315,29 @@ skip:
 .proc edition_mode_routine
 
 restart_edition:
-    jsr     vi_editor_switch_off_cursor
-    jsr     update_position_screen
-    jsr     vi_editor_switch_on_cursor
+  jsr     vi_editor_switch_off_cursor
+  jsr     update_position_screen
+  jsr     vi_editor_switch_on_cursor
 
-    CGETC
+  CGETC
 
 	cmp     #KEY_LEFT
 	beq     left_pressed    
 	cmp     #KEY_RIGHT
 	bne     @test_up
-    jmp     right_pressed
+  jmp     right_pressed
 @test_up:    
-	cmp     #KEY_UP
-	bne    	@test_down
+	  cmp     #KEY_UP
+	  bne    	@test_down
     jmp     up_pressed
 @test_down:
 	cmp     #KEY_DOWN
 	bne     @test_return
-    jmp     down_pressed	
+  jmp     down_pressed	
 @test_return:    
 	cmp     #KEY_RETURN ; enter ?
 	bne     @test_del
-    jmp     return_pressed_routine
+  jmp     return_pressed_routine
 @test_del:    
 	cmp     #KEY_DEL
 	bne     @test_esc
@@ -466,17 +464,21 @@ left_pressed:
 
 .proc return_pressed_routine
 
+
+
 .IFPC02
 .pc02
-	stz 	vi_screen_x_position_edition
+    stz 	vi_screen_x_position_edition
 .p02    
 .else
-	lda 	#$00
-	sta 	vi_screen_x_position_edition
+    lda 	#$00
+    sta 	vi_screen_x_position_edition
 .endif  
-	inc 	vi_screen_y_position_edition
+    inc 	vi_screen_y_position_edition
+; Check if we have and empty line
+    ;lda   vi_length_file
 
-    lda     #$0A
+    lda   #$0A
     
 .IFPC02
 .pc02
@@ -492,14 +494,14 @@ left_pressed:
 @skip3:
 
     inc     vi_length_file
-	bne		@skip2
-	inc     vi_length_file+1
+    bne		@skip2
+    inc     vi_length_file+1
 @skip2:	
     inc     vi_current_position_ptr_edition_buffer_end
-	bne     @skip
-	inc     vi_current_position_ptr_edition_buffer_end+1
+    bne     @skip
+    inc     vi_current_position_ptr_edition_buffer_end+1
 @skip:
-	jmp     edition_mode_routine  
+    jmp     edition_mode_routine  
 .endproc    
   
 .proc key_del_remove
@@ -548,7 +550,7 @@ left_pressed:
 
 
     lda     vi_length_file
-	bne     @nodec2
+	  bne     @nodec2
     dec     vi_length_file+1
 @nodec2:
 	dec     vi_length_file
@@ -570,6 +572,9 @@ no_key_to_remove:
 
     ; FIXME 65C02
     pha
+
+
+
     lda     vi_current_position_ptr_edition_buffer         ; are we at the end of the file ?
     cmp     vi_current_position_ptr_edition_buffer_end
     bne     scroll
@@ -638,7 +643,7 @@ don_t_scroll_line:
     
 @fill_zero:
 out:
-
+    jsr     update_display_posxy_in_file
     jmp     edition_mode_routine
 .endproc  
 
@@ -692,22 +697,61 @@ out:
 
 .proc switch_to_edition_mode
 
-    jsr     clear_command_line
-    ldx     #$00
+  jsr     clear_command_line
+  ldx     #$00
 @loop:
-    lda     msg_insert,x
-    beq     @out
-    sta     VI_COMMANDLINE_VIDEO_ADRESS,x
-    inx
+  lda     msg_insert,x
+  beq     @out
+  sta     VI_COMMANDLINE_VIDEO_ADRESS,x
+  inx
 .IFPC02
 .pc02
-    bra     @loop
+  bra     @loop
 .p02    
 .else
-    jmp     @loop
+  jmp     @loop
 .endif	
 @out:
+  ; Displays current X and Y
+  jsr     update_display_posxy_in_file
 	jmp     edition_mode_routine
+.endproc
+
+.proc update_display_posxy_in_file
+loopme:
+
+  lda     #<(VI_COMMANDLINE_VIDEO_ADRESS+32)
+  sta     TR5
+  lda     #>(VI_COMMANDLINE_VIDEO_ADRESS+32)
+  
+  sta     TR6
+  ldy     #$00
+  lda     vi_screen_x_position_edition
+
+  ldx     #$20 ;
+  stx     DEFAFF
+  ldx     #$01 
+  BRK_KERNEL XBINDX
+  
+  lda     #<(VI_COMMANDLINE_VIDEO_ADRESS+36)
+  sta     TR5
+  lda     #>(VI_COMMANDLINE_VIDEO_ADRESS+36)
+  sta     TR6
+  lda     vi_screen_y_position_edition
+  ldy     #$00
+
+
+  ldx     #$20 ;
+  stx     DEFAFF
+  ldx     #$01 
+  BRK_KERNEL XBINDX
+
+
+
+  lda     #','
+  sta     VI_COMMANDLINE_VIDEO_ADRESS+35
+
+  rts
 .endproc
 
 .proc wait_command
@@ -811,7 +855,7 @@ skip2:
     cmp     vi_current_position_ptr_edition_buffer+1
     bne     continue_to_move_block
   
-  end_copie:
+end_copie:
   ; copy now the char below the cursor
     ldy     #$00
     lda     (vi_current_position_ptr_edition_buffer),y
