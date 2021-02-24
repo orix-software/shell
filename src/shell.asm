@@ -1494,8 +1494,9 @@ end_rom:
 
 ;.out     .sprintf("kernel_end_of_memory_for_kernel (malloc will start at this adress) : %x", kernel_end_of_memory_for_kernel)
 
-    .res $FFF1-*
-    .org $FFF1
+    .res $FFF0-*
+    .org $FFF0
+.byt 1 ; Command ROM    
 ; $fff1
 parse_vector:
     .byt $00,$00
