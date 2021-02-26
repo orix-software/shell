@@ -50,15 +50,17 @@ VI_SIZE_OF_BUFFER                         =  1000
  vi_command_line_edition_buffer  = 		     tmp0_16
  vi_text_address			=		   		     tmp0_16
 
- SIZE_OF_VI_STRUCT 			=		         8+3+1+1
+ 
  VI_STRUCT_FILENAME_INDEX  =                   $00
 
-.struct vi_struct
-xpos_screen       .byte    ; position x of the cursor on the screen
-ypos_screen       .byte    ; position y of the cursor on the screen
-pos_file          .word    ; position on the file (address)
-posx_command_line .byte    ; position on command line
-ptr_file		  .word    ; adress of the beginning of the file
+.struct vi_struct_data
+    xpos_screen       .byte    ; position x of the cursor on the screen
+    ypos_screen       .byte    ; position y of the cursor on the screen
+    pos_file          .word    ; position on the file (address)
+    posx_command_line .byte    ; position on command line
+    name_file_open    .res     8+3+1+1
+    ptr_file		  .word    ; adress of the beginning of the file
+    length_file       .word    ; Length of the file
 .endstruct
 
 
@@ -90,7 +92,7 @@ ptr_file		  .word    ; adress of the beginning of the file
 .proc _vi
 	SWITCH_OFF_CURSOR
     CLS
-    MALLOC SIZE_OF_VI_STRUCT
+    MALLOC .sizeof(vi_struct_data)
 
     cmp     #NULL
     bne     @not_oom2
@@ -103,13 +105,16 @@ ptr_file		  .word    ; adress of the beginning of the file
 
     sta     vi_struct
     sty     vi_struct+1
-	;sta 	$5000
-	;sty 	$5001
+
     
     ldy     #$00
     lda     #$00
     sta     (vi_struct),y  ; FIXME 65C02
     
+    lda     #$00
+    ldx     #$00
+    jsr     vi_set_length_current_file
+
 .IFPC02
 .pc02
     stz     vi_screen_x_position_edition
@@ -119,8 +124,8 @@ ptr_file		  .word    ; adress of the beginning of the file
     stz     vi_current_position_ptr_edition_buffer+1
     stz     vi_current_position_in_edition_buffer
     stz     vi_current_position_in_edition_buffer+1
-	stz     vi_length_file
-	stz     vi_length_file+1
+
+
 .else    
     lda     #$00
     sta     vi_screen_x_position_edition
@@ -130,8 +135,7 @@ ptr_file		  .word    ; adress of the beginning of the file
     sta     vi_current_position_ptr_edition_buffer+1
     sta     vi_current_position_in_edition_buffer
     sta     vi_current_position_in_edition_buffer+1
-	sta     vi_length_file
-	sta     vi_length_file+1	
+	
 .endif
    
     lda     #$01
@@ -166,14 +170,12 @@ not_oom:
     ldx     #$01				; get the first arg, 
     jsr     _orix_get_opt
     FOPEN ORIX_ARGV,O_RDONLY    ; tries to open the file
-    
-    
-    cpx     #$ff
+        
+    cpx     #$FF
     bne     load_file
-    cmp     #$ff
+    cmp     #$FF
     bne     load_file
     beq     not_found
-
 	
 load_file:                       ; Valid file		
 	; Load the file
@@ -218,7 +220,7 @@ load_file:                       ; Valid file
     ldy     #$00  ; fix 65c02
     sta     (PTR_READ_DEST),y
 .endif    
-    ; compute the length loaded vi_length_file
+
     
     lda     PTR_READ_DEST+1
     sec
@@ -227,15 +229,19 @@ load_file:                       ; Valid file
     lda     PTR_READ_DEST
     sec
     sbc     vi_ptr_edition_buffer
-    sta     vi_length_file
-    stx     vi_length_file+1
+    txa
+    pha
+
+    jsr     vi_set_length_current_file
+
+    pla
     ; set the end of the buffer end
 	txa
 	clc 
 	adc     vi_current_position_ptr_edition_buffer_end+1
 	sta     vi_current_position_ptr_edition_buffer_end+1
 	
-    lda     vi_length_file
+    txa
 	clc
 	adc     vi_current_position_ptr_edition_buffer_end
 	bcc     skipadd

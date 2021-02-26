@@ -268,7 +268,7 @@ display_nofilename_error:
     lda     vi_screen_y_position_edition
     cmp     #27
     bne     skip3
-    jsr     scrollup
+    ; Scroll ?
     dec     vi_screen_y_position_edition
     lda     vi_is_a_new_file
     beq     is_a_file
@@ -296,20 +296,20 @@ skip3:
 .endif    
 skip:
   
-    ldy     vi_screen_y_position_edition
-    lda     TABLE_HIGH_TEXT,y
-    sta     vi_screen_address_position_edition+1
-    lda     TABLE_LOW_TEXT,y
-    sta     vi_screen_address_position_edition    
+  ldy     vi_screen_y_position_edition
+  lda     TABLE_HIGH_TEXT,y
+  sta     vi_screen_address_position_edition+1
+  lda     TABLE_LOW_TEXT,y
+  sta     vi_screen_address_position_edition    
 
-    sec
-    adc     vi_screen_x_position_edition
-    bcc     @skip2
-    inc     vi_screen_address_position_edition+1 ;
+  sec
+  adc     vi_screen_x_position_edition
+  bcc     @skip2
+  inc     vi_screen_address_position_edition+1 ;
 @skip2:
-    sta     vi_screen_address_position_edition
+  sta     vi_screen_address_position_edition
 
-    rts
+  rts
 .endproc
 
 .proc edition_mode_routine
@@ -319,6 +319,9 @@ restart_edition:
   jsr     update_position_screen
   jsr     vi_editor_switch_on_cursor
 
+  jsr     update_display_posxy_in_file
+  jsr     vi_get_length_current_file
+
   CGETC
 
 	cmp     #KEY_LEFT
@@ -327,9 +330,9 @@ restart_edition:
 	bne     @test_up
   jmp     right_pressed
 @test_up:    
-	  cmp     #KEY_UP
-	  bne    	@test_down
-    jmp     up_pressed
+	cmp     #KEY_UP
+	bne    	@test_down
+  jmp     up_pressed
 @test_down:
 	cmp     #KEY_DOWN
 	bne     @test_return
@@ -341,7 +344,7 @@ restart_edition:
 @test_del:    
 	cmp     #KEY_DEL
 	bne     @test_esc
-    jmp     key_del_remove
+  jmp     key_del_remove
 @test_esc:    
 	cmp     #KEY_ESC ; ESC don't need
 	beq     @esc_pressed
@@ -349,28 +352,28 @@ restart_edition:
 	jmp     put_key_on_screen
 
 @esc_pressed:
-    jmp     vi_clear_and_restart_command_mode
+  jmp     vi_clear_and_restart_command_mode
 
 
 	
 down_pressed:
 
 	;jmp     go_down_on_screen ; replace by bne
-    lda     vi_current_position_ptr_edition_buffer_end
-    cmp     vi_current_position_ptr_edition_buffer        ; end of file ?
-    bne     @skip
-    lda     vi_current_position_ptr_edition_buffer_end+1
-    cmp     vi_current_position_ptr_edition_buffer+1       ; end of file ?
-    beq     @skip    
+  lda     vi_current_position_ptr_edition_buffer_end
+  cmp     vi_current_position_ptr_edition_buffer        ; end of file ?
+  bne     @skip
+  lda     vi_current_position_ptr_edition_buffer_end+1
+  cmp     vi_current_position_ptr_edition_buffer+1       ; end of file ?
+  beq     @skip    
     
-    lda     vi_screen_y_position_edition
-    cmp     #26
+  lda     vi_screen_y_position_edition
+  cmp     #26
    ; beq     restart_edition
     
-    inc     vi_screen_y_position_edition
-    inc     vi_screen_y_position_edition_real
+  inc     vi_screen_y_position_edition
+  inc     vi_screen_y_position_edition_real
 
-    lda     vi_current_position_ptr_edition_buffer
+  lda     vi_current_position_ptr_edition_buffer
     sec
     sbc     #40
     bcs     @skip
@@ -459,13 +462,113 @@ left_pressed:
 @skip:
 
     jmp     edition_mode_routine
-    rts
+
 .endproc    
 
+.proc vi_get_length_current_file
+  ; Get file length and return in A & X the value in 16 bits value
+  jsr     populate_tmp0_16_with_ptr_length_file
+
+  ldy     #$01
+  lda     (tmp0_16),y
+  tax
+  dey
+  lda     (tmp0_16),y
+  
+  pha
+
+  lda     #<(VI_COMMANDLINE_VIDEO_ADRESS+15)
+  sta     TR5
+  lda     #>(VI_COMMANDLINE_VIDEO_ADRESS+15)
+  
+  sta     TR6
+  txa
+  tay
+  pla
+
+  ldx     #$20 ;
+  stx     DEFAFF
+  ldx     #$02
+  BRK_KERNEL XBINDX
+  rts
+.endproc
+
+.proc vi_set_length_current_file
+  ; set file length A and X contains the value
+  pha
+  jsr     populate_tmp0_16_with_ptr_length_file
+  pla
+  ldy     #$00
+  sta     (tmp0_16),y
+  txa
+  iny
+  sta     (tmp0_16),y
+  rts
+.endproc
+
+.proc vi_inc_length_current_file
+  ; set file length A and X contains the value
+
+  jsr     populate_tmp0_16_with_ptr_length_file
+
+  ldy     #$00
+  lda     (tmp0_16),y
+  sec
+  adc     #$00
+  sta     (tmp0_16),y
+  bcc     @do_not_inc  
+
+  iny
+  lda     (tmp0_16),y
+  sec
+  adc     #$00
+  sta     (tmp0_16),y
+@do_not_inc:  
+  rts
+.endproc
+
+
+.proc vi_dec_length_current_file
+  ; set file length A and X contains the value
+  jsr     populate_tmp0_16_with_ptr_length_file
+
+  ldy     #$00
+  lda     (tmp0_16),y
+  bne     @nodec2
+  
+  iny
+  lda     (tmp0_16),y
+  clc
+  sbc     #$01
+  sta     (tmp0_16),y
+  dey
+  lda     (tmp0_16),y
+@nodec2:
+  clc
+  sbc     #$01
+  sta     (tmp0_16),y
+
+  rts
+.endproc
+
+.proc populate_tmp0_16_with_ptr_length_file
+
+  lda     vi_struct
+  sta     tmp0_16
+  lda     vi_struct+1
+  sta     tmp0_16+1
+  
+  lda     #vi_struct_data::length_file
+  clc
+  adc     tmp0_16
+  bcc     @skip
+  inc     tmp0_16+1
+@skip:  
+  rts
+.endproc
+
+
 .proc return_pressed_routine
-
-
-
 .IFPC02
 .pc02
     stz 	vi_screen_x_position_edition
@@ -473,10 +576,21 @@ left_pressed:
 .else
     lda 	#$00
     sta 	vi_screen_x_position_edition
-.endif  
+.endif
+;   Now scroll if necessary
+    jsr     vi_editor_switch_off_cursor
+    lda     vi_screen_y_position_edition
+    cmp     #26
+    bne     @do_not_scroll
+    ldx     #$01
+    ldy     #26
+    BRK_KERNEL XSCROH
+    jmp     @continue
+@do_not_scroll:    
+
     inc 	vi_screen_y_position_edition
-; Check if we have and empty line
-    ;lda   vi_length_file
+@continue:    
+
 
     lda   #$0A
     
@@ -493,14 +607,15 @@ left_pressed:
     inc     vi_current_position_ptr_edition_buffer+1
 @skip3:
 
-    inc     vi_length_file
-    bne		@skip2
-    inc     vi_length_file+1
+    jsr     vi_inc_length_current_file
+
 @skip2:	
     inc     vi_current_position_ptr_edition_buffer_end
     bne     @skip
     inc     vi_current_position_ptr_edition_buffer_end+1
 @skip:
+
+
     jmp     edition_mode_routine  
 .endproc    
   
@@ -541,11 +656,11 @@ left_pressed:
     dec     vi_screen_x_position_edition
 ; dec position
 
-    lda     vi_current_position_ptr_edition_buffer
+  lda     vi_current_position_ptr_edition_buffer
 	bne     @nodec
-    dec     vi_current_position_ptr_edition_buffer+1
+  dec     vi_current_position_ptr_edition_buffer+1
 @nodec:
-    dec     vi_current_position_ptr_edition_buffer
+  dec     vi_current_position_ptr_edition_buffer
 
 
 
@@ -573,6 +688,20 @@ no_key_to_remove:
     ; FIXME 65C02
     pha
 
+    jsr     vi_inc_length_current_file
+
+    ;lda     vi_screen_y_position_edition
+    ;cmp     #26
+    ;bne     @do_not_scroll
+    ;ldx     #$01
+    ;ldy     #26
+    ;BRK_KERNEL XSCROH
+    ;dex
+    ;stx     vi_screen_x_position_edition
+
+
+@do_not_scroll:
+   
 
 
     lda     vi_current_position_ptr_edition_buffer         ; are we at the end of the file ?
@@ -590,23 +719,23 @@ scroll:
     sta     tmp0_16
     lda     TABLE_HIGH_TEXT,y
     sta     tmp0_16+1 
-    dec     vi_screen_x_position_edition
+    
     ldy     #38
     
   
 @loop:
-    lda     (tmp0_16),y
-    iny
-    sta     (tmp0_16),y
-    dey
-    dey
-    cpy     vi_screen_x_position_edition
-    bne     @loop
-    inc     vi_screen_x_position_edition
+  lda     (tmp0_16),y
+  iny
+  sta     (tmp0_16),y
+  dey
+  dey
+  cpy     vi_screen_x_position_edition
+  bne     @loop
+  inc     vi_screen_x_position_edition
 
 don_t_scroll_line:
-    ; move block to insert char in the text buffer
-   jsr     insert_char_in_textfile    
+  ; move block to insert char in the text buffer
+  jsr     insert_char_in_textfile    
 
 
 	inc     vi_length_file
@@ -615,23 +744,23 @@ don_t_scroll_line:
 @skip:	
 
 	
-    pla
+  pla
 .IFPC02
 .pc02
-    sta     (vi_screen_address_position_edition) ; store on the screen
-    sta     (vi_current_position_ptr_edition_buffer) ; and store un text buffer
+  sta     (vi_screen_address_position_edition) ; store on the screen
+  sta     (vi_current_position_ptr_edition_buffer) ; and store un text buffer
 .p02    
 .else
-    ldy     #$00
-    sta     (vi_screen_address_position_edition),y ; store on the screen
-    sta     (vi_current_position_ptr_edition_buffer),y ; and store un text buffer
+  ldy     #$00
+  sta     (vi_screen_address_position_edition),y ; store on the screen
+  sta     (vi_current_position_ptr_edition_buffer),y ; and store un text buffer
 .endif		
-    ; inc for next insert move me !
-    inc     vi_current_position_ptr_edition_buffer ; inc the nextposition 
-    bne     @skipinc
-    inc     vi_current_position_ptr_edition_buffer+1 ; inc the nextposition 
+  ; inc for next insert move me !
+  inc     vi_current_position_ptr_edition_buffer ; inc the nextposition 
+  bne     @skipinc
+  inc     vi_current_position_ptr_edition_buffer+1 ; inc the nextposition 
 @skipinc:   
-    inc     vi_screen_x_position_edition
+  inc     vi_screen_x_position_edition
 
     lda     vi_current_position_ptr_edition_buffer  
     cmp     vi_current_position_ptr_edition_buffer_end
@@ -643,11 +772,11 @@ don_t_scroll_line:
     
 @fill_zero:
 out:
-    jsr     update_display_posxy_in_file
     jmp     edition_mode_routine
 .endproc  
 
 .proc scrollup
+    
     lda     #<VI_EDITION_VIDEO_ADRESS+40
     sta     SCROLL_TMP_FROM
     lda     #>VI_EDITION_VIDEO_ADRESS+40
@@ -713,12 +842,11 @@ out:
 .endif	
 @out:
   ; Displays current X and Y
-  jsr     update_display_posxy_in_file
 	jmp     edition_mode_routine
 .endproc
 
 .proc update_display_posxy_in_file
-loopme:
+
 
   lda     #<(VI_COMMANDLINE_VIDEO_ADRESS+32)
   sta     TR5
@@ -776,14 +904,14 @@ loopme:
   cpx     #$01                                             ; if it's 1 (because we have on first char ":")
   beq     @wait_command_loopme                             ; We loop
   jsr     vi_command_line_vi_editor_switch_off_cursor      ; Switch off cursor
+ 
   lda     #$20                                             ; erase with a space                        
   dex                                                      ; go to left for one column
   sta     VI_COMMANDLINE_VIDEO_ADRESS,x                    ; erase
-  inx                                                      ; ? 
   dec     vi_screen_x_position_command                     ; dec the position command
   lda     #$00                                             ; set EOS on command line buffer Fix
   sta     vi_command_line_edition_buffer,x                 ; Set EOS
-  bne     @wait_command_loopme
+  jmp     @wait_command_loopme
   ; end of delete char on command line
 @test_key_return:
   cmp     #KEY_RETURN
@@ -800,6 +928,7 @@ loopme:
   inx     
   cpx     #VI_COMMANDLINE_MAX_CHAR
   stx     vi_screen_x_position_command
+
 
     
   sta     vi_screen_x_position_command,x
@@ -836,15 +965,15 @@ loopme:
   sta     vi_tmp_16+1
 
   continue_to_move_block:
-    ldy     #$00
-    lda     (vi_tmp_16),y
-    iny
-    sta     (vi_tmp_16),y
+  ldy     #$00
+  lda     (vi_tmp_16),y
+  iny
+  sta     (vi_tmp_16),y
 	lda     vi_tmp_16
 	bne     @nodec
 	dec     vi_tmp_16+1
 @nodec:	
-    dec     vi_tmp_16
+  dec     vi_tmp_16
     
 skip2:
     lda     vi_tmp_16
@@ -954,7 +1083,7 @@ skip5:
 
   
   
-    rts  
+  rts  
 .endproc
 
 
