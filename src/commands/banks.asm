@@ -6,11 +6,14 @@
     
     
     ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
-    tmp2         := userzp+2    ; 1 bytes
-    bank_save_banking_register := userzp+3	
-    bank_address_driver := userzp+5
-    bank_decimal_current_bank := userzp+7
-    ptr2         := userzp+10    ; 2 bytes
+    tmp2         := userzp    ; 1 bytes
+    bank_save_banking_register := userzp+1	 ; one byte
+    save_twilighte_register    := userzp+2 ; 1 bytes
+    save_twilighte_banking_register    := userzp+3 ; 1 bytes
+    bank_decimal_current_bank := userzp+4 ; One byte
+    ptr2         := userzp+5    ; 2 bytes
+    ptr3         := userzp+7    ; 2 bytes
+    bank_stop_listing :=userzp+9
 
     ldx     #$01
     jsr     _orix_get_opt           ; get arg 
@@ -31,7 +34,7 @@
     ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     tmp2
-    sta     $6000
+
 
     lda     #<$FFFD
     sta     ptr1
@@ -42,7 +45,7 @@
 
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
      
-    sta     $6001
+
       
     tay 
     cli
@@ -64,48 +67,67 @@
     lda     (ptr2),y
     sta     STORE_CURRENT_DEVICE
 
-
-
     jmp     EXBNK
 	
 ; displays all bank	
 displays_all_banks:   
-	; install driver
-    lda     #$FF
-    ldy     #$00
-    BRK_KERNEL XMALLOC
-
-    sta     bank_address_driver
-    sty     bank_address_driver+1
-    
-	sta     VEXBNK+1 
-	sty     VEXBNK+2
-
-    ldx     #$00
-    ldy     #$00
-@L1:
-    lda     bank_address_driver_code,x
-    sta     (bank_address_driver),y
-    iny
-    inx
-    bne     @L1
-
-    lda     #32
+    lda     #$00
+    sta     bank_stop_listing
+	
+    lda     #64
     sta     bank_decimal_current_bank
 
-restart:
-	;jsr		VEXBNK
-    ;rts
-    ; Telestrat and Twilighte board V0_3
-    lda     #%00000111                ; we start from the bank 7 to 1
 
+    lda     $343
+    sta     save_twilighte_banking_register
+    
+    ; switch to ram
+    lda     $342
+    sta     save_twilighte_register
+    ora     #%00100000
+    sta     $342
+    
+
+    jsr     displays_banking
+
+    lda     $342
+    and     #%11011111
+    sta     $342
+
+    jsr     displays_banking
+
+
+    sei
+    lda     save_twilighte_register
+    sta     $342
+
+    lda     save_twilighte_banking_register
+    sta     $343
+    cli
+
+    rts
+
+displays_banking:
+
+
+    lda     #$07
+    sta     $343
+
+parse_next_banking_set:
+    lda     bank_decimal_current_bank
+    cmp     #$07
+    ;bne     @skip
+    
+    ;lda     #$07
+    ;bne     @store
+
+@skip:
+    lda     #%00000100                ; we start from the bank 7 to 1
+@store:
     sta     current_bank
 loop2:
-    lda     current_bank              ; Load current bank
-    clc 
-    adc     #44+4                     ; displays the number of the bank
-    BRK_ORIX XWR0
-    CPUTC ':'                         ; Displays a space
+    jsr     display_bank_id
+
     sei
     lda     #<$FFF8
     sta     ptr1
@@ -138,120 +160,145 @@ loop2:
     ldy     ptr2
     ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM
-    beq     exit
+    beq     @exit
     cli
     cmp     #' '                        ; 'a'
     bcs     @skip
     lda     #' '
 @skip:    
     BRK_ORIX XWR0
-    iny
-    cpy     #37    ; Exit if signature is longer than 37 bytes
-    beq     exit
-    sty     ptr2
-    sei
-    jmp     @loopme
-exit:
 
-    cli
-    RETURN_LINE
-    dec     current_bank
-    bne     loop2
-
-    rts
-
-bank_address_driver_code:
-
-  sei
-;.ifdef    TWILIGHTEBOARD_BANK_LINEAR
-    lda     #$00
-    sta     $343
-;.endif
-
-
-
-    lda     #%00000111                ; we start from the bank 7 to 1
-
-    sta     current_bank
-@loop2:
-    lda     bank_decimal_current_bank
-    ldy     #$00
-    ldx     #$20 ;
-    stx     DEFAFF
-    ldx     #$00
-    BRK_KERNEL XDECIM
+@wait_key:    
+    BRK_KERNEL XRD0
+    bcs     @check_ctrl
+    cmp     #' '
+    bne     @check_ctrl
+    ;@prout:
+        ;jmp  @prout
+    lda     bank_stop_listing
+    beq     @S10
+    dec     bank_stop_listing
+    jmp     @check_ctrl
+@S10:
+    inc     bank_stop_listing
+    jmp     @wait_key
+    ; space here 
     
-
-
-
-    CPUTC ':'                         ; Displays a space
-    sei
-    lda     VIA2::PRA
-    and     #%11111000                     
-    ora     current_bank                           ; but select a bank in $410
-    sta     VIA2::PRA    
-    lda     #<$FFF8
-    sta     ptr1
-    lda     #>$FFF8
-    sta     ptr1+1
-    ldy     #$00
-    lda     (ptr1),y
-    sta     RES
+@check_ctrl:
+    lda     bank_stop_listing
+    bne     @wait_key
+    asl     KBDCTC
+    bcc     @no_ctrl    
+    rts
+@no_ctrl:    
     iny
-    lda     (ptr1),y
-    sta     RES+1
-   
-    lda     RES
-    sta     ptr1
-  
-    lda     RES+1
-    sta     ptr1+1
-
-
-    lda     #$00
-    sta     ptr2
-
-
-@loopme:
-    ldy     ptr2
-    ldx     #$00 ; Read mode
-    lda     (ptr1),y
-    ;jsr     READ_BYTE_FROM_OVERLAY_RAM
-    beq     exit
-    cli
-    cmp     #' '                        ; 'a'
-    bcs     @skip
-    lda     #' '
-@skip:    
-    BRK_KERNEL XWR0
-    iny
-    cpy     #37    ; Exit if signature is longer than 37 bytes
+    cpy     #36    ; Exit if signature is longer than 37 bytes
     beq     @exit
     sty     ptr2
+
     sei
     jmp     @loopme
 @exit:
-    lda     VIA2::PRA
-    and     #%11111111                     
-    sta     VIA2::PRA
-  ;ora     current_bank                           ; but select a bank in $410
+
     cli
     RETURN_LINE
-    dec     current_bank
-    bpl     @out
     dec     bank_decimal_current_bank
-    bne     @loop2
-@out:
-    
+    dec     current_bank
+    bne     loop2
+
+    dec     $343
+    bpl     parse_next_banking_set
 
 
+    rts
 
-;.ifdef    TWILIGHTEBOARD_BANK_LINEAR
-  lda     #$00
-  sta     $343
-;.endif
-  cli 
-  rts
+display_bank_id:
+    lda     bank_decimal_current_bank              ; Load current bank
+    cmp     #10
+    bcs     greater_than_10
+    pha
+    lda     #'0'
+    BRK_ORIX XWR0
+    pla
+    clc 
+    adc     #44+4                     ; displays the number of the bank
+
+    BRK_ORIX XWR0
+    CPUTC ':'                         ; Displays a space
+    rts
+greater_than_10:
+    cmp     #20
+    bcs     greater_than_20
+    pha
+    lda      #'1'
+    BRK_ORIX XWR0
+    pla
+    clc
+    adc     #38
+    BRK_ORIX XWR0
+    CPUTC ':'      
+    rts    
+greater_than_20:  
+    cmp     #30
+    bcs     greater_than_30
+    pha
+    lda      #'2'
+    BRK_ORIX XWR0
+    pla
+    clc
+    adc     #28
+    BRK_ORIX XWR0
+    CPUTC ':'      
+    rts    
+greater_than_30:
+    cmp     #40
+    bcs     greater_than_40
+    pha
+    lda     #'3'
+    BRK_ORIX XWR0
+    pla
+    clc
+    adc     #18
+    BRK_ORIX XWR0
+    CPUTC ':'      
+    rts
+greater_than_40:
+    cmp     #50
+    bcs     greater_than_50
+    pha
+    lda     #'4'
+    BRK_ORIX XWR0
+    pla
+    clc
+    adc     #8
+    BRK_ORIX XWR0
+    CPUTC ':'      
+    rts    
+greater_than_50:
+    cmp     #60
+    bcs     greater_than_60
+    pha
+    lda     #'5'
+    BRK_ORIX XWR0
+    pla
+    sec
+    sbc     #2
+
+    BRK_ORIX XWR0
+    CPUTC ':'      
+    rts    
+greater_than_60:
+    ;cmp     #60
+    ;bcs     greater_than_60
+    pha
+    lda     #'6'
+    BRK_ORIX XWR0
+    pla
+    sec
+    sbc     #12
+    BRK_ORIX XWR0
+    CPUTC ':'      
+    rts    
 
 .endproc 
 
