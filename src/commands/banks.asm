@@ -43,8 +43,12 @@
 
     ldy     #$00
     lda     (ptr3),y
+    pha
+    ; Do we have another char 
+    iny
+    lda     (ptr3),y ; FIXME
+    pla
 
-    ;lda     ORIX_ARGV
     sec
     sbc     #$30
     tax
@@ -69,8 +73,6 @@
     ldx     #$00 ; Read mode
 
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
-     
-
       
     tay 
     cli
@@ -101,7 +103,6 @@ displays_all_banks:
 	
     lda     #64
     sta     bank_decimal_current_bank
-
 
     lda     $343
     sta     save_twilighte_banking_register
@@ -187,10 +188,12 @@ loop2:
     beq     @exit
     cli
     cmp     #' '                        ; 'a'
-    bcs     @skip
-    lda     #' '
-@skip:    
+    bcc     @none_char
+    cmp     #$7F                      ; '7f'
+    bcs     @none_char
+@skip:  
     BRK_ORIX XWR0
+@none_char:
 
 @wait_key:    
     BRK_KERNEL XRD0
