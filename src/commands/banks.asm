@@ -5,21 +5,46 @@
     current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
     
     
-    ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
-    tmp2         := userzp    ; 1 bytes
+    ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes : Used when we type "bank ID"
+    tmp2         := userzp                          ; 1 bytes
     bank_save_banking_register := userzp+1	 ; one byte
     save_twilighte_register    := userzp+2 ; 1 bytes
     save_twilighte_banking_register    := userzp+3 ; 1 bytes
     bank_decimal_current_bank := userzp+4 ; One byte
-    ptr2         := userzp+5    ; 2 bytes
+    ptr2         := userzp+5                        ; 2 bytes : Used when we type "bank ID"
     ptr3         := userzp+7    ; 2 bytes
     bank_stop_listing :=userzp+9
+    bank_save_argc :=userzp+10
+    bank_save_argvlow :=userzp+11
+    bank_save_argvhigh:=userzp+12
+
+    XMAINARGS = $2C
+    XGETARGV =  $2E
+
+    BRK_KERNEL XMAINARGS
+
+    
+    sta     bank_save_argvlow
+    sty     bank_save_argvhigh
+    stx     bank_save_argc
+
+    cpx     #$01
+    beq     displays_all_banks
+
 
     ldx     #$01
-    jsr     _orix_get_opt           ; get arg 
-    
-    bcc     displays_all_banks      ; if there is no args, let's displays all banks
-    lda     ORIX_ARGV
+    lda     bank_save_argvlow
+    ldy     bank_save_argvhigh
+
+    BRK_KERNEL XGETARGV
+
+    sta     ptr3
+    sty     ptr3+1
+
+    ldy     #$00
+    lda     (ptr3),y
+
+    ;lda     ORIX_ARGV
     sec
     sbc     #$30
     tax
@@ -86,7 +111,6 @@ displays_all_banks:
     sta     save_twilighte_register
     ora     #%00100000
     sta     $342
-    
 
     jsr     displays_banking
 
