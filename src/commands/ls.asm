@@ -424,7 +424,7 @@ _verbose:
   ZZ0015:
   ZZ0014:
     asl KBDCTC
-    bcs  display_catalog_end
+    bcs display_catalog_end
 
     lda #CH376_FILE_ENUM_GO
     sta CH376_COMMAND

@@ -139,38 +139,18 @@ displays_banking:
     sta     $343
 
 parse_next_banking_set:
-    lda     bank_decimal_current_bank
-    cmp     #$07
-    ;bne     @skip
-    
-    ;lda     #$07
-    ;bne     @store
+
 
 @skip:
     lda     #%00000100                ; we start from the bank 7 to 1
 @store:
     sta     current_bank
 loop2:
+    jsr     check_if_bank_7_6_5
     jsr     display_bank_id
 
     sei
-    lda     #<$FFF8
-    sta     ptr1
-    lda     #>$FFF8
-    sta     ptr1+1
-    ldy     #$00
-    ldx     #$00 ; Read mode
-    jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
-    sta     RES
-    iny
-    ldx     #$00 ; Read mode 
-    jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
-    sta     RES+1
-   
-    lda     RES
-    sta     ptr1
-    lda     RES+1
-    sta     ptr1+1
+    jsr     upd_ptr
 
 .IFPC02
 .pc02
@@ -200,8 +180,7 @@ loop2:
     bcs     @check_ctrl
     cmp     #' '
     bne     @check_ctrl
-    ;@prout:
-        ;jmp  @prout
+
     lda     bank_stop_listing
     beq     @S10
     dec     bank_stop_listing
@@ -230,13 +209,26 @@ loop2:
     cli
     RETURN_LINE
     dec     bank_decimal_current_bank
+    beq     @end_of_bank    
     dec     current_bank
     bne     loop2
 
+
     dec     $343
     bpl     parse_next_banking_set
+@end_of_bank:
 
+    rts
 
+check_if_bank_7_6_5:
+    lda     bank_decimal_current_bank
+    cmp     #$07
+    bne     @check_bank6
+    lda     #$07
+    sta     current_bank
+    dec     $343
+    rts
+@check_bank6:
     rts
 
 display_bank_id:
@@ -325,7 +317,26 @@ greater_than_60:
     sbc     #12
     BRK_ORIX XWR0
     CPUTC ':'      
-    rts    
-
+    rts
+        
+upd_ptr:
+    lda     #<$FFF8
+    sta     ptr1
+    lda     #>$FFF8
+    sta     ptr1+1
+    ldy     #$00
+    ldx     #$00 ; Read mode
+    jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
+    sta     RES
+    iny
+    ldx     #$00 ; Read mode 
+    jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
+    sta     RES+1
+   
+    lda     RES
+    sta     ptr1
+    lda     RES+1
+    sta     ptr1+1
+    rts
 .endproc 
 

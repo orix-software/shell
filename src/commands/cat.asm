@@ -19,9 +19,9 @@
     STRCPY  ORIX_ARGV,BUFNOM
     jsr     _ch376_set_file_name
 
-    jsr _ch376_file_open
-    cmp #CH376_ERR_MISS_FILE
-    bne cat_file
+    jsr     _ch376_file_open
+    cmp     #CH376_ERR_MISS_FILE
+    bne     cat_file
 
     PRINT BUFNOM
     PRINT str_not_found
