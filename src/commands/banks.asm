@@ -7,19 +7,25 @@
     
     ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes : Used when we type "bank ID"
     tmp2         := userzp                          ; 1 bytes
-    bank_save_banking_register := userzp+1	 ; one byte
-    save_twilighte_register    := userzp+2 ; 1 bytes
-    save_twilighte_banking_register    := userzp+3 ; 1 bytes
+    bank_save_banking_register := userzp+1	        ; one byte
+    save_twilighte_register    := userzp+2          ; 1 bytes
+    save_twilighte_banking_register    := userzp+3  ; 1 bytes
     bank_decimal_current_bank := userzp+4 ; One byte
     ptr2         := userzp+5                        ; 2 bytes : Used when we type "bank ID"
-    ptr3         := userzp+7    ; 2 bytes
-    bank_stop_listing :=userzp+9
+    ptr3         := userzp+7                        ; 2 bytes
+    bank_stop_listing :=userzp+9                    ; 
+    
     bank_save_argc :=userzp+10
+    bank_all_banks_display :=userzp+13              ; use when bank has no option
+
     bank_save_argvlow :=userzp+11
     bank_save_argvhigh:=userzp+12
 
     XMAINARGS = $2C
     XGETARGV =  $2E
+
+    lda         #$01
+    sta         bank_all_banks_display
 
     BRK_KERNEL XMAINARGS
 
@@ -43,6 +49,20 @@
 
     ldy     #$00
     lda     (ptr3),y
+    cmp     #'-' ; is an option ?
+    bne     @not_an_option
+   
+    iny
+    lda     (ptr3),y
+    cmp     #'a'  ; displays all banks option ?
+    bne     @unknown_option
+    dec     bank_all_banks_display
+
+    jmp     displays_all_banks
+
+@unknown_option:
+    rts
+@not_an_option:
     pha
     ; Do we have another char 
     iny
@@ -147,10 +167,14 @@ parse_next_banking_set:
     sta     current_bank
 loop2:
     jsr     check_if_bank_7_6_5
+    lda     bank_all_banks_display
+      
+    beq     @display_all
+
     jsr     get_rom_type
     cmp     #$00   ; Empty ?
     beq     @next_bank
-
+@display_all:
 
     jsr     display_bank_id
 
