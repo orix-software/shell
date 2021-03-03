@@ -154,6 +154,10 @@ loop2:
 
     jsr     display_bank_id
 
+    jmp     @check_kernel_ram_overlay
+
+
+@not_ram_overlay_kernel:
     sei
     jsr     upd_ptr
 
@@ -213,9 +217,7 @@ loop2:
 
     cli
     RETURN_LINE
-    ;lda     bank_decimal_current_bank
-    ;cmp     #33
-    ;beq     @end_of_bank
+
 @next_bank:    
     dec     bank_decimal_current_bank
     beq     @end_of_bank    
@@ -233,6 +235,14 @@ loop2:
 @end_of_bank:
 
     rts
+
+@check_kernel_ram_overlay:
+    lda     bank_decimal_current_bank
+    cmp     #52
+    bne     @not_ram_overlay_kernel
+    PRINT   str_kernel_reserved
+    jmp     @next_bank
+
 
 check_if_bank_7_6_5:
     lda     bank_decimal_current_bank
@@ -376,6 +386,10 @@ get_rom_type:
     ldy     #$00
     ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
-    rts    
+    rts
+
+
+str_kernel_reserved:
+    .byte "Kernel reserved",$0D,$0A,$00
 .endproc 
 
