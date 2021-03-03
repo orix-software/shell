@@ -18,7 +18,7 @@ twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     ldx     #$01
     lda     ORIX_ARGV,x
     cmp     #'f'
-    bne     check_next_parameter_s
+    bne     check_next_parameter_u
     PRINT   str_version
     lda     TWILIGHTE_REGISTER       ; get Twilighte register
     and     #%00001111 ; Select last 4 bits
@@ -34,48 +34,9 @@ error:
     RETURN_LINE
     rts
 
-; twil -s0 -r     
-check_next_parameter_s:
-    cmp     #'s'       ; Swap
-    bne     check_next_parameter_r
-    inx
-    lda     ORIX_ARGV,x  ; Get set
-    cmp     #48+08
-    bcs     error_overflowbanking
-    sec
-    sbc     #48
-    ; FIXME bug
-    sta     TWILIGHTE_BANKING_REGISTER ; and switch
-    rts
-
-check_next_parameter_r:
-    cmp     #'r'       ; Swap
-    bne     check_next_parameter_w
-    lda     TWILIGHTE_REGISTER
-    AND     #%11011111
-    sta     TWILIGHTE_REGISTER
-    PRINT   str_swap_to_bank_rom
-    RETURN_LINE    
-    rts
 usage:
     PRINT   str_usage
-    RETURN_LINE
     rts    
-
-check_next_parameter_w:
-    cmp     #'w'       ; Swap
-    bne     check_next_parameter_u
-    lda     TWILIGHTE_REGISTER
-    ora     #%00100000
-    sta     TWILIGHTE_REGISTER
-    PRINT   str_swap_to_bank_sram
-    RETURN_LINE
-    rts
-
-error_overflowbanking:
-    PRINT   str_usage
-    RETURN_LINE
-    rts 
 
 check_next_parameter_u:
     cmp     #'u'       ; Swap
@@ -168,9 +129,6 @@ str_overflow_banking:
 	.asciiz "This version of board can only manage 4 sets"    
 str_usage:    
 	.byte "Usage: twil -f",$0A,$0D
-    .byte "       twil -s[idbank]",$0A,$0D
-    .byte "       twil -r",$0A,$0D
-    .byte "       twil -w",$0A,$0D
     .byte "       twil -u",$0A,$0D
     .byte "       twil -d",$0A,$0D
     ;.byte "       twil -u",$0A,$0D   ; update main rom (kernel)
