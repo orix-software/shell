@@ -147,6 +147,11 @@ parse_next_banking_set:
     sta     current_bank
 loop2:
     jsr     check_if_bank_7_6_5
+    jsr     get_rom_type
+    cmp     #$00   ; Empty ?
+    beq     @next_bank
+
+
     jsr     display_bank_id
 
     sei
@@ -163,13 +168,13 @@ loop2:
 
 @loopme:
     ldy     ptr2
-    ldx     #$00 ; Read mode
+    ldx     #$00                        ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM
     beq     @exit
     cli
     cmp     #' '                        ; 'a'
     bcc     @none_char
-    cmp     #$7F                      ; '7f'
+    cmp     #$7F                        ; '7f'
     bcs     @none_char
 @skip:  
     BRK_ORIX XWR0
@@ -208,12 +213,21 @@ loop2:
 
     cli
     RETURN_LINE
+    ;lda     bank_decimal_current_bank
+    ;cmp     #33
+    ;beq     @end_of_bank
+@next_bank:    
     dec     bank_decimal_current_bank
     beq     @end_of_bank    
     dec     current_bank
     bne     loop2
+    lda     bank_decimal_current_bank
+    cmp     #16
+    bne     @skip12
+    lda     #03
+    sta     $343
 
-
+@skip12:
     dec     $343
     bpl     parse_next_banking_set
 @end_of_bank:
@@ -222,13 +236,28 @@ loop2:
 
 check_if_bank_7_6_5:
     lda     bank_decimal_current_bank
-    cmp     #$07
-    bne     @check_bank6
-    lda     #$07
-    sta     current_bank
-    dec     $343
+    cmp     #$08
+    bne     @check_bank4
+
+    lda     #$04
+    sta     $343
     rts
-@check_bank6:
+@check_bank4:
+    cmp     #$04
+    bne     @others
+    lda     #$00
+    sta     $343
+    rts
+@others:
+    cmp     #20
+    bne     @exit
+
+    lda     #$03
+    sta     $343
+    rts
+@exit:    
+    
+
     rts
 
 display_bank_id:
@@ -338,5 +367,15 @@ upd_ptr:
     lda     RES+1
     sta     ptr1+1
     rts
+
+get_rom_type:
+    lda     #<$FFF0
+    sta     ptr1
+    lda     #>$FFF0
+    sta     ptr1+1
+    ldy     #$00
+    ldx     #$00 ; Read mode
+    jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
+    rts    
 .endproc 
 
