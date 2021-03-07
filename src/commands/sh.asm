@@ -122,6 +122,7 @@ thereis_a_script_to_execute:
     lda     ptr_file_sh_interactive_ptr
 
     ldy     ptr_file_sh_interactive_ptr+1
+
     BRK_KERNEL XEXEC
  
     cmp    #EOK

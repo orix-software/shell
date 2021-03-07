@@ -299,7 +299,6 @@ display_catalog:
   ZZ0012:
     lda #$00
     sta BUFNOM,Y
-    ;sty TEMP_ORIX_1
 
     ldx #$14
 
@@ -404,7 +403,6 @@ _verbose:
     bne loop
   end:
 
-    ;ldy TEMP_ORIX_1
 
   ZZ0017:
     cpx #13

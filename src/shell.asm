@@ -125,6 +125,8 @@ sh_switch_on_prompt:
 
     ; Displays current path
     BRK_KERNEL XGETCWD
+    ;sta        $6000
+    ;sty        $6001
 
 
     BRK_KERNEL XWSTR0
@@ -724,7 +726,7 @@ internal_commands_length:
 .include "lib/trim.asm"
 .include "lib/strcat.asm"
 .include "lib/strlen.asm"
-.include "lib/fread.asm"
+
 .include "lib/get_opt.asm"
 .include "lib/get_opt2.asm"
 .include "lib/_clrscr.asm"
