@@ -32,7 +32,7 @@ rem xcopy data\*.* %ORICUTRON%\sdcard\ > NUL
 
 cd %ORICUTRON%
 rem oricutron -mt  --symbols "%ORIGIN_PATH%\xa_labels_orix.txt" -r :bp.txt
-oricutron2
+oricutron
 
 :End
 cd %ORIGIN_PATH%
