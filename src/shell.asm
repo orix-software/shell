@@ -45,7 +45,6 @@ BASH_NUMBER_OF_USERZP = 8
 
 .include   "include/orix.inc"
 
-XGETCWD=$48
 XGETCWD_ROUTINE=$48
 XPUTCWD_ROUTINE=$49
 

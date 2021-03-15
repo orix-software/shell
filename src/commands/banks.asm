@@ -61,12 +61,18 @@
     jmp     displays_all_banks
 
 @unknown_option:
+    ;PRINT usage
     rts
 @not_an_option:
     pha
     ; Do we have another char 
     iny
     lda     (ptr3),y ; FIXME
+    beq     @only_one_digit
+    ; convert to decimal 
+    sec
+    sbc     #$30
+@only_one_digit:    
     pla
 
     sec
@@ -270,26 +276,31 @@ loop2:
 
 check_if_bank_7_6_5:
     lda     bank_decimal_current_bank
+
+
     cmp     #$08
     bne     @check_bank4
-
+@set4:
     lda     #$04
     sta     $343
     rts
 @check_bank4:
     cmp     #$04
     bne     @others
+@set0:    
     lda     #$00
     sta     $343
     rts
 @others:
     cmp     #20
     bne     @exit
-
+@set3:
     lda     #$03
     sta     $343
     rts
-@exit:    
+@exit:
+    ;cmp     #61
+    ;beq     @set4    
     
 
     rts
@@ -412,6 +423,9 @@ get_rom_type:
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     rts
 
+usage:
+    .byte "bank [-a]",$0D,$0A
+    .asciiz "bank IDBANK"
 
 str_kernel_reserved:
     .byte "Kernel reserved",$0D,$0A,$00

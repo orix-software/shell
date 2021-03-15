@@ -21,7 +21,7 @@ rem
 rem %CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1  -ttelestrat --include-dir %CC65%\asminc\ src/shellext.asm -o shellext.ld65  
 rem %CC65%\ld65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -tnone  shellext.ld65 -o shellext.rom  -Ln shellext.sym
 
-
+cl65.exe -ttelestrat tests/fwrite.c -o fwrite && cp fwrite %ORICUTRON%\sdcard\bin\B
 
 IF "%1"=="NORUN" GOTO End
 
