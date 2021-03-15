@@ -739,10 +739,10 @@ _cd_to_current_realpath_new:
     ldy     #O_RDONLY
     ldx     TR6
     BRK_KERNEL XOPEN
-    cmp     #FF
+    cmp     #$FF
     bne     @free
     
-    cpy     #FF
+    cpy     #$FF
     bne     @free    
     rts
     ; get A&Y
