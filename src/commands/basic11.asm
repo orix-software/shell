@@ -139,9 +139,9 @@ basic11_do_not_display := userzp+17
 
     BRK_KERNEL XOPEN ; open current
 
-    cpy     #$00
+    cpy     #$FF
     bne     @parsecnf ; not null then  start because we did not found a conf
-    cmp     #$00
+    cmp     #$FF
     beq     @noparam_free ; not null then  start because we did not found a conf
     bne     @parsecnf
 
@@ -510,9 +510,9 @@ basic11_do_not_display := userzp+17
     ldy     #O_RDONLY
 
     BRK_KERNEL XOPEN 
-    cpy     #$00
+    cpy     #$FF
     bne     @read_rom 
-    cmp     #$00
+    cmp     #$FF
     bne     @read_rom 
 
     ldx     #$04 ; Get kernel ERRNO
@@ -706,9 +706,9 @@ tapes_path:
     ldy     #O_RDONLY
 
     BRK_KERNEL XOPEN ; open current
-    cpy     #$00
+    cpy     #$FF
     bne     @read_maindb ; not null then  start because we did not found a conf
-    cmp     #$00
+    cmp     #$FF
     bne     @read_maindb ; not null then  start because we did not found a conf
     
     PRINT   str_basic11_missing

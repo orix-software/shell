@@ -8,7 +8,7 @@
   
   ldy #O_RDONLY ; Open in readonly
   BRK_TELEMON XOPEN
-  cmp #$ff
+  cmp #$FF
   beq no_such_file
 
   ; Let's copy

@@ -70,9 +70,9 @@
     ldy #O_RDONLY
     BRK_ORIX XOPEN
     
-    cmp #NULL
+    cmp #FF
     bne @S1
-    cpy #NULL
+    cpy #FF
     bne @S1
     beq error
     

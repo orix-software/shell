@@ -57,9 +57,9 @@ start_man:
     ldy     #O_RDONLY
     BRK_KERNEL XOPEN
 
-    cmp     #NULL
+    cmp     #FF
     bne     next
-    cpy     #NULL
+    cpy     #FF
     bne     next
 
 

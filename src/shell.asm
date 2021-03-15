@@ -13,8 +13,6 @@
 
 .include   "dependencies/orix-sdk/macros/SDK.mac"
 
-
-
 bash_struct_ptr              :=userzp ; 16bits
 sh_esc_pressed               :=userzp+2
 sh_length_of_command_line    :=userzp+3 ; 
@@ -741,10 +739,10 @@ _cd_to_current_realpath_new:
     ldy     #O_RDONLY
     ldx     TR6
     BRK_KERNEL XOPEN
-    cmp     #NULL
+    cmp     #FF
     bne     @free
     
-    cpy     #NULL
+    cpy     #FF
     bne     @free    
     rts
     ; get A&Y
