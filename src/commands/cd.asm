@@ -124,9 +124,9 @@
 
     BRK_KERNEL XOPEN
 
-    cmp     #FF
+    cmp     #$FF
     bne     @not_null
-    cpy     #FF
+    cpy     #$FF
     bne     @not_null
     ; Free fp
     BRK_KERNEL XFREE
