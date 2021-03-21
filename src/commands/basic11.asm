@@ -42,14 +42,14 @@ basic11_do_not_display := userzp+17
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
     
-    
+
     ldx     #$01
     jsr     _orix_get_opt2
     bcc     @no_arg      ; if there is no args, let's start
     ldx     #$01
     jsr     _orix_get_opt2
     
-
+    
    ; BRK_KERNEL XMAINARGS_GETV
    ; sta   basic11_ptr2
    ; sty   basic11_ptr2+1
@@ -62,8 +62,10 @@ basic11_do_not_display := userzp+17
     bne     @is_a_tape_file_in_arg
     jmp     @basic11_option_management
 @no_arg:    
+
     jmp     @start
 @is_a_tape_file_in_arg:
+
 
     ;malloc basic11_sizeof_max_length_of_conf_file_bin,basic11_ptr1,str_enomem ; Index ptr
 
@@ -134,20 +136,18 @@ basic11_do_not_display := userzp+17
     ldx     basic11_ptr1+1
     lda     basic11_ptr1
 
-
+    ;fopen src, O_RDONLY, TELEMON, ptr1, msg, $EC
+    ;fopen file, mode [,TELEMON] [,ptr] [,oom_msg_ptr] [,fail_value]
+    ;fopen basic11_ptr1, O_RDONLY, , ptr1, msg, $EC
     ldy     #O_RDONLY
 
     BRK_KERNEL XOPEN ; open current
 
-    cpy     #$FF
+    cpx     #$FF
     bne     @parsecnf ; not null then  start because we did not found a conf
     cmp     #$FF
     beq     @noparam_free ; not null then  start because we did not found a conf
     bne     @parsecnf
-
-
-
-
 
 
 @start:
@@ -233,14 +233,16 @@ basic11_do_not_display := userzp+17
 
 @gui:
     jsr     basic11_read_main_dbfile
-    cmp     #$00
+    cmp     #$FF
     bne     @continuegui
-    cpy     #$00
+    cpx     #$FF
     bne     @continuegui
+    ;PRINT str_basic11_missing
     rts
 
 @continuegui:
     ; save fp
+    
     jmp     basic11_start_gui
 
 @option_not_known:
@@ -261,9 +263,9 @@ basic11_do_not_display := userzp+17
     jsr     _orix_get_opt
  
     jsr     basic11_read_main_dbfile
-    cmp     #$00
+    cmp     #$FF
     bne     @continue_l_option
-    cpy     #$00
+    cpy     #$FF
     bne     @continue_l_option
     rts
 
@@ -510,7 +512,7 @@ basic11_do_not_display := userzp+17
     ldy     #O_RDONLY
 
     BRK_KERNEL XOPEN 
-    cpy     #$FF
+    cpx     #$FF
     bne     @read_rom 
     cmp     #$FF
     bne     @read_rom 
@@ -543,6 +545,7 @@ basic11_do_not_display := userzp+17
 
     rts
 @read_rom:
+    ; We found the rom, now load it
     sta     basic11_fp
     sty     basic11_fp+1
  ; define target address
@@ -558,11 +561,10 @@ basic11_do_not_display := userzp+17
   ; reads byte 
     BRK_KERNEL XFREAD
 
-    BRK_KERNEL XCLOSE
 
-    lda     basic11_fp
-    ldy     basic11_fp+1
-    BRK_KERNEL XFREE
+
+    fclose(basic11_fp)
+   
 
     ldy     #$00
     lda     (basic11_ptr2),y
@@ -706,16 +708,16 @@ tapes_path:
     ldy     #O_RDONLY
 
     BRK_KERNEL XOPEN ; open current
-    cpy     #$FF
+    cpx     #$FF
     bne     @read_maindb ; not null then  start because we did not found a conf
     cmp     #$FF
     bne     @read_maindb ; not null then  start because we did not found a conf
     
     PRINT   str_basic11_missing
     BRK_KERNEL XCRLF
-    lda     #$00
-    ldy     #$00
-    ldx     #$01
+    lda     #$FF
+    ldx     #$FF
+    ;ldx     #$01
     rts
 
 

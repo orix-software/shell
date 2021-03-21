@@ -742,12 +742,12 @@ _cd_to_current_realpath_new:
     cmp     #$FF
     bne     @free
     
-    cpy     #$FF
+    cpx     #$FF
     bne     @free    
     rts
     ; get A&Y
 @free:
-    BRK_KERNEL XFREE
+    BRK_KERNEL XCLOSE
     rts
 
 ; FIXME common with telemon

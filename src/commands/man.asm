@@ -59,7 +59,7 @@ start_man:
 
     cmp     #$FF
     bne     next
-    cpy     #$FF
+    cpx     #$FF
     bne     next
 
 

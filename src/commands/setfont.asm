@@ -72,7 +72,7 @@
     
     cmp #$FF
     bne @S1
-    cpy #$FF
+    cpx #$FF
     bne @S1
     beq error
     

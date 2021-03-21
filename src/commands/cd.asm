@@ -119,15 +119,7 @@
 
 not_dot:
 
-    ;fopen cd_path, O_RDONLY , ,cd_fp
-    ;
-    ;fopen cd_path, O_RDONLY,,cd_fp
-
     fopen (cd_path), O_RDONLY
-    ;ldy     #O_RDONLY
-    ;lda     cd_path
-    ;ldy     cd_path+1
-    ;BRK_TELEMON XOPEN
 
     cpx     #$FF
     bne     @not_null
@@ -141,25 +133,19 @@ not_dot:
     
 
 @not_null:
+    
     sta     cd_fp
     stx     cd_fp+1
-    ;sta     $6000
-    ;stx     $6001
+    fclose(cd_fp)
     
     ; Free FP
-;    BRK_KERNEL XFREE
     lda     cd_path
     ldy     cd_path+1
 
     BRK_KERNEL   XPUTCWD_ROUTINE
 
 free_cd_memory:
- ;   jmp @free_cd_memory
-
-    ;lda     cd_fp
-    ;ldy     cd_fp+1
-     fclose(cd_fp)
-    ;BRK_KERNEL XCLOSE
+    mfree(cd_path)
     rts
 
 try_to_recurse:
@@ -196,8 +182,7 @@ try_to_recurse:
 @do_not_inc_3:
 ;   at this step cd_path should be here : usr/ 
     jmp     free_cd_memory   
-    ;bne     @not_dot
-    ;rts    
+
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
 .endproc
