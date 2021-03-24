@@ -133,12 +133,12 @@ not_dot:
     
 
 @not_null:
-    
+    ; Free FP
     sta     cd_fp
     stx     cd_fp+1
     fclose(cd_fp)
     
-    ; Free FP
+
     lda     cd_path
     ldy     cd_path+1
 

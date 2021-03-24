@@ -130,19 +130,11 @@ basic11_do_not_display := userzp+17
 @out_concat:
     sta     (basic11_ptr1),y
   
-
-
-
-    ldx     basic11_ptr1+1
-    lda     basic11_ptr1
-
     ;fopen src, O_RDONLY, TELEMON, ptr1, msg, $EC
     ;fopen file, mode [,TELEMON] [,ptr] [,oom_msg_ptr] [,fail_value]
     ;fopen basic11_ptr1, O_RDONLY, , ptr1, msg, $EC
-    ldy     #O_RDONLY
 
-    BRK_KERNEL XOPEN ; open current
-
+    fopen (basic11_ptr1), O_RDONLY
     cpx     #$FF
     bne     @parsecnf ; not null then  start because we did not found a conf
     cmp     #$FF
@@ -232,12 +224,13 @@ basic11_do_not_display := userzp+17
     jmp     @load_ROM_in_memory_and_start
 
 @gui:
+
     jsr     basic11_read_main_dbfile
     cmp     #$FF
     bne     @continuegui
     cpx     #$FF
     bne     @continuegui
-    ;PRINT str_basic11_missing
+    PRINT str_basic11_missing
     rts
 
 @continuegui:
@@ -252,7 +245,6 @@ basic11_do_not_display := userzp+17
 @basic11_option_management:
     ldx     #$01
     lda     ORIX_ARGV,x
-    
     cmp     #'g'
     beq     @gui
 
@@ -506,12 +498,9 @@ basic11_do_not_display := userzp+17
     lda     #$00
     sta     (basic11_ptr1),y
 
-    lda     basic11_ptr1
-    ldx     basic11_ptr1+1
-    
-    ldy     #O_RDONLY
 
-    BRK_KERNEL XOPEN 
+
+    fopen (basic11_ptr1), O_RDONLY
     cpx     #$FF
     bne     @read_rom 
     cmp     #$FF
@@ -690,7 +679,6 @@ tapes_path:
     ;
     malloc #(.strlen("/var/cache/basic11/")+8+4+1),basic11_ptr2,str_enomem ; Index ptr
 
-
     ldy     #$00
 @L10:    
     lda     str_basic11_maindb,y
@@ -701,13 +689,11 @@ tapes_path:
 @S10:
     sta     (basic11_ptr2),y
 
-    lda     basic11_ptr2
-    ldx     basic11_ptr2+1
 
 
-    ldy     #O_RDONLY
 
-    BRK_KERNEL XOPEN ; open current
+
+    fopen (basic11_ptr2), O_RDONLY
     cpx     #$FF
     bne     @read_maindb ; not null then  start because we did not found a conf
     cmp     #$FF
@@ -717,7 +703,6 @@ tapes_path:
     BRK_KERNEL XCRLF
     lda     #$FF
     ldx     #$FF
-    ;ldx     #$01
     rts
 
 

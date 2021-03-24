@@ -61,8 +61,6 @@ start_sh_interactive:
     sta    bash_struct_ptr
     sty    bash_struct_ptr+1
 
-
-
     lda    #$00
     ldy    #shell_bash_struct::command_line
     sta    (bash_struct_ptr),y
