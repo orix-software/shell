@@ -96,12 +96,12 @@
 
 
 
-    ; mfree (userzp)
-    lda userzp
-    ldy userzp+1
-    BRK_ORIX XFREE
+     mfree (userzp)
+    ;lda userzp
+    ;ldy userzp+1
+    ;BRK_ORIX XFREE
 
-    BRK_ORIX XCRLF
+    ;BRK_ORIX XCRLF
 
     ; Code de retour
     lda #$00

@@ -215,6 +215,8 @@ start_commandline:
 
 @sh_launch_command:    
     RETURN_LINE
+
+   
     ldy    bash_struct_ptr+1
 
     lda    bash_struct_ptr
@@ -285,8 +287,7 @@ send_oups_and_loop:
 
 ; Key left
 @key_left_routine:
-    ;adc    #shell_bash_struct::command_line
-    ;    sta    (bash_struct_ptr),y
+
     ldy    #shell_bash_struct::pos_command_line
     ; dec a
     lda    (bash_struct_ptr),y
@@ -755,7 +756,7 @@ _cd_to_current_realpath_new:
     bcc     @skip
     cmp     #'[' ; Found by assinie (bug)
     bcs     @skip 
-    ADC     #97-65
+    adc     #97-65
 @skip:
     rts
 .endproc    

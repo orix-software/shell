@@ -229,30 +229,6 @@ ORIX_ARGC:
 	txa
 	pla
 .endmacro    
-	
-.macro PRINT_INTO_TELEMON str
-	pha
-	txa
-	pha
-	tya
-	pha
-	lda RES
-	pha
-	lda RES+1
-	pha
-	lda #<str
-	ldy #>str
-	jsr XWSTR0_ROUTINE 
-	pla
-	sta RES+1
-	pla
-	sta RES
-	pla
-	tay
-	pla
-	txa
-	pla
-.endmacro
 
 .macro RETURN_LINE
   BRK_KERNEL XCRLF

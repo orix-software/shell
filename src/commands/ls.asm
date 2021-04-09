@@ -9,6 +9,8 @@ ls_column                := userzp+1
 ls_save_line_command_ptr := userzp+2 ; 2 bytes
 ls_file_found            := userzp+4
 ls_argc                  := userzp+5
+ls_fp                    := userzp+7
+ls_file                  := userzp+9
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
@@ -17,31 +19,53 @@ ls_argc                  := userzp+5
 .endstruct
 
 .proc _ls
-    lda #3
-    sta ls_column_max
+    lda     #$03
+    sta     ls_column_max
 
-    jsr _ch376_verify_SetUsbPort_Mount
-    ;bcc @ZZ0001
-    bcs *+5
-    jmp ZZ0001
+    ;lda     #$01
+    ;ldy     #$00
+    ;BRK_KERNEL XMALLOC 
+    ;sta     ls_file
+    ;sty     ls_file+1
 
-    jsr _cd_to_current_realpath_new
+    ;lda     #$00
+    ;ldy     #$00
+    ;sta     (ls_file),y
+
+    ;fopen (ls_file), O_RDONLY
+
+    ;cpx     #$FF
+    ;bne     @not_null
+    ;cmp     #$FF
+    ;bne     @not_null
+
+    jsr     _ch376_verify_SetUsbPort_Mount
+    ;bcc     @ZZ0001
+    bcs     *+5
+    jmp     ZZ0001
+
+    jsr     _cd_to_current_realpath_new
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ORIX_ARGV[0] = 0 si pas de paramètre
-    ldx #$01
-    stx ls_argc
-    jsr _orix_get_opt
-    bcc list
+;@not_null:
+    ;sta     ls_fp
+    ;stx     ls_fp+1
+
+    ;fclose (ls_fp)    
+    ldx     #$01
+    stx     ls_argc
+    jsr     _orix_get_opt
+    bcc     list
 
     ; Paramètre: -l ?
-    lda ORIX_ARGV
-    cmp #'-'
-    bne list
-    lda ORIX_ARGV+1
-    cmp #'l'
-    bne list
-    lda ORIX_ARGV+2
-    bne list
+    lda     ORIX_ARGV
+    cmp     #'-'
+    bne     list
+    lda     ORIX_ARGV+1
+    cmp     #'l'
+    bne     list
+    lda     ORIX_ARGV+2
+    bne     list
     ; format long
     lda #$ff
     sta ls_column_max
