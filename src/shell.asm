@@ -13,8 +13,6 @@
 
 .include   "dependencies/orix-sdk/macros/SDK.mac"
 
-
-
 bash_struct_ptr              :=userzp ; 16bits
 sh_esc_pressed               :=userzp+2
 sh_length_of_command_line    :=userzp+3 ; 
@@ -62,8 +60,6 @@ start_sh_interactive:
     ; FIXME test NULL pointer
     sta    bash_struct_ptr
     sty    bash_struct_ptr+1
-
-
 
     lda    #$00
     ldy    #shell_bash_struct::command_line
@@ -219,6 +215,8 @@ start_commandline:
 
 @sh_launch_command:    
     RETURN_LINE
+
+   
     ldy    bash_struct_ptr+1
 
     lda    bash_struct_ptr
@@ -289,8 +287,7 @@ send_oups_and_loop:
 
 ; Key left
 @key_left_routine:
-    ;adc    #shell_bash_struct::command_line
-    ;    sta    (bash_struct_ptr),y
+
     ldy    #shell_bash_struct::pos_command_line
     ; dec a
     lda    (bash_struct_ptr),y
@@ -733,24 +730,6 @@ internal_commands_length:
 .include "lib/ch376_verify.s"
 
 
-_cd_to_current_realpath_new:
-    BRK_KERNEL XGETCWD ; Return A and Y the string
-    
-
-    sty     TR6
-    ldy     #O_RDONLY
-    ldx     TR6
-    BRK_KERNEL XOPEN
-    cmp     #NULL
-    bne     @free
-    
-    cpy     #NULL
-    bne     @free    
-    rts
-    ; get A&Y
-@free:
-    BRK_KERNEL XFREE
-    rts
 
 ; FIXME common with telemon
   
@@ -759,7 +738,7 @@ _cd_to_current_realpath_new:
     bcc     @skip
     cmp     #'[' ; Found by assinie (bug)
     bcs     @skip 
-    ADC     #97-65
+    adc     #97-65
 @skip:
     rts
 .endproc    

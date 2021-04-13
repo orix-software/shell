@@ -104,12 +104,12 @@ write:
   ldx     vi_struct+1
   BRK_TELEMON XOPEN
 
-  cpx     #$ff
+  cpx     #$FF
   bne     fileopened
-  cmp     #$ff
+  cmp     #$FF
   bne     fileopened  
   ; Impossible to open error
-  lda	  msg_impossibletowrite
+  lda	    msg_impossibletowrite
   ldy 	  msg_impossibletowrite+1
   jsr     display_message_on_command_line
   

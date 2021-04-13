@@ -16,7 +16,7 @@ cp_tmp := userzp+4
 
 .proc _cp
   rts
-  lda   #$00 ; don't Delete param1 file FIXME 65c02
+  lda     #$00 ; don't Delete param1 file FIXME 65c02
   sta   cp_tmp
   jmp   _cp_mv_execute
 .endproc

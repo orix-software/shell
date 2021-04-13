@@ -70,9 +70,9 @@
     ldy #O_RDONLY
     BRK_ORIX XOPEN
     
-    cmp #NULL
+    cmp #$FF
     bne @S1
-    cpy #NULL
+    cpx #$FF
     bne @S1
     beq error
     
@@ -96,12 +96,12 @@
 
 
 
-    ; mfree (userzp)
-    lda userzp
-    ldy userzp+1
-    BRK_ORIX XFREE
+     mfree (userzp)
+    ;lda userzp
+    ;ldy userzp+1
+    ;BRK_ORIX XFREE
 
-    BRK_ORIX XCRLF
+    ;BRK_ORIX XCRLF
 
     ; Code de retour
     lda #$00

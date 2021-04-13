@@ -51,16 +51,14 @@ start_man:
     sta     RES+1
     jsr     _strcat
  
-    lda     MAN_SAVE_MALLOC_PTR
-    ldx     MAN_SAVE_MALLOC_PTR+1
-    
-    ldy     #O_RDONLY
-    BRK_KERNEL XOPEN
 
-    cmp     #NULL
+    fopen (MAN_SAVE_MALLOC_PTR), O_RDONLY
+    cpx     #$FF
     bne     next
-    cpy     #NULL
+
+    cmp     #$FF
     bne     next
+
 
 
     ; Not found
@@ -86,12 +84,12 @@ error:
 
 next:
     sta     MAN_SAVE_MALLOC_FP
-    sty     MAN_SAVE_MALLOC_FP+1
+    stx     MAN_SAVE_MALLOC_FP+1
     CLS
     SWITCH_OFF_CURSOR
   ; We read 1080 bytes
     FREAD   SCREEN, 1080, 1, 0
-    BRK_ORIX  XCLOSE
+
 cget_loop:
     BRK_ORIX  XRDW0
     bmi cget_loop
@@ -106,10 +104,8 @@ out:
     ldy MAN_SAVE_MALLOC_PTR+1
     BRK_ORIX XFREE
 
-    lda MAN_SAVE_MALLOC_FP
-    ldy MAN_SAVE_MALLOC_FP+1
-    BRK_ORIX XFREE
-
+    fclose(MAN_SAVE_MALLOC_FP)
+    
     rts
 
 str_man_error:

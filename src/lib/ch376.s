@@ -169,7 +169,8 @@ CH376_ERR_FILE_CLOSE 	= $B4
     sta     CH376_COMMAND
     ldx     #$00
 loop:	
-    lda     BUFNOM,x      
+    lda     BUFNOM,x
+    
     beq     end                         ; we reached 0 value
     cmp     #'a'                        ; 'a'
     bcc     skip

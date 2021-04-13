@@ -62,12 +62,12 @@
     ldy     #$00
     lda     (cd_path),y
     cmp     #'.'
-    bne     @not_dot
+    bne     not_dot
     iny
     lda     (cd_path),y
     beq     @only_one_dot
     cmp     #'.'
-    bne     @free_cd_memory ; it's  'cd .' only then, jump. 
+    bne     free_cd_memory ; it's  'cd .' only then, jump. 
 
     ; Here we have 'cd ..'
     ; let's pull folder
@@ -78,7 +78,7 @@
     ; is it cd .. when we are in / ?
     ldy     #$01
     lda     (cd_path),y
-    beq     @free_cd_memory ; yes we go out
+    beq     free_cd_memory ; yes we go out
 
     ldy     #$00
 @L2:    
@@ -94,7 +94,7 @@
 @L3:    
     lda     (cd_path),y
     cmp     #'/'
-    beq     @try_to_recurse
+    beq     try_to_recurse
     dey
     bne     @L3
     ; We reached 0 : then we are in "/" root
@@ -114,45 +114,44 @@
     ldy     cd_path+1
     BRK_KERNEL   XPUTCWD_ROUTINE
     ; and free
-    jmp     @free_cd_memory
+    jmp     free_cd_memory
 
 
-@not_dot:
-    lda     cd_path
-    ldx     cd_path+1
-    ldy     #O_RDONLY
+not_dot:
 
-    BRK_KERNEL XOPEN
+    fopen (cd_path), O_RDONLY
 
-    cmp     #NULL
+    cpx     #$FF
     bne     @not_null
-    cpy     #NULL
+    cmp     #$FF
     bne     @not_null
-    ; Free fp
-    BRK_KERNEL XFREE
+
+    mfree(cd_path)
+
     PRINT str_not_a_directory
-
-    jmp     @free_cd_memory
+    rts
+    
 
 @not_null:
     ; Free FP
-    BRK_KERNEL XFREE
+    sta     cd_fp
+    stx     cd_fp+1
+    fclose(cd_fp)
+    
+
     lda     cd_path
     ldy     cd_path+1
 
     BRK_KERNEL   XPUTCWD_ROUTINE
 
-@free_cd_memory:
-    lda     cd_path
-    ldy     cd_path+1
-    BRK_KERNEL XFREE
+free_cd_memory:
+    mfree(cd_path)
     rts
 
-@try_to_recurse:
+try_to_recurse:
     cpy     #$00
     bne     @fill_eos
-    ;lda     #$11
-    ;sta     $bb80
+
     iny
 @fill_eos:
 
@@ -161,10 +160,9 @@
 
     lda     cd_path
     ldy     cd_path+1
-    ;sta     $5000
-    ;sty     $5001
+
     BRK_KERNEL   XPUTCWD_ROUTINE
-    jmp     @free_cd_memory
+    jmp     free_cd_memory
     
     ; cdpath++
     ; cdpath++
@@ -183,9 +181,8 @@
     inc     cd_path+1
 @do_not_inc_3:
 ;   at this step cd_path should be here : usr/ 
- jmp     @free_cd_memory   
-    bne     @not_dot
-    rts    
+    jmp     free_cd_memory   
+
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0	
 .endproc
