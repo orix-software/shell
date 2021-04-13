@@ -10,6 +10,7 @@
     sh_interactive_save_ptr  := userzp+10    ; one byte
     ptr_file_sh_interactive := userzp+12
 
+    sh_saveY := userzp +14
 
     ldx     #$01
     jsr     _orix_get_opt
@@ -18,7 +19,7 @@
     lda     ORIX_ARGV
     bne     thereis_a_script_to_execute
 
-  @start_normal:
+@start_normal:
     jmp     start_sh_interactive
 
 
@@ -125,7 +126,7 @@ thereis_a_script_to_execute:
     BRK_KERNEL XEXEC
  
     cmp    #EOK
-    beq    @S20
+    beq    @nextline
     PRINT str_error
     lda    sh_interactive_line_number
     ldy    #$00
@@ -133,6 +134,13 @@ thereis_a_script_to_execute:
     stx    DEFAFF
     ldx    #$00
     BRK_KERNEL XDECIM
+    RETURN_LINE
+    lda     ptr_file_sh_interactive_ptr
+
+    ldy     ptr_file_sh_interactive_ptr+1
+    BRK_KERNEL XWSTR0
+    RETURN_LINE
+    rts
 @nextline:
     ;inc    
     lda    sh_interactive_save_ptr
@@ -144,6 +152,7 @@ thereis_a_script_to_execute:
     sta    ptr_file_sh_interactive_ptr 
     ; do we reached end of file ?
 
+    inc    sh_interactive_line_number
 
 
 @not_finished:

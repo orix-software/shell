@@ -39,12 +39,42 @@ ls_file                  := userzp+9
     ;cmp     #$FF
     ;bne     @not_null
 
-    jsr     _ch376_verify_SetUsbPort_Mount
+    ;jsr     _ch376_verify_SetUsbPort_Mount
     ;bcc     @ZZ0001
-    bcs     *+5
-    jmp     ZZ0001
+    ;bcs     *+5
+    ;jmp     ZZ0001
 
-    jsr     _cd_to_current_realpath_new
+
+    BRK_KERNEL XGETCWD ; Return A and Y the string
+
+
+    sty     TR6
+    ldy     #O_RDONLY
+    ldx     TR6
+    BRK_KERNEL XOPEN
+    cmp     #$FF
+    bne     @free
+    
+    cpx     #$FF
+    bne     @free
+
+    lda     #<@str
+    ldy     #>@str
+    BRK_KERNEL XWSTR0
+    rts
+@str:
+    .byte  "Unable to open current path",$0D,$00
+
+    
+    ; get A&Y
+@free:
+    
+
+
+
+   ; jsr     _ch376_set_file_name
+   ; jsr     _ch376_file_open
+
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ORIX_ARGV[0] = 0 si pas de paramètre
 ;@not_null:
@@ -67,12 +97,12 @@ ls_file                  := userzp+9
     lda     ORIX_ARGV+2
     bne     list
     ; format long
-    lda #$ff
-    sta ls_column_max
+    lda     #$ff
+    sta     ls_column_max
 
-    ldx #$02
-    stx ls_argc
-    jsr _orix_get_opt
+    ldx     #$02
+    stx     ls_argc
+    jsr     _orix_get_opt
 
 list:
     ; Potentiel buffer overflow ici
@@ -119,6 +149,7 @@ copy_mask:
     ; RESB pointe toujours sur BUFEDT
     jsr WildCard
 .ifndef ls_use_malloc
+    
     bne Error       ; Il faut une autre erreur, ici c'est parce qu'il y a des caractères incorrects
     ;bcc @ZZ0002     ; Pas de '?' ni de '*'
 .else
@@ -137,8 +168,8 @@ copy_mask:
     sta BUFNOM+1
 
   ZZ0002:
-    jsr _ch376_set_file_name
-    jsr _ch376_file_open
+    jsr     _ch376_set_file_name
+    jsr     _ch376_file_open
     ; Au retour, on peut avoir USB_INT_SUCCESS ou USB_INT_DISK_READ)
 
     ; $14 -> Fichier existant (USB_INT_SUCCESS) (cas 'ls fichie.ext')
@@ -147,8 +178,9 @@ copy_mask:
     ; $42 -> fichier inexistant (ERR_MISS_FILE)
 
     cmp #CH376_ERR_MISS_FILE
-    beq Error
 
+    beq Error
+nextme:
     ; Indique pas de fichier trouvé pour le moment
     ldx #$00
     stx ls_file_found
@@ -188,6 +220,7 @@ display_one_file_catalog:
     sta CH376_DATA
     jsr _ch376_wait_response
     cmp #CH376_USB_INT_SUCCESS
+
     bne Error
 
 go:
@@ -219,6 +252,7 @@ go:
 
     ; Erreur si aucun fichier trouvé
     lda ls_file_found
+
     beq Error
 
 .ifdef ls_use_malloc
@@ -235,6 +269,9 @@ go:
 
   ZZ0001:
     rts
+ls_debug:
+    lda #'A'    
+    sta $bb80
 
 ; ------------------------------------------------------------------------------
 Error:

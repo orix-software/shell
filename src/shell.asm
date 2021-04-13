@@ -730,24 +730,6 @@ internal_commands_length:
 .include "lib/ch376_verify.s"
 
 
-_cd_to_current_realpath_new:
-    BRK_KERNEL XGETCWD ; Return A and Y the string
-    
-
-    sty     TR6
-    ldy     #O_RDONLY
-    ldx     TR6
-    BRK_KERNEL XOPEN
-    cmp     #$FF
-    bne     @free
-    
-    cpx     #$FF
-    bne     @free    
-    rts
-    ; get A&Y
-@free:
-    BRK_KERNEL XCLOSE
-    rts
 
 ; FIXME common with telemon
   
