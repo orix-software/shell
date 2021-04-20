@@ -1,7 +1,7 @@
 @echo off
 
 rem SET ORICUTRON="D:\Onedrive\oric\oricutron-iss2-debug\"
-rem SET ORICUTRON="C:\Users\plifp\OneDrive\oric\oricutron_twilighte"
+
 SET ORICUTRON="D:\Onedrive\oric\oricutron_twilighte"
 
 rem @SET ORICUTRON="D:\Onedrive\oric\projets\oric_software\oricutron_jedeoric\msvc\VS2019\x64\Release\"
@@ -32,7 +32,7 @@ rem xcopy data\*.* %ORICUTRON%\sdcard\ > NUL
 
 cd %ORICUTRON%
 rem oricutron -mt  --symbols "%ORIGIN_PATH%\xa_labels_orix.txt" -r :bp.txt
-oricutron2
+oricutron
 
 :End
 cd %ORIGIN_PATH%

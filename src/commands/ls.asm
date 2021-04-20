@@ -9,6 +9,8 @@ ls_column                := userzp+1
 ls_save_line_command_ptr := userzp+2 ; 2 bytes
 ls_file_found            := userzp+4
 ls_argc                  := userzp+5
+ls_fp                    := userzp+7
+ls_file                  := userzp+9
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
@@ -17,38 +19,90 @@ ls_argc                  := userzp+5
 .endstruct
 
 .proc _ls
-    lda #3
-    sta ls_column_max
+    lda     #$03
+    sta     ls_column_max
 
-    jsr _ch376_verify_SetUsbPort_Mount
-    ;bcc @ZZ0001
-    bcs *+5
-    jmp ZZ0001
+    ;lda     #$01
+    ;ldy     #$00
+    ;BRK_KERNEL XMALLOC 
+    ;sta     ls_file
+    ;sty     ls_file+1
 
-    jsr _cd_to_current_realpath_new
+    ;lda     #$00
+    ;ldy     #$00
+    ;sta     (ls_file),y
+
+    ;fopen (ls_file), O_RDONLY
+
+    ;cpx     #$FF
+    ;bne     @not_null
+    ;cmp     #$FF
+    ;bne     @not_null
+
+    ;jsr     _ch376_verify_SetUsbPort_Mount
+    ;bcc     @ZZ0001
+    ;bcs     *+5
+    ;jmp     ZZ0001
+
+
+    BRK_KERNEL XGETCWD ; Return A and Y the string
+
+
+    sty     TR6
+    ldy     #O_RDONLY
+    ldx     TR6
+    BRK_KERNEL XOPEN
+    cmp     #$FF
+    bne     @free
+    
+    cpx     #$FF
+    bne     @free
+
+    lda     #<@str
+    ldy     #>@str
+    BRK_KERNEL XWSTR0
+    rts
+@str:
+    .byte  "Unable to open current path",$0D,$00
+
+    
+    ; get A&Y
+@free:
+    
+
+
+
+   ; jsr     _ch376_set_file_name
+   ; jsr     _ch376_file_open
+
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ORIX_ARGV[0] = 0 si pas de paramètre
-    ldx #$01
-    stx ls_argc
-    jsr _orix_get_opt
-    bcc list
+;@not_null:
+    ;sta     ls_fp
+    ;stx     ls_fp+1
+
+    ;fclose (ls_fp)    
+    ldx     #$01
+    stx     ls_argc
+    jsr     _orix_get_opt
+    bcc     list
 
     ; Paramètre: -l ?
-    lda ORIX_ARGV
-    cmp #'-'
-    bne list
-    lda ORIX_ARGV+1
-    cmp #'l'
-    bne list
-    lda ORIX_ARGV+2
-    bne list
+    lda     ORIX_ARGV
+    cmp     #'-'
+    bne     list
+    lda     ORIX_ARGV+1
+    cmp     #'l'
+    bne     list
+    lda     ORIX_ARGV+2
+    bne     list
     ; format long
-    lda #$ff
-    sta ls_column_max
+    lda     #$ff
+    sta     ls_column_max
 
-    ldx #$02
-    stx ls_argc
-    jsr _orix_get_opt
+    ldx     #$02
+    stx     ls_argc
+    jsr     _orix_get_opt
 
 list:
     ; Potentiel buffer overflow ici
@@ -95,6 +149,7 @@ copy_mask:
     ; RESB pointe toujours sur BUFEDT
     jsr WildCard
 .ifndef ls_use_malloc
+    
     bne Error       ; Il faut une autre erreur, ici c'est parce qu'il y a des caractères incorrects
     ;bcc @ZZ0002     ; Pas de '?' ni de '*'
 .else
@@ -113,8 +168,8 @@ copy_mask:
     sta BUFNOM+1
 
   ZZ0002:
-    jsr _ch376_set_file_name
-    jsr _ch376_file_open
+    jsr     _ch376_set_file_name
+    jsr     _ch376_file_open
     ; Au retour, on peut avoir USB_INT_SUCCESS ou USB_INT_DISK_READ)
 
     ; $14 -> Fichier existant (USB_INT_SUCCESS) (cas 'ls fichie.ext')
@@ -123,8 +178,9 @@ copy_mask:
     ; $42 -> fichier inexistant (ERR_MISS_FILE)
 
     cmp #CH376_ERR_MISS_FILE
-    beq Error
 
+    beq Error
+nextme:
     ; Indique pas de fichier trouvé pour le moment
     ldx #$00
     stx ls_file_found
@@ -164,6 +220,7 @@ display_one_file_catalog:
     sta CH376_DATA
     jsr _ch376_wait_response
     cmp #CH376_USB_INT_SUCCESS
+
     bne Error
 
 go:
@@ -195,6 +252,7 @@ go:
 
     ; Erreur si aucun fichier trouvé
     lda ls_file_found
+
     beq Error
 
 .ifdef ls_use_malloc
@@ -211,6 +269,9 @@ go:
 
   ZZ0001:
     rts
+ls_debug:
+    lda #'A'    
+    sta $bb80
 
 ; ------------------------------------------------------------------------------
 Error:
@@ -388,6 +449,18 @@ _verbose:
 
   skip:
     BRK_KERNEL XWR0
+    
+    ;bcs     @no_char_action
+    
+    asl     KBDCTC
+    bcc     @no_ctrl
+
+
+    rts
+
+@no_ctrl:
+
+@no_char_action:    
     inx
     bne loop
   end:

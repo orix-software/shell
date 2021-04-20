@@ -34,7 +34,21 @@
 	; commande twil directement suivie par df indique les valeurs du
 	; périphériques précédent (il faut exécuter une commande qui utilise
 	; le périphérique avant de faire df)
-	jsr _cd_to_current_realpath_new
+
+    BRK_KERNEL XGETCWD ; Return A and Y the string
+  
+
+    sty     TR6
+    ldy     #O_RDONLY
+    ldx     TR6
+    BRK_KERNEL XOPEN
+    cmp     #$FF
+    bne     @free
+    
+    cpx     #$FF
+    bne     @free
+    rts
+@free:
 
 	;lda #<( .strlen(df_msg))
 	;ldy #>(.strlen(df_msg))

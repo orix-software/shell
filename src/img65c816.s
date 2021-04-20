@@ -26,7 +26,12 @@ type_of_file:
         .byt <start_adress,>start_adress ; loading adress
         .byt <EndOfMemory,>EndOfMemory   ; end of loading adress
         .byt <start_adress,>start_adress ; starting adress
- 
+
+dest:= $80
+.define src  $82
+
+.define iter  $85
+
 start_adress:
 
     .byte $00,$1A
@@ -37,19 +42,86 @@ sei
     clc
     xce
     rep   #$10
-    ldx   #$00
-@L1:    
-    lda   yessa,x
-    sta   $a000,x
-    inx
-    cpx   #8000
-    bne   @L1
+
+	lda	  #<$a000
+	sta	  dest
+	lda	  #>$a000
+	sta	  dest+1
+
+	lda	  #<yessa
+	sta	  src
+	lda	  #>yessa
+	sta	  src+1
+
+	lda	  #200
+	sta   iter
+
+	ldx	  #$00
+@loop:	
+remove:
+	ldy	  #8000
+	jsr   draw
+
+
+.a16
+	rep #$30     ; Make Accumulator and index 16-bit
+
+
+
+@loopme:
+
+	ldx #$A028   
+	ldy #$A000   
+	lda #8000   
+
+	mvn $00,$00  
+	dec	iter
+	bne @loopme
+	;    rep   #$10	
+;	rts
+.a8
+
+
+	;jsr   compute
+	;inx
+	;cpx   #200
+	;bne   remove
 
     sec 
     xce
 	cli
     rts
 
+compute:
+
+	lda	  src
+	clc
+	adc   #40
+	bcc	  @S1
+	inc	  src+1
+@S1:
+	sta	  src
+.a8
+	;lda	  remove+1
+	;sec
+	;sbc   #40
+	;bne   @S2
+;@S2:
+	;sta	  remove+2	
+	rts	
+
+draw:
+
+@L1:
+@get:
+    lda   (src),y
+@store:	
+    sta   (dest),y
+    dey
+    bne   @L1
+	rts	
+number:	
+	.res 2
 yessa:
 	.byt $40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40,$40
 	.byt $40,$40,$40,$40,$40,$40,$01,$41,$40,$40,$40,$40,$40,$40,$40,$40

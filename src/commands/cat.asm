@@ -5,13 +5,24 @@
     jsr     _orix_get_opt
     bcc     print_usage
 
-    jsr     _ch376_verify_SetUsbPort_Mount
-    ;cmp #$01
-    ;BEQ cat_error_param
-    ; Suppose que _ch376_verify_SetUsbPort_Mount renvoie C=1 si tout va bien
-    bcc     cat_error_param
+    BRK_KERNEL XGETCWD ; Return A and Y the string
+  
 
-    jsr     _cd_to_current_realpath_new
+    sty     TR6
+    ldy     #O_RDONLY
+    ldx     TR6
+    BRK_KERNEL XOPEN
+    cmp     #$FF
+    bne     @free
+    
+    cpx     #$FF
+    bne     @free
+
+    jmp     cat_error_param
+    ; get A&Y
+@free:
+
+
 
     ldx     #$01
     jsr     _orix_get_opt

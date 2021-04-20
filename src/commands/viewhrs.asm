@@ -32,7 +32,8 @@ next:
     SWITCH_OFF_CURSOR
     HIRES
     FREAD   $A000,8000,1,VIEWHRS_SAVE_FP
-    BRK_ORIX XCLOSE
+    fclose (VIEWHRS_SAVE_FP)
+  
 cget_loop:
     BRK_ORIX XRDW0
     bmi     cget_loop

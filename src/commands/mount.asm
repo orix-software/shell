@@ -68,7 +68,7 @@ str_mount:
 str_sdcard:
 .byt "/dev/sda1 (sdcard)",$0A,$0D,0
 str_usbkey:
-.byt "/dev/sdb1 (USB key)",$0A,$0D,0
+.byt "/dev/usb1",$0A,$0D,0
 str_sda1:
 .asciiz "/dev/sda1"
 str_sdb1:

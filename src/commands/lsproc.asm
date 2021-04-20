@@ -2,7 +2,7 @@
 
 
 
-.proc _mkdir
+.proc _lsproc
 
     rts
 .endproc
