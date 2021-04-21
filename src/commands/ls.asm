@@ -63,7 +63,7 @@ ls_file                  := userzp+9
     BRK_KERNEL XWSTR0
     rts
 @str:
-    .byte  "Unable to open current path",$0D,$00
+    .byte  "Unable to open current path",$0D,$0A,$00
 
     
     ; get A&Y
