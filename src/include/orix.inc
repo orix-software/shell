@@ -123,7 +123,7 @@ ORIX_ARGC:
     bne     @TEST_OOM_AND_MAX_MALLOC
     cpy     #NULL
     bne     @TEST_OOM_AND_MAX_MALLOC
-    PRINT   str_out_of_memory
+    PRINT   str_oom
     RETURN_LINE
     ; We reached OOM
     rts
@@ -137,8 +137,8 @@ ORIX_ARGC:
     bne     *+15
     cpy     #NULL
     bne     *+11
-    lda     #<str_out_of_memory
-    ldy     #>str_out_of_memory
+    lda     #<str_oom
+    ldy     #>str_oom
     BRK_KERNEL XWSTR0
     BRK_KERNEL XCRLF
     ; We reached OOM

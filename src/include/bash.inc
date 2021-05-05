@@ -1,4 +1,4 @@
-BASH_MAX_ARGS                      = 3       ;  Number of possible args in the command line
+BASH_MAX_ARGS                  = 3       ;  Number of possible args in the command line
 
 
 BASH_MAX_BUFEDT_LENGTH         = 110

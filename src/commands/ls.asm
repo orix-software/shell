@@ -11,6 +11,8 @@ ls_file_found            := userzp+4
 ls_argc                  := userzp+5
 ls_fp                    := userzp+7
 ls_file                  := userzp+9
+ls_mainargs              := userzp+11
+ls_arg                   := userzp+13
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
@@ -70,10 +72,20 @@ ls_file                  := userzp+9
 @free:
     
 
+    BRK_KERNEL XMAINARGS
+    sta   ls_mainargs
+    sty   ls_mainargs+1
+    stx   ls_argc
+    
+    cpx   #$01
+    beq   list
+    ; Get arg 2
+    ldx   #$02
+    BRK_KERNEL XGETARGV
+    sta     ls_arg
+    sty     ls_arg+1
+    ;BRK_KERNEL XWSTR0
 
-
-   ; jsr     _ch376_set_file_name
-   ; jsr     _ch376_file_open
 
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ORIX_ARGV[0] = 0 si pas de paramètre
@@ -85,15 +97,21 @@ ls_file                  := userzp+9
     ldx     #$01
     stx     ls_argc
     jsr     _orix_get_opt
-    bcc     list
+    ;bcc     list
 
     ; Paramètre: -l ?
+    ldy     #$00
+    lda     (ls_arg),y
     lda     ORIX_ARGV
     cmp     #'-'
     bne     list
+    iny
+    lda     (ls_arg),y
     lda     ORIX_ARGV+1
     cmp     #'l'
     bne     list
+    iny
+    lda     (ls_arg),y
     lda     ORIX_ARGV+2
     bne     list
     ; format long
