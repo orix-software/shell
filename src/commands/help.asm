@@ -151,6 +151,8 @@ list_command_in_bank:
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
 
     beq     @no_commands ; no commands out
+
+
     sta     help_number_command
 
 
@@ -174,7 +176,9 @@ list_command_in_bank:
     lda     RES+1
     sta     ptr1+1
 
-
+    lda     ptr1+1
+    cmp     #$C0   ; Does ptr of command are in the rom ?
+    bcc     @no_commands ; If it's lower than $c0 then skip
 
     lda     #$00
     sta     help_ptr2 ; Bug ...

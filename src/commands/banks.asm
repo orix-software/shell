@@ -487,6 +487,10 @@ loop2:
     sei
     jsr     upd_ptr
 
+    lda     ptr1+1
+    cmp     #$C0   ; Does signature is in rom ?
+    bcc     @exit
+
 .IFPC02
 .pc02
     stz     ptr2	
