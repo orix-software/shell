@@ -4,7 +4,6 @@
     fd_systemd := userzp
     buffer := userzp+2
     routine_to_load:=userzp+4
-    ;routine_to_load_save:=userzp+6
     ptr1 := userzp+8
     ; start : 
     ; systemd -s 
@@ -47,14 +46,13 @@
     stx     fd_systemd+1
     mfree(ptr1)
 
+ 
     malloc   512,routine_to_load,str_oom ; [,oom_msg_ptr] [,fail_value]
-    ;sta      routine_to_load
-   ; sta      routine_to_load_save
-
-    ;sty      routine_to_load+1
-    ;sty      routine_to_load_save+1
-
+ 
+    
     malloc 16384,buffer,str_oom ; [,oom_msg_ptr] [,fail_value]
+
+ 
     
     lda     buffer ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
@@ -71,6 +69,8 @@
     BRK_KERNEL XFREAD
 
     fclose(fd_systemd)
+
+    
 
 ; X contains the bankid
 ; AY contains the the adress of the buffer
@@ -102,7 +102,6 @@
     lda     buffer
     ldy     buffer+1
     jsr     run
-    mfree    (buffer)
     mfree    (routine_to_load)
     rts
     
@@ -125,6 +124,7 @@ str_path_rom:
 .endproc
 
 .proc twil_copy_buffer_to_ram_bank
+    buffer := userzp+2
     current_bank:=TR0
     sector_to_update:=TR1
     nb_bytes:=TR2
@@ -187,12 +187,15 @@ str_path_rom:
     cpx     RES 
     bne     @loop
     ; then execute
+    mfree    (buffer)
+    
+
     jsr     $c000
 
 
 
 @out:
-    ldx     save_bank
+    ldx     #$05 ; Return to shell
     stx     VIA2::PRA
 
     lda     tmp1

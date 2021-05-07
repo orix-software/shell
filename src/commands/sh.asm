@@ -8,7 +8,7 @@
 
     sh_interactive_line_number  := userzp+8  
     sh_interactive_save_ptr  := userzp+10    ; one byte
-    ptr_file_sh_interactive := userzp+12
+    fp_ptr_file_sh_interactive := userzp+12
 
     sh_saveY := userzp +14
 
@@ -25,11 +25,12 @@
 
 thereis_a_script_to_execute: 
 
+    
     FOPEN   ORIX_ARGV,O_RDONLY
  
     ; A register contains FP id
-    sta     ptr_file_sh_interactive
-    sty     ptr_file_sh_interactive+1
+    sta     fp_ptr_file_sh_interactive
+    sty     fp_ptr_file_sh_interactive+1
 
     lda     #$01
     sta     sh_interactive_line_number
@@ -71,48 +72,40 @@ thereis_a_script_to_execute:
     ldy     ptr_file_sh_interactive_size_file+1
   ; reads byte 
     BRK_KERNEL XFREAD
-    BRK_KERNEL XCLOSE
+    fclose (fp_ptr_file_sh_interactive)
+
     
-    lda     ptr_file_sh_interactive
-    ldy     ptr_file_sh_interactive+1
-    BRK_KERNEL XFREE
+
 
 @restart:
-    ldy     #$00
+
 @L1:
-    jsr     @check_EOF
-    cmp     #$00
-    beq     @exit
+    ldy    #$00
+@L4:    
+    lda    (ptr_file_sh_interactive_ptr),y  
+    cmp    #$0A 
+    beq    @compute
+    inc    ptr_file_sh_interactive_ptr
+    bne    @do_not_inc
+    inc    ptr_file_sh_interactive_ptr+1
+@do_not_inc:    
+    ;iny
+    bne    @L4
+@compute:
+    lda    #$00
+    sta    (ptr_file_sh_interactive_ptr),y
+    inc    ptr_file_sh_interactive_ptr
+    bne    @do_not_inc2
+    inc    ptr_file_sh_interactive_ptr+1
+@do_not_inc2:
 
-    jsr     @update_length
-    
-
-    lda     (ptr_file_sh_interactive_ptr),y
-    cmp     #$0A
-    beq     @found_end_command
-    
-
-
-
-   ; sta     $bb80,y
-
-    iny
-  ;  cpy     ptr_file_sh_interactive_size_file
-    bne     @L1
-@exit:
-    rts
 @found_end_command:
-    
 
-    lda     #$00
-    sta     (ptr_file_sh_interactive_ptr),y
+@do_not_inc3:
 
-    iny     ; skip CR/LF
-    sty     sh_interactive_save_ptr
+    lda     ptr_file_sh_interactive_ptr_save
 
-    lda     ptr_file_sh_interactive_ptr
-
-    ldy     ptr_file_sh_interactive_ptr+1
+    ldy     ptr_file_sh_interactive_ptr_save+1
  
     jsr    _bash
     cmp    #EOK
@@ -120,9 +113,16 @@ thereis_a_script_to_execute:
 
     jmp    @nextline
 @call_xexec:
-    lda     ptr_file_sh_interactive_ptr
 
-    ldy     ptr_file_sh_interactive_ptr+1
+    lda     ptr_file_sh_interactive_ptr_save
+    ldy     ptr_file_sh_interactive_ptr_save+1
+    BRK_KERNEL XWSTR0
+
+@nextline2:
+
+    lda     ptr_file_sh_interactive_ptr_save
+
+    ldy     ptr_file_sh_interactive_ptr_save+1
     BRK_KERNEL XEXEC
  
     cmp    #EOK
@@ -135,22 +135,18 @@ thereis_a_script_to_execute:
     ldx    #$00
     BRK_KERNEL XDECIM
     RETURN_LINE
-    lda     ptr_file_sh_interactive_ptr
+    lda     ptr_file_sh_interactive_ptr_save
 
-    ldy     ptr_file_sh_interactive_ptr+1
+    ldy     ptr_file_sh_interactive_ptr_save+1
     BRK_KERNEL XWSTR0
     RETURN_LINE
     rts
 @nextline:
-    ;inc    
-    lda    sh_interactive_save_ptr
-    clc
-    adc    ptr_file_sh_interactive_ptr
-    bcc    @S3
-    inc    ptr_file_sh_interactive_ptr+1
-@S3:
-    sta    ptr_file_sh_interactive_ptr 
-    ; do we reached end of file ?
+    lda ptr_file_sh_interactive_ptr
+    sta ptr_file_sh_interactive_ptr_save
+    lda ptr_file_sh_interactive_ptr+1
+    sta ptr_file_sh_interactive_ptr_save+1
+
 
     inc    sh_interactive_line_number
 
