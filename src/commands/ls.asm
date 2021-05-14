@@ -60,6 +60,16 @@ ls_arg                   := userzp+13
     cpx     #$FF
     bne     @free
 
+.define     KERNEL_ERRNO $200 ; FIXME tmp
+    
+    lda	    KERNEL_ERRNO
+    cmp     #EIO
+    bne     @failed_path
+    print  str_i_o_error
+    rts
+
+@failed_path:    
+
     lda     #<@str
     ldy     #>@str
     BRK_KERNEL XWSTR0

@@ -723,8 +723,8 @@ internal_commands_length:
 .include "commands/sh.asm"
 .endif
 
-.ifdef WITH_SYSTEMD
-.include "commands/systemd.asm"
+.ifdef WITH_RESCUE
+.include "commands/rescue.asm"
 .endif
 
 .ifdef WITH_WATCH
@@ -1023,8 +1023,8 @@ addr_commands:
     .addr  _sh
 .endif 
 
-.ifdef WITH_SYSTEMD
-    .addr  _systemd
+.ifdef WITH_RESCUE
+    .addr  _rescue
 .endif 
 
 .ifdef WITH_TELNETD
@@ -1200,8 +1200,8 @@ commands_length:
     .byt 2 ; sh
 .endif   
 
-.ifdef WITH_SYSTEMD
-    .byt 7 ; sh
+.ifdef WITH_RESCUE
+    .byt 6 ; sh
 .endif   
 
 
@@ -1415,9 +1415,9 @@ sh:
     .asciiz "sh"
 .endif
 
-.ifdef WITH_SYSTEMD
-systemd:
-    .asciiz "systemd"
+.ifdef WITH_RESCUE
+rescue:
+    .asciiz "rescue"
 .endif
 
 .ifdef WITH_TELNETD

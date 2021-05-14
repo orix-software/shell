@@ -1,10 +1,12 @@
-.export _systemd
+.export _rescue
 
-.proc _systemd
+.proc _rescue
     fd_systemd := userzp
     buffer := userzp+2
     routine_to_load:=userzp+4
-    ptr1 := userzp+8
+    ptr1 := userzp+6
+    current_bank:= userzp+8
+    ptr2 := userzp+9
     ; start : 
     ; systemd -s 
     ;PRINT str_path_rom
@@ -15,7 +17,7 @@
     sta     ptr1
     sty     ptr1+1
 
-    ldy  #$00
+    ldy     #$00
 @loop4:    
 
     lda     str_path_rom,y
@@ -25,7 +27,7 @@
     bne     @loop4
     
 @out:
-    sta  (ptr1),y
+    sta     (ptr1),y
     
     ldy     #O_RDONLY
     lda     ptr1
@@ -40,6 +42,9 @@
     bne     @read ; not null then  start because we did not found a conf
     PRINT   str_failed
     mfree(ptr1)
+    print str_path_rom,NOSAVE
+    print str_not_found
+
     rts
 @read:
     sta     fd_systemd
@@ -50,7 +55,7 @@
     malloc   512,routine_to_load,str_oom ; [,oom_msg_ptr] [,fail_value]
  
     
-    malloc 16384,buffer,str_oom ; [,oom_msg_ptr] [,fail_value]
+    malloc   16384,buffer,str_oom ; [,oom_msg_ptr] [,fail_value]
 
  
     
@@ -98,11 +103,16 @@
 
     lda     #64
     sta     RES
-    ldx     #33
+    ldx     #33 ; bank33
+    ; Send buffer address
     lda     buffer
     ldy     buffer+1
+    ldx     #$FF ; Rescue mode
     jsr     run
-    mfree    (routine_to_load)
+
+   ; jsr     _lsmem
+    mfree   (routine_to_load)
+    
     rts
     
     ;jsr     twil_copy_buffer_to_ram_bank
@@ -113,14 +123,15 @@
     ; Call kernel to get
 
 run:
+
     jmp (routine_to_load)
     rts  
 str_failed:
     .byte "..............",$81,"[FAILED]",$0D,$00
 str_starting:
-    .asciiz "Starting systemd "    
+    .asciiz "Starting Rescue "    
 str_path_rom:
-    .asciiz "/usr/share/systemd/systemd.rom"    
+    .asciiz "/usr/share/rescue/rescue.rom"    
 .endproc
 
 .proc twil_copy_buffer_to_ram_bank
@@ -188,10 +199,9 @@ str_path_rom:
     bne     @loop
     ; then execute
     mfree    (buffer)
-    
+      
 
     jsr     $c000
-
 
 
 @out:
@@ -206,6 +216,7 @@ str_path_rom:
 
 	lda		#$00
 	cli
+
 	rts
 
 .endproc
