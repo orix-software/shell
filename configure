@@ -1,1 +1,11 @@
-echo hello
+#! /bin/sh
+mkdir libs
+echo get twillib
+curl --insecure -o libs/twillib.tgz http://repo.orix.oric.org/dists/2021.3/tgz/6502/twillib.tgz
+cd libs/ && tar xvfz twillib.tgz && cd ..
+rm libs/twillib.tgz
+
+curl --insecure -o libs/ch376lib.tgz http://repo.orix.oric.org/dists/2021.2/tgz/6502/ch376lib.tgz
+cd libs/ && tar xvfz ch376lib.tgz && cd ..
+rm libs/ch376lib.tgz
+

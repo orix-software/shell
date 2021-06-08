@@ -19,6 +19,7 @@
     current_bank            :=  ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
     ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK    ; 2 bytes
     help_ID_BANK_TO_READ_FOR_READ_BYTE_save := userzp+8
+    bank_save_argc := userzp+10
 .code
     ; let's get opt
     lda     ID_BANK_TO_READ_FOR_READ_BYTE
@@ -101,6 +102,43 @@ list_command_in_bank:
     sbc     #$30
     sta     current_bank
 
+    inx
+    lda     ORIX_ARGV,x ; FIXME
+    beq     @only_one_digit
+    ; convert to decimal 
+
+
+    sec 
+    sbc     #$30
+    sta     bank_save_argc
+    ldx     current_bank ; 2 chars, get the first digit
+
+    lda     #$00
+@compute_again:
+
+    clc
+    adc     #10
+    dex
+    bne     @compute_again
+    clc
+    adc     bank_save_argc
+    sta     bank_save_argc  
+    ; is it greater than 32 ?
+    cmp     #32
+    bcc     @do_not_switch_to_ram_bank
+    pha
+    lda     $342
+    ora     #%00100000
+    sta     $342
+    pla
+@do_not_switch_to_ram_bank:    
+    jsr     _twil_get_registers_from_id_bank   
+    ; A bank
+
+    sta     current_bank
+    stx     $343   
+
+@only_one_digit: 
 
 ; Get number of commands
     sei
@@ -113,6 +151,8 @@ list_command_in_bank:
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
 
     beq     @no_commands ; no commands out
+
+
     sta     help_number_command
 
 
@@ -136,7 +176,9 @@ list_command_in_bank:
     lda     RES+1
     sta     ptr1+1
 
-
+    lda     ptr1+1
+    cmp     #$C0   ; Does ptr of command are in the rom ?
+    bcc     @no_commands ; If it's lower than $c0 then skip
 
     lda     #$00
     sta     help_ptr2 ; Bug ...

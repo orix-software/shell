@@ -9,9 +9,11 @@
 .include   "dependencies/kernel/src/include/keyboard.inc"
 .include   "dependencies/kernel/src/include/memory.inc"
 .include   "dependencies/kernel/src/include/files.inc"
-.include   "dependencies/twilighte/src/include/io.inc"
+;.include   "dependencies/twilighte/src/include/io.inc"
 
 .include   "dependencies/orix-sdk/macros/SDK.mac"
+
+.include   "../libs/usr/arch/include/twil.inc"
 
 bash_struct_ptr              :=userzp ; 16bits
 sh_esc_pressed               :=userzp+2
@@ -250,6 +252,36 @@ start_commandline:
     BRK_KERNEL XEXEC
     cmp    #EOK
     beq    @S20
+    cmp    #ENOMEM 
+    bne    @check_too_many_open_files
+    PRINT  str_oom
+    jmp    start_prompt
+
+@sh_launch_autocompletion:
+    RETURN_LINE
+    jsr     _ls
+    ldx     #$00
+    stx     sh_esc_pressed
+    jmp     sh_switch_on_prompt
+
+@check_too_many_open_files:
+    cmp    #EMFILE
+    bne    @check_i_o_error
+    PRINT  str_too_many_open_files
+@S20: ; Used also when all is ok    
+    jmp     start_prompt
+@check_i_o_error:
+    cmp    #EIO 
+    bne    @check_format_error
+    PRINT  str_i_o_error
+    jmp    start_prompt
+@check_format_error:    
+    cmp    #ENOEXEC
+    bne    @check_other
+    PRINT  str_exec_format_error
+    jmp    start_prompt
+@check_other:
+
 
     ; display error
     ;cmp    #ENOENT 
@@ -269,15 +301,10 @@ start_commandline:
     bne    @S30
 @print_not_found:
     PRINT   str_command_not_found
-@S20:    
+   
     jmp     start_prompt
 
-@sh_launch_autocompletion:
-    RETURN_LINE
-    jsr     _ls
-    ldx     #$00
-    stx     sh_esc_pressed
-    jmp     sh_switch_on_prompt
+
 
 
 send_oups_and_loop:
@@ -497,8 +524,6 @@ trimme:
 
 
 
-str_oom:
-  .byte     "Out of memory",$0D,$0A,0 ; FIXME
 
 internal_commands_str:
 .ifdef WITH_CD
@@ -696,6 +721,10 @@ internal_commands_length:
 
 .ifdef WITH_SH
 .include "commands/sh.asm"
+.endif
+
+.ifdef WITH_RESCUE
+.include "commands/rescue.asm"
 .endif
 
 .ifdef WITH_WATCH
@@ -994,6 +1023,10 @@ addr_commands:
     .addr  _sh
 .endif 
 
+.ifdef WITH_RESCUE
+    .addr  _rescue
+.endif 
+
 .ifdef WITH_TELNETD
     .addr  _telnetd
 .endif
@@ -1166,6 +1199,11 @@ commands_length:
 .ifdef WITH_SH
     .byt 2 ; sh
 .endif   
+
+.ifdef WITH_RESCUE
+    .byt 6 ; sh
+.endif   
+
 
 .ifdef WITH_TELNETD
     .byt 7 ; telnetd
@@ -1377,6 +1415,11 @@ sh:
     .asciiz "sh"
 .endif
 
+.ifdef WITH_RESCUE
+rescue:
+    .asciiz "rescue"
+.endif
+
 .ifdef WITH_TELNETD
 telnetd:
     .asciiz "telnetd"
@@ -1437,24 +1480,33 @@ str_65C02:                          ; use for lscpu
 
 str_cant_execute:
     .asciiz ": is not an Orix file"
-str_not_found:
-    .byte " : No such file or directory",$0D,$0A,0
+
 str_missing_operand:
     .byte ": missing operand",$0D,$0A,0
 ; used by uname
 str_os:
     .asciiz "Orix"
+
+str_not_found:
+    .byte " : No such file or directory",$0D,$0A,0
+str_oom:
+    .byte     "Out of memory",$0D,$0A,0 ; FIXME    
+str_too_many_open_files:
+    .byte     "Too many open files",$0D,$0A,0 
+str_i_o_error:
+    .byte     "I/O error",$0D,$0A,0     
+str_exec_format_error:
+    .byte     "Exec format error",$0D,$0A,0     
+
 str_command_not_found:
     .byte ": command not found",$0a,$0d,0
 txt_file_not_found:
     .asciiz "File not found :"
-str_out_of_memory:
-    .asciiz "Out of Memory"      
 str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2021.2"
+    .asciiz  "Shell v2021.3"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
