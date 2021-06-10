@@ -43,7 +43,7 @@ build: $(SOURCE)
 	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)sd.rom libs/lib8/twil.lib libs/lib8/ch376.lib
 	echo Build Kernel for Telestrat
 	$(AS) $(CFLAGS) $(SOURCE)  -o $(ROM).ld65 --debug-info
-	$(LD) -vm -m map7banks.txt -Ln memorymap.txt  -tnone $(ROM).ld65 -o $(ROM)t.rom libs/twil.lib
+	$(LD) -vm -m map7banks.txt -Ln memorymap.txt  -tnone $(ROM).ld65 -o $(ROM)t.rom libs/lib8/twil.lib libs/lib8/ch376.lib
 	cp $(ROM)t.rom $(ROM)tus.rom
 	$(AS) $(CFLAGS) $(SOURCE) -DWITH_SDCARD_FOR_ROOT=1 -o $(ROM)sd.ld65 --debug-info
 	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)tsd.rom libs/lib8/twil.lib libs/lib8/ch376.lib
