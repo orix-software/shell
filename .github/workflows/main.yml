@@ -89,7 +89,10 @@ jobs:
       repo_name: ${{ steps.job_vars.outputs.REPO_NAME }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
 
       - name: Set job variables
         id: job_vars
