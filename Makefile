@@ -6,7 +6,7 @@ LDFILES=
 ROM=shell
 ORIX_ROM=shell
 
-all : init build
+all : init build after_success
 .PHONY : all 
 
 HOMEDIR=/home/travis/bin/
