@@ -15,6 +15,17 @@ ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
 
+ifeq ($(CC65_HOME),)
+        CC = cl65
+        AS = ca65
+        LD = ld65
+        AR = ar65
+else
+        CC = $(CC65_HOME)/bin/cl65
+        AS = $(CC65_HOME)/bin/ca65
+        LD = $(CC65_HOME)/bin/ld65
+        AR = $(CC65_HOME)/bin/ar65
+endif
 
 
 ifdef TRAVIS_BRANCH
