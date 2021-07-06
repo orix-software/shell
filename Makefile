@@ -6,8 +6,8 @@ LDFILES=
 ROM=shell
 ORIX_ROM=shell
 
-all : build
-.PHONY : all
+all : init build after_success
+.PHONY : all 
 
 HOMEDIR=/home/travis/bin/
 HOMEDIR_ORIX=/home/travis/build/orix-software/$(ROM)/
@@ -15,6 +15,17 @@ ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
 
+ifeq ($(CC65_HOME),)
+        CC = cl65
+        AS = ca65
+        LD = ld65
+        AR = ar65
+else
+        CC = $(CC65_HOME)/bin/cl65
+        AS = $(CC65_HOME)/bin/ca65
+        LD = $(CC65_HOME)/bin/ld65
+        AR = $(CC65_HOME)/bin/ar65
+endif
 
 
 ifdef TRAVIS_BRANCH
@@ -32,6 +43,8 @@ endif
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
 
+init:
+	./configure
 
 build: $(SOURCE)
 	echo Build Kernel for Twilighte board
@@ -52,6 +65,22 @@ build: $(SOURCE)
 
 test:
 	#cp src/include/orix.h build/usr/include/orix/
+
+
+after_success:
+	ls -l
+	ls -l ../
+	mkdir -p build/usr/src/shell/src/
+	mkdir -p build/usr/share/man/
+	mkdir -p build/usr/share/fonts/
+	mkdir -p build/usr/share/shell/
+	cp data/USR/SHARE/FONTS/* build/usr/share/fonts/ -adpR
+	cp shellsd.rom build/usr/share/shell/
+	cp shellus.rom build/usr/share/shell/
+	sh tools/builddocs.sh
+	cp Makefile build/usr/src/shell/
+	cp README.md build/usr/src/shell/
+	cp src/* build/usr/src/shell/src/ -adpR
 
 
 

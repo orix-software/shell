@@ -1,11 +1,9 @@
-Github action : ![shell](https://github.com/orix-software/shell/workflows/shell/badge.svg)
-
-Travis : [![Build Status](https://travis-ci.org/orix-software/shell.svg?branch=master)](https://travis-ci.org/orix-software/shell)
+Github action : ![shell](https://github.com/orix-software/shell/workflows/main/badge.svg)
 
 Maintainers :
 
 * Jede
-* Assinie 
+* Assinie
 
 # Rules for source code
 
@@ -14,9 +12,7 @@ Maintainers :
 * Allocate with malloc your memory. In that case, in the future, it will be easier to start multithreading.
 * userzp will be managed by kernel when multithreading occurs
 
-
 # Shell for Orix (ROM)
-
 
 How to compile ?
 
