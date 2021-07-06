@@ -1,0 +1,171 @@
+name: build
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push event only for all branches
+  push:
+    branches: [ main, master, develop ]
+  #pull_request:
+  #  branches: [ main, master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # This workflow contains a single job called "build"
+  setup-sdk:
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: Cache sdk
+        id: cache-sdk
+        uses: actions/cache@v2
+        with:
+          path: |
+             cc65/**/*
+             orix-sdk/**/*
+             md2hlp/**/*
+             orix-software/**/*
+          key: ${{ runner.os }}-orix-sdk_
+
+      - name: Checkout cc65
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: cc65/cc65
+          path: cc65
+
+      - name: Checkout orix-sdk
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: assinie/orix-sdk
+          path: orix-sdk
+
+      - name: Checkout md2hlp
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: assinie/md2hlp
+          path: md2hlp
+
+      - name: Compilation CC65
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        run: make -C cc65 >/dev/null
+
+      - name: Prepare environment for orix-sdk
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        run: |
+          git clone --no-checkout --depth 1 --single-branch --branch master https://github.com/orix-software/shell orix-software/shell
+          cd orix-software/shell
+          git config --local core.sparseCheckout true
+          echo "src/include" >> .git/info/sparse-checkout
+          git checkout
+          cd ../..
+          git clone --no-checkout --depth 1 --single-branch --branch master https://github.com/orix-software/kernel orix-software/kernel
+          cd orix-software/kernel
+          git config --local core.sparseCheckout true
+          echo "src/include" >> .git/info/sparse-checkout
+          git checkout
+
+      - name: Compile orix-sdk
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        working-directory: orix-sdk
+        run: mkdir -p build/{lib,bin} && CC65_HOME=${GITHUB_WORKSPACE}/cc65 make lib
+
+      - name: Display tools
+        run: |
+          PATH=$PATH:${GITHUB_WORKSPACE}/cc65/bin
+          cc65 -V
+          ls -lR orix-sdk
+          ls -l cc65/bin
+
+  build:
+    # The type of runner that the job will run on
+    needs: setup-sdk
+    runs-on: ubuntu-18.04
+    outputs:
+      version: ${{ steps.job_vars.outputs.VERSION }}
+      repo_name: ${{ steps.job_vars.outputs.REPO_NAME }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set job variables
+        id: job_vars
+        run: |
+          echo "::set-output name=VERSION::$(cat VERSION)"
+          echo "::set-output name=REPO_NAME::${GITHUB_REPOSITORY##*/}"
+
+      - name: Install sdk
+        uses: actions/cache@v2
+        with:
+          path: |
+             cc65/**/*
+             orix-sdk/**/*
+             md2hlp/**/*
+             orix-software/**/*
+          key: ${{ runner.os }}-orix-sdk_
+
+      - name: Prepare environment for project
+        run: mv cc65 ../ && mv orix-software ../ && mv orix-sdk ../ && mv md2hlp ../
+
+      - name: Compile project
+        run: CC65_HOME=${GITHUB_WORKSPACE}/../cc65 make
+
+      - name: List build directory content
+        run: ls -lR build
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.job_vars.outputs.REPO_NAME }}
+          path: |
+            build/**/*
+            !build/obj/*
+
+      - name: Post compilation
+        run: mv ../cc65 . && mv ../orix-software . && mv ../orix-sdk . && mv ../md2hlp .
+
+  upload:
+    needs: build
+    runs-on: ubuntu-18.04
+    defaults:
+      run:
+        shell: bash
+    env:
+      hash: ${{ secrets.HASH }}
+      version: ${{ needs.build.outputs.version }}
+      repo_name: ${{ needs.build.outputs.repo_name }}
+
+    steps:
+      - name: Get branch name
+        if: github.event_name != 'pull_request'
+        run: echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+       # run: echo "::set-env name=BRANCH_NAME::$(echo ${GITHUB_REF##*/})"
+
+      - name: Get branch name on pull request
+        if: github.event_name == 'pull_request'
+        run: echo "BRANCH_NAME=${GITHUB_HEAD_REF}" >> GITHUB_ENV
+       #run: echo "::set-env name=BRANCH_NAME::$(echo ${GITHUB_HEAD_REF})"
+
+      - name: Get archive name
+        run: echo "ARCHIVE_NAME=${repo_name}.tgz" >> $GITHUB_ENV
+
+      # On pourrait faire l'extraction directement à la racine si VERSION est dans l'artifact
+      - name: Download Artifact
+        id: download
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.build.outputs.repo_name }}
+          path: artifact
+
+      - name: Make archive
+        working-directory: ${{steps.download.outputs.download-path}}
+        run: tar -zcvf $GITHUB_WORKSPACE/$ARCHIVE_NAME *
+
+      - name: Upload to oric
+        run: |
+           if [ "$BRANCH_NAME" = "master" -o "$BRANCH_NAME" = "main" ]; then VERSION="$version"; else VERSION=alpha ; fi
+           curl -X POST --data-binary "@${ARCHIVE_NAME}" "https://cdn.oric.org/publish.php?hash=$hash&path=/home/oricoujr/www/ftp/orix/dists/$VERSION/tgz/6502/${ARCHIVE_NAME}"
+
