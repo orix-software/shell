@@ -68,6 +68,8 @@ test:
 
 
 after_success:
+	ls -l
+	ls -l ../
 	mkdir -p build/usr/src/shell/src/
 	mkdir -p build/usr/share/man/
 	mkdir -p build/usr/share/fonts/
