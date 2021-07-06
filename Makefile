@@ -6,7 +6,7 @@ LDFILES=
 ROM=shell
 ORIX_ROM=shell
 
-all : build
+all : init build
 .PHONY : all 
 
 HOMEDIR=/home/travis/bin/
@@ -43,6 +43,8 @@ endif
 TELESTRAT_TARGET_RELEASE=release/telestrat
 MYDATE = $(shell date +"%Y-%m-%d %H:%m")
 
+init:
+	./configure
 
 build: $(SOURCE)
 	echo Build Kernel for Twilighte board
