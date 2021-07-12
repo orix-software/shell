@@ -123,7 +123,6 @@ sh_switch_on_prompt:
     ; Displays current path
     BRK_KERNEL XGETCWD
 
-
     BRK_KERNEL XWSTR0
     
     BRK_KERNEL XECRPR           ; display prompt (# char)
@@ -139,7 +138,19 @@ start_commandline:
     BRK_KERNEL XCRLF
     jmp     start_prompt   
 
+
+
 @checkkey:    
+
+    ldx     KBDSHT
+    cpx     #$40
+    bne     @check_standard_key
+
+    jsr     _manage_shortcut
+
+    
+
+@check_standard_key:
     cmp     #KEY_LEFT
     beq     start_commandline    ; left key not managed
     cmp     #KEY_RIGHT
@@ -259,10 +270,10 @@ start_commandline:
 
 @sh_launch_autocompletion:
     RETURN_LINE
-    jsr     _ls
-    ldx     #$00
-    stx     sh_esc_pressed
-    jmp     sh_switch_on_prompt
+    jsr    _ls
+    ldx    #$00
+    stx    sh_esc_pressed
+    jmp    sh_switch_on_prompt
 
 @check_too_many_open_files:
     cmp    #EMFILE
@@ -383,6 +394,8 @@ send_oups_and_loop:
 .endproc
 
 .include "tables/text_first_line_adress.asm"
+.include "commands/shellmenu.asm"
+.include "shortcut.asm"
 
 .proc _bash
     sta     RES
@@ -1506,7 +1519,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2021.3"
+    .asciiz  "Shell v2021.4"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
