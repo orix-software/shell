@@ -147,6 +147,10 @@ start_commandline:
     bne     @check_standard_key
 
     jsr     _manage_shortcut
+    cmp     #$01
+    beq     @check_standard_key
+    ; Shortcut successful, let's start again prompt
+    jmp     start_prompt
 
     
 
@@ -315,9 +319,6 @@ start_commandline:
    
     jmp     start_prompt
 
-
-
-
 send_oups_and_loop:
     BRK_KERNEL XOUPS
     jmp     start_commandline
@@ -394,7 +395,7 @@ send_oups_and_loop:
 .endproc
 
 .include "tables/text_first_line_adress.asm"
-.include "commands/shellmenu.asm"
+
 .include "shortcut.asm"
 
 .proc _bash
@@ -592,6 +593,8 @@ internal_commands_length:
 .include "commands/help.asm"
 .include "commands/pwd.asm"
 
+.include "commands/twilbank.asm"
+
 
 ; Commands
 .ifdef WITH_BANK
@@ -736,9 +739,9 @@ internal_commands_length:
 .include "commands/sh.asm"
 .endif
 
-.ifdef WITH_RESCUE
-.include "commands/rescue.asm"
-.endif
+;.ifdef WITH_RESCUE
+;.include "commands/rescue.asm"
+;.endif
 
 .ifdef WITH_WATCH
 .include "commands/watch.asm"
@@ -875,10 +878,6 @@ next:
     lda     #CPU_6502
     rts
 .endproc
-
-
-    
-
 
 _print_hexa:
     pha
@@ -1036,9 +1035,9 @@ addr_commands:
     .addr  _sh
 .endif 
 
-.ifdef WITH_RESCUE
-    .addr  _rescue
-.endif 
+;.ifdef WITH_RESCUE
+    ;.addr  _rescue
+;.endif 
 
 .ifdef WITH_TELNETD
     .addr  _telnetd
@@ -1213,9 +1212,9 @@ commands_length:
     .byt 2 ; sh
 .endif   
 
-.ifdef WITH_RESCUE
-    .byt 6 ; sh
-.endif   
+;.ifdef WITH_RESCUE
+    ;.byt 6 ; sh
+;.endif   
 
 
 .ifdef WITH_TELNETD
@@ -1428,10 +1427,10 @@ sh:
     .asciiz "sh"
 .endif
 
-.ifdef WITH_RESCUE
-rescue:
-    .asciiz "rescue"
-.endif
+;.ifdef WITH_RESCUE
+;rescue:
+    ;.asciiz "rescue"
+;.endif
 
 .ifdef WITH_TELNETD
 telnetd:
