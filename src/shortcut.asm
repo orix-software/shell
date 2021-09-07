@@ -7,6 +7,8 @@
     beq     @start_shortcut
     cmp     #'L'+$40
     beq     @start_shortcut    
+    cmp     #'N'+$40
+    beq     @start_shortcut        
     cmp     #'T'+$40
     beq     @start_shortcut        
     cmp     #'G'+$40
@@ -89,7 +91,7 @@ shortcut_low:
     .byte $00 ; K       
     .byte <twillauncher ; L   
     .byte $00 ; M 
-    .byte $00 ; N    
+    .byte <network_start ; N    
     .byte $00 ; O 
     .byte $00 ; P       
     .byte $00 ; Q         
@@ -110,7 +112,7 @@ shortcut_high:
     .byte $00 ; K       
     .byte >twillauncher ; L    
     .byte $00 ; M 
-    .byte $00 ; N    
+    .byte >network_start ; N    
     .byte $00 ; O 
     .byte $00 ; P       
     .byte $00 ; Q        
@@ -131,7 +133,7 @@ shortcut_action_type:
     .byte $00 ; K       
     .byte SHORTCUT_VECTOR ; L    
     .byte $00 ; M 
-    .byte $00 ; N    
+    .byte SHORTCUT_VECTOR ; N    
     .byte $00 ; O 
     .byte $00 ; P       
     .byte $00 ; Q        

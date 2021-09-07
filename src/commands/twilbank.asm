@@ -1,4 +1,18 @@
+.define NETWORK_ROM $02
 
+.proc network_start 
+    ; Test version
+    lda     $342
+    and     #%00000011
+    cmp     #$03
+    bne     @out
+
+    lda    #NETWORK_ROM
+    jmp    _twilbank
+@out:
+    BRK_KERNEL XCRLF    
+    rts
+.endproc
 
 .proc twillauncher
     lda    #$01
@@ -21,16 +35,35 @@ save_mode := userzp+11 ; FIXME erase shell commands
     ptr2 := userzp+9 ; FIXME erase shell commands
     
     sta     save_mode
-    PRINT str_starting
+    ;PRINT str_starting
 
     malloc   100,str_oom ; [,fail_value]
     sta     ptr1
     sty     ptr1+1
 
+    lda     save_mode
+    cmp     #NETWORK_ROM
+    bne     @systemd_rom
+
+
+    lda     #<str_path_network
+    sta     ptr2
+    lda     #>str_path_network
+    sta     ptr2+1
+    jmp     @copy
+
+
+@systemd_rom:    
+    lda     #<str_path_rom    
+    sta     ptr2
+    lda     #>str_path_rom    
+    sta     ptr2+1
+
+@copy:
     ldy     #$00
 @loop4:    
 
-    lda     str_path_rom,y
+    lda     (ptr2),y
     beq     @out
     sta     (ptr1),y
     iny
@@ -138,10 +171,10 @@ run:
     rts  
 str_failed:
     .byte "..............",$81,"[FAILED]",$0D,$00
-str_starting:
-    .asciiz "Loading Twilighte ROM"    
 str_path_rom:
     .asciiz "/usr/share/systemd/systemd.rom"    
+str_path_network:
+    .asciiz "/usr/share/network/network.rom"        
 .endproc
 
 .proc twil_copy_buffer_to_ram_bank
