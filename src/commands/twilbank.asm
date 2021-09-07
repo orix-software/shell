@@ -145,9 +145,17 @@ save_mode := userzp+11 ; FIXME erase shell commands
 
     lda     #64
     sta     RES
+
+    lda     save_mode
+    cmp     #NETWORK_ROM
+    bne     @systemd_bank
+    ldx     #34 ; bank33
+    jmp     @loading_rom
+
+@systemd_bank:
     ldx     #33 ; bank33
     ; Send buffer address
-    
+@loading_rom:    
     lda     buffer
     ldy     buffer+1
 
