@@ -2,13 +2,11 @@
 
 .proc _env
     PRINT str_PATH
-    BRK_ORIX XCRLF
+    BRK_KERNEL XCRLF
     PRINT str_PWD
-    
-    BRK_KERNEL $48 ; XGETCWD
-    
+    BRK_KERNEL XGETCWD ; XGETCWD
     BRK_KERNEL XWSTR0
-    BRK_ORIX XCRLF
+    BRK_KERNEL XCRLF
     rts
 str_PWD:
     .asciiz "PWD="
