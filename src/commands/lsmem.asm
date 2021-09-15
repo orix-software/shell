@@ -153,16 +153,15 @@ myloop2:
     PRINT   str_BUSY
 
     ; Get start adress of busy chunk
-kernel_malloc_busy_begin := $2BA
+
     ; Displays the beginning of the Offset (busy)
     ldx     lsmem_savex
-    lda     kernel_malloc_busy_begin,x
 
-    ;txa
-    ;clc
-    ;adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_high
-    ;tay
-    ;lda     (lsmem_ptr_malloc),y
+    txa
+    clc
+    adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_high
+    tay
+    lda     (lsmem_ptr_malloc),y
     jsr     _print_hexa
 
    ; Displays the low Offset (busy)
