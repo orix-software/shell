@@ -1,26 +1,69 @@
-.export _rescue
+.define NETWORK_ROM $02
 
-.proc _rescue
-    fd_systemd := userzp
-    buffer := userzp+2
-    routine_to_load:=userzp+4
-    ptr1 := userzp+6
-    current_bank:= userzp+8
-    ptr2 := userzp+9
-    ; start : 
-    ; systemd -s 
-    ;PRINT str_path_rom
-    ;RETURN_LINE
-    PRINT str_starting
+.proc network_start 
+    ; Test version
+    lda     $342
+    and     #%00000011
+    cmp     #$03
+    bne     @out
 
-    malloc   100 ; [,oom_msg_ptr] [,fail_value]
+    lda    #NETWORK_ROM
+    jmp    _twilbank
+@out:
+    BRK_KERNEL XCRLF    
+    rts
+.endproc
+
+.proc twillauncher
+    lda    #$01
+    jmp    _twilbank
+.endproc
+
+.proc twilfirmware
+    lda    #$00
+    jmp    _twilbank
+.endproc
+
+save_mode := userzp+11 ; FIXME erase shell commands
+
+.proc _twilbank
+    fd_systemd := userzp+13 ; FIXME erase shell commands
+    buffer := userzp+2 ; FIXME erase shell commands
+    routine_to_load:=userzp+4 ; FIXME erase shell commands
+    ptr1 := userzp+6 ; FIXME erase shell commands
+    current_bank:= userzp+8 ; FIXME erase shell commands
+    ptr2 := userzp+9 ; FIXME erase shell commands
+    
+    sta     save_mode
+    ;PRINT str_starting
+
+    malloc   100,str_oom ; [,fail_value]
     sta     ptr1
     sty     ptr1+1
 
+    lda     save_mode
+    cmp     #NETWORK_ROM
+    bne     @systemd_rom
+
+
+    lda     #<str_path_network
+    sta     ptr2
+    lda     #>str_path_network
+    sta     ptr2+1
+    jmp     @copy
+
+
+@systemd_rom:    
+    lda     #<str_path_rom    
+    sta     ptr2
+    lda     #>str_path_rom    
+    sta     ptr2+1
+
+@copy:
     ldy     #$00
 @loop4:    
 
-    lda     str_path_rom,y
+    lda     (ptr2),y
     beq     @out
     sta     (ptr1),y
     iny
@@ -34,7 +77,6 @@
     ldx     ptr1+1
     BRK_KERNEL XOPEN
 
-  ;  fopen (ptr1), O_RDONLY
 
     cpx     #$FF
     bne     @read ; not null then  start because we did not found a conf
@@ -52,10 +94,10 @@
     mfree(ptr1)
 
  
-    malloc   512,routine_to_load,str_oom ; [,oom_msg_ptr] [,fail_value]
+    malloc   512,routine_to_load,str_oom ;  [,fail_value]
  
     
-    malloc   16384,buffer,str_oom ; [,oom_msg_ptr] [,fail_value]
+    malloc   16384,buffer,str_oom ; [,fail_value]
 
  
     
@@ -103,11 +145,20 @@
 
     lda     #64
     sta     RES
+
+    lda     save_mode
+    cmp     #NETWORK_ROM
+    bne     @systemd_bank
+    ldx     #34 ; bank33
+    jmp     @loading_rom
+
+@systemd_bank:
     ldx     #33 ; bank33
     ; Send buffer address
+@loading_rom:    
     lda     buffer
     ldy     buffer+1
-    ldx     #$FF ; Rescue mode
+
     jsr     run
 
    ; jsr     _lsmem
@@ -128,10 +179,10 @@ run:
     rts  
 str_failed:
     .byte "..............",$81,"[FAILED]",$0D,$00
-str_starting:
-    .asciiz "Starting Rescue "    
 str_path_rom:
-    .asciiz "/usr/share/rescue/rescue.rom"    
+    .asciiz "/usr/share/systemd/systemd.rom"    
+str_path_network:
+    .asciiz "/usr/share/network/network.rom"        
 .endproc
 
 .proc twil_copy_buffer_to_ram_bank
@@ -147,15 +198,10 @@ str_path_rom:
     sta     ptr1
     sty     ptr1+1
 
-
-
     txa
     jsr     _twil_get_registers_from_id_bank
     stx     sector_to_update
     sta     current_bank
-    ;
-
-
 
 @start:
 	sei
@@ -173,7 +219,7 @@ str_path_rom:
     and     #%11111000
     ora     current_bank
     sta     VIA2::PRA
-    
+
 
     lda     sector_to_update ; pour debug FIXME, cela devrait être à 4
     sta  	TWILIGHTE_BANKING_REGISTER
@@ -182,7 +228,7 @@ str_path_rom:
 	ora		#%00100000
 	sta		TWILIGHTE_REGISTER
 
-    sei
+
 
 
     ldx     #$00
@@ -199,9 +245,13 @@ str_path_rom:
     bne     @loop
     ; then execute
     mfree    (buffer)
-      
-
-    jsr     $c000
+    lda     save_mode
+    beq     @firmware
+    jsr     $c006       ; Twil form buffer
+    lda     #$00
+    beq     @out
+@firmware:    
+    jsr     $c003
 
 
 @out:

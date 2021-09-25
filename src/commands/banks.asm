@@ -443,7 +443,6 @@ displays_all_banks:
 
     jsr     displays_banking
 
-
     sei
     lda     save_twilighte_register
     sta     $342
@@ -511,8 +510,8 @@ loop2:
     cmp     #$7F                        ; '7f'
     bcs     @none_char
 @skip:  
-  ;  jmp     @skip
-    BRK_ORIX XWR0
+
+     jsr     display_char
 
 @none_char:
 
@@ -531,12 +530,7 @@ loop2:
     jmp     @wait_key
     ; space here 
     
-@check_ctrl:
-    lda     bank_stop_listing
-    bne     @wait_key
-    asl     KBDCTC
-    bcc     @no_ctrl    
-    rts
+
 @no_ctrl:    
     iny
     cpy     #36    ; Exit if signature is longer than 37 bytes
@@ -562,12 +556,18 @@ loop2:
     sta     $343
  
 @skip12:
+
     dec     $343
     bpl     parse_next_banking_set
 @end_of_bank:
 
     rts
-
+@check_ctrl:
+    lda     bank_stop_listing
+    bne     @wait_key
+    asl     KBDCTC
+    bcc     @no_ctrl    
+    rts
 @check_kernel_ram_overlay:
     lda     bank_decimal_current_bank
     cmp     #52
@@ -602,8 +602,9 @@ check_if_bank_7_6_5:
 @exit:
     ;cmp     #61
     ;beq     @set4    
-    
-
+    rts
+display_char:
+    BRK_ORIX XWR0    
     rts
 
 display_bank_id:

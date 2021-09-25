@@ -123,7 +123,6 @@ sh_switch_on_prompt:
     ; Displays current path
     BRK_KERNEL XGETCWD
 
-
     BRK_KERNEL XWSTR0
     
     BRK_KERNEL XECRPR           ; display prompt (# char)
@@ -139,7 +138,23 @@ start_commandline:
     BRK_KERNEL XCRLF
     jmp     start_prompt   
 
+
+
 @checkkey:    
+
+    ldx     KBDSHT
+    cpx     #$40
+    bne     @check_standard_key
+
+    jsr     _manage_shortcut
+    cmp     #$01
+    beq     @check_standard_key
+    ; Shortcut successful, let's start again prompt
+    jmp     start_prompt
+
+    
+
+@check_standard_key:
     cmp     #KEY_LEFT
     beq     start_commandline    ; left key not managed
     cmp     #KEY_RIGHT
@@ -259,10 +274,10 @@ start_commandline:
 
 @sh_launch_autocompletion:
     RETURN_LINE
-    jsr     _ls
-    ldx     #$00
-    stx     sh_esc_pressed
-    jmp     sh_switch_on_prompt
+    jsr    _ls
+    ldx    #$00
+    stx    sh_esc_pressed
+    jmp    sh_switch_on_prompt
 
 @check_too_many_open_files:
     cmp    #EMFILE
@@ -303,9 +318,6 @@ start_commandline:
     PRINT   str_command_not_found
    
     jmp     start_prompt
-
-
-
 
 send_oups_and_loop:
     BRK_KERNEL XOUPS
@@ -383,6 +395,8 @@ send_oups_and_loop:
 .endproc
 
 .include "tables/text_first_line_adress.asm"
+
+.include "shortcut.asm"
 
 .proc _bash
     sta     RES
@@ -579,6 +593,8 @@ internal_commands_length:
 .include "commands/help.asm"
 .include "commands/pwd.asm"
 
+.include "commands/twilbank.asm"
+
 
 ; Commands
 .ifdef WITH_BANK
@@ -723,9 +739,9 @@ internal_commands_length:
 .include "commands/sh.asm"
 .endif
 
-.ifdef WITH_RESCUE
-.include "commands/rescue.asm"
-.endif
+;.ifdef WITH_RESCUE
+;.include "commands/rescue.asm"
+;.endif
 
 .ifdef WITH_WATCH
 .include "commands/watch.asm"
@@ -862,10 +878,6 @@ next:
     lda     #CPU_6502
     rts
 .endproc
-
-
-    
-
 
 _print_hexa:
     pha
@@ -1023,9 +1035,9 @@ addr_commands:
     .addr  _sh
 .endif 
 
-.ifdef WITH_RESCUE
-    .addr  _rescue
-.endif 
+;.ifdef WITH_RESCUE
+    ;.addr  _rescue
+;.endif 
 
 .ifdef WITH_TELNETD
     .addr  _telnetd
@@ -1200,9 +1212,9 @@ commands_length:
     .byt 2 ; sh
 .endif   
 
-.ifdef WITH_RESCUE
-    .byt 6 ; sh
-.endif   
+;.ifdef WITH_RESCUE
+    ;.byt 6 ; sh
+;.endif   
 
 
 .ifdef WITH_TELNETD
@@ -1415,10 +1427,10 @@ sh:
     .asciiz "sh"
 .endif
 
-.ifdef WITH_RESCUE
-rescue:
-    .asciiz "rescue"
-.endif
+;.ifdef WITH_RESCUE
+;rescue:
+    ;.asciiz "rescue"
+;.endif
 
 .ifdef WITH_TELNETD
 telnetd:
@@ -1506,7 +1518,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2021.3"
+    .asciiz  "Shell v2021.4"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
