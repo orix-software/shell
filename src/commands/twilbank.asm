@@ -84,9 +84,19 @@ save_mode := userzp+11 ; FIXME erase shell commands
     bne     @read ; not null then  start because we did not found a conf
     PRINT   str_failed
     mfree(ptr1)
-    print str_path_rom,NOSAVE
-    print str_not_found
+    
+    
 
+    lda     save_mode
+    cmp     #NETWORK_ROM
+    bne     @not_systemd_rom
+    print str_path_network,NOSAVE
+    jmp     @not_found_str
+    
+@not_systemd_rom:    
+    print str_path_rom,NOSAVE
+@not_found_str:    
+    print str_not_found
     rts
 @read:
     sta     fd_systemd

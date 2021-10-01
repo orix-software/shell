@@ -17,8 +17,6 @@ ls_arg                   := userzp+13
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
 
-.struct ls_command_struct
-.endstruct
 
 .proc _ls
     lda     #$03
@@ -76,12 +74,9 @@ ls_arg                   := userzp+13
     rts
 @str:
     .byte  "Unable to open current path",$0D,$0A,$00
-
-    
+   
     ; get A&Y
 @free:
-    
-
     BRK_KERNEL XMAINARGS
     sta   ls_mainargs
     sty   ls_mainargs+1
