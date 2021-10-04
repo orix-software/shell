@@ -12,6 +12,8 @@
     cmp     #'T'+$40
     beq     @start_shortcut        
     cmp     #'G'+$40
+    beq     @start_shortcut
+    cmp     #'M'+$40    
     bne     @exit
 @start_shortcut:
     and     #%01111111 ; Remove ctrl/fonct
