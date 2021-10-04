@@ -37,9 +37,8 @@ save_mode := userzp+11 ; FIXME erase shell commands
     sta     save_mode
     ;PRINT str_starting
 
-    malloc   100,str_oom ; [,fail_value]
-    sta     ptr1
-    sty     ptr1+1
+    malloc   100,ptr1,str_oom ; [,fail_value]
+    
 
     lda     save_mode
     cmp     #NETWORK_ROM
@@ -171,13 +170,11 @@ save_mode := userzp+11 ; FIXME erase shell commands
 
     jsr     run
 
-   ; jsr     _lsmem
+
     mfree   (routine_to_load)
     
     rts
     
-    ;jsr     twil_copy_buffer_to_ram_bank
-    ; XMAINARGS
 
     ; if s, then start : load rom into ram
     ; execute RAM
@@ -237,9 +234,6 @@ str_path_network:
 	lda		TWILIGHTE_REGISTER
 	ora		#%00100000
 	sta		TWILIGHTE_REGISTER
-
-
-
 
     ldx     #$00
     ldy     #$00
