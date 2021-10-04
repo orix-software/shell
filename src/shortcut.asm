@@ -90,7 +90,7 @@ shortcut_low:
     .byte $00 ; J 
     .byte $00 ; K       
     .byte <twillauncher ; L   
-    .byte $00 ; M 
+    .byte <twillaunchbank ; M 
     .byte <network_start ; N    
     .byte $00 ; O 
     .byte $00 ; P       
@@ -111,7 +111,7 @@ shortcut_high:
     .byte $00 ; J 
     .byte $00 ; K       
     .byte >twillauncher ; L    
-    .byte $00 ; M 
+    .byte >twillaunchbank ; M 
     .byte >network_start ; N    
     .byte $00 ; O 
     .byte $00 ; P       
@@ -132,7 +132,7 @@ shortcut_action_type:
     .byte $00 ; J 
     .byte $00 ; K       
     .byte SHORTCUT_VECTOR ; L    
-    .byte $00 ; M 
+    .byte SHORTCUT_VECTOR ; M 
     .byte SHORTCUT_VECTOR ; N    
     .byte $00 ; O 
     .byte $00 ; P       

@@ -1,4 +1,5 @@
-.define NETWORK_ROM $02
+.define NETWORK_ROM      $02
+.define MENULAUNCHBANK_ROM $03
 
 .proc network_start 
     ; Test version
@@ -18,6 +19,12 @@
     lda    #$01
     jmp    _twilbank
 .endproc
+
+.proc twillaunchbank
+    lda    #MENULAUNCHBANK_ROM
+    jmp    _twilbank
+.endproc
+
 
 .proc twilfirmware
     lda    #$00
@@ -251,6 +258,13 @@ str_path_network:
     mfree    (buffer)
     lda     save_mode
     beq     @firmware
+    cmp     #MENULAUNCHBANK_ROM
+    bne     @default
+    jsr     $c009       ; Twil bank
+    lda     #$00
+    beq     @out
+
+@default:
     jsr     $c006       ; Twil form buffer
     lda     #$00
     beq     @out
