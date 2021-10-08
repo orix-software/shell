@@ -1,4 +1,4 @@
-.define NETWORK_ROM      $02
+.define NETWORK_ROM        $02
 .define MENULAUNCHBANK_ROM $03
 
 .proc network_start 
@@ -21,6 +21,7 @@
 .endproc
 
 .proc twillaunchbank
+
     lda    #MENULAUNCHBANK_ROM
     jmp    _twilbank
 .endproc
@@ -40,7 +41,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     ptr1 := userzp+6 ; FIXME erase shell commands
     current_bank:= userzp+8 ; FIXME erase shell commands
     ptr2 := userzp+9 ; FIXME erase shell commands
-    
+
     sta     save_mode
     ;PRINT str_starting
 
@@ -165,7 +166,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda     save_mode
     cmp     #NETWORK_ROM
     bne     @systemd_bank
-    ldx     #34 ; bank33
+    ldx     #34 ; bank34 Reserved for network
     jmp     @loading_rom
 
 @systemd_bank:
@@ -258,13 +259,11 @@ str_path_network:
     mfree    (buffer)
     lda     save_mode
     beq     @firmware
-    cmp     #MENULAUNCHBANK_ROM
-    bne     @default
-    jsr     $c009       ; Twil bank
-    lda     #$00
-    beq     @out
+
+
 
 @default:
+
     jsr     $c006       ; Twil form buffer
     lda     #$00
     beq     @out

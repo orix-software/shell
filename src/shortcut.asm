@@ -2,10 +2,11 @@
 .define SHORTCUT_VECTOR $02
 
 .proc _manage_shortcut
-
     cmp     #'B'+$40
     beq     @start_shortcut
     cmp     #'L'+$40
+    beq     @start_shortcut
+    cmp     #'C'+$40
     beq     @start_shortcut    
     cmp     #'N'+$40
     beq     @start_shortcut        
@@ -13,7 +14,7 @@
     beq     @start_shortcut        
     cmp     #'G'+$40
     beq     @start_shortcut
-    cmp     #'M'+$40    
+ 
     bne     @exit
 @start_shortcut:
     and     #%01111111 ; Remove ctrl/fonct
@@ -91,8 +92,8 @@ shortcut_low:
     .byte $00 ; I    
     .byte $00 ; J 
     .byte $00 ; K       
-    .byte <twillauncher ; L   
-    .byte <twillaunchbank ; M 
+    .byte <twillaunchbank ; L   
+    .byte $00 ; M 
     .byte <network_start ; N    
     .byte $00 ; O 
     .byte $00 ; P       
@@ -112,8 +113,8 @@ shortcut_high:
     .byte $00 ; I    
     .byte $00 ; J 
     .byte $00 ; K       
-    .byte >twillauncher ; L    
-    .byte >twillaunchbank ; M 
+    .byte >twillaunchbank ; L    
+    .byte $00 ; M 
     .byte >network_start ; N    
     .byte $00 ; O 
     .byte $00 ; P       
@@ -134,7 +135,7 @@ shortcut_action_type:
     .byte $00 ; J 
     .byte $00 ; K       
     .byte SHORTCUT_VECTOR ; L    
-    .byte SHORTCUT_VECTOR ; M 
+    .byte $00 ; M 
     .byte SHORTCUT_VECTOR ; N    
     .byte $00 ; O 
     .byte $00 ; P       
@@ -144,3 +145,4 @@ shortcut_action_type:
     .byte SHORTCUT_VECTOR ; T        
 
 .endproc    
+
