@@ -33,7 +33,7 @@ basic11_do_not_display := userzp+17
 
 
 .define BASIC11_PATH_DB "/var/cache/basic11/"
-.define BASIC11_MAX_MAINDB_LENGTH 12000
+.define BASIC11_MAX_MAINDB_LENGTH 20000
 
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 
