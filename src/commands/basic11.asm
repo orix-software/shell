@@ -179,7 +179,11 @@ basic11_do_not_display := userzp+17
     pla
 
     sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
-    lda     #ATMOS_ID_BANK
+
+    lda     VIA2::PRA
+    and     #%10100000
+    ora     #ATMOS_ID_BANK
+    ;and     #%10100
     sta     VIA2::PRA
 
     jmp     $F88F ; NMI vector of ATMOS rom
@@ -611,7 +615,9 @@ basic11_do_not_display := userzp+17
 basic11_driver:
     sei
 
-    lda     #$00 ; RAM bank
+    lda     VIA2::PRA
+    and     #%11111000
+    ;lda     #$00 ; RAM bank
     sta     VIA2::PRA
 
     ldx     #$00
