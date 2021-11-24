@@ -33,7 +33,7 @@ basic11_do_not_display := userzp+17
 
 
 .define BASIC11_PATH_DB "/var/cache/basic11/"
-.define BASIC11_MAX_MAINDB_LENGTH 12000
+.define BASIC11_MAX_MAINDB_LENGTH 20000
 
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 
@@ -179,7 +179,22 @@ basic11_do_not_display := userzp+17
     pla
 
     sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
-    lda     #ATMOS_ID_BANK
+
+    ; Crap fix
+
+    lda     #%10110111 ; 0001 0111
+    sta     VIA2::DDRA
+
+    lda     #%10110110 
+    sta     VIA2::PRA   
+
+    lda     #%00010111
+    sta     VIA2::DDRA
+    
+
+    lda     VIA2::PRA
+    and     #%10100000
+    ora     #ATMOS_ID_BANK
     sta     VIA2::PRA
 
     jmp     $F88F ; NMI vector of ATMOS rom
@@ -611,7 +626,9 @@ basic11_do_not_display := userzp+17
 basic11_driver:
     sei
 
-    lda     #$00 ; RAM bank
+    lda     VIA2::PRA
+    and     #%11111000
+    ;lda     #$00 ; RAM bank
     sta     VIA2::PRA
 
     ldx     #$00

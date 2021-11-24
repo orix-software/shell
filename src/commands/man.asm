@@ -3,14 +3,23 @@
 ; TODO : move MALLOC macro after arg test : it avoid a malloc if there is no parameter on command line
 
 .proc _man
-    MAN_SAVE_MALLOC_PTR:=userzp
-    MAN_SAVE_MALLOC_FP :=userzp+2
+    MAN_SAVE_MALLOC_PTR :=userzp
+    MAN_FP              :=userzp+2
+    man_xmainargs_ptr  :=userzp+4
+
+    BRK_KERNEL XMAINARGS
+    sta     man_xmainargs_ptr
+    sty     man_xmainargs_ptr+1
+    cpx     #$01 ; No args ?
+    bne     start_man
+    jmp     error
+start_man:   
     ; 
     MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+4)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
     TEST_OOM
 
-start_man:   
+
     sta     MAN_SAVE_MALLOC_PTR
     sta     RESB
     sty     MAN_SAVE_MALLOC_PTR+1
@@ -22,17 +31,13 @@ start_man:
     sta     RES+1
     jsr     _strcpy               ; MAN_SAVE_MALLOC_PTR contains adress of a new string
  
-    ; get the first parameter
-    ldx     #$01
-    jsr     _orix_get_opt
-    bcc     error                 ; there is not parameter, jumps and displays str_man_error
-    STRCPY  ORIX_ARGV,BUFNOM
- 
-    ; strcat(ptr,ORIX_ARGV) 
-    lda     #<ORIX_ARGV
+    ldx   #$01 ; get arg 
+    lda   man_xmainargs_ptr
+    ldy   man_xmainargs_ptr+1
+    BRK_KERNEL XGETARGV
+
     sta     RESB
-    lda     #>ORIX_ARGV
-    sta     RESB+1
+    sty     RESB+1
     
     lda     MAN_SAVE_MALLOC_PTR
     sta     RES
@@ -59,18 +64,20 @@ start_man:
     cmp     #$FF
     bne     next
 
-
-
     ; Not found
     ; Free memory for path
     lda     MAN_SAVE_MALLOC_PTR
     ldy     MAN_SAVE_MALLOC_PTR+1
     BRK_KERNEL XFREE
 
-    PRINT   txt_file_not_found
-    ldx     #$01
-    jsr     _orix_get_opt
-    PRINT   BUFNOM
+    print   txt_file_not_found
+
+    ldx   #$01 ; get arg 
+    lda   man_xmainargs_ptr
+    ldy   man_xmainargs_ptr+1
+    BRK_KERNEL XGETARGV
+    BRK_KERNEL XWSTR0
+
     RETURN_LINE
 
     rts
@@ -78,33 +85,35 @@ error:
     ; Free memory for path
     lda     MAN_SAVE_MALLOC_PTR
     ldy     MAN_SAVE_MALLOC_PTR+1
-    BRK_ORIX XFREE
-    PRINT   str_man_error
+    BRK_KERNEL XFREE
+    print   str_man_error
     rts
 
 next:
-    sta     MAN_SAVE_MALLOC_FP
-    stx     MAN_SAVE_MALLOC_FP+1
+    sta     MAN_FP
+    stx     MAN_FP+1
     CLS
     SWITCH_OFF_CURSOR
   ; We read 1080 bytes
-    FREAD   SCREEN, 1080, 1, 0
+    fread SCREEN, 1080, 1, MAN_FP
+  ;  FREAD   SCREEN, 1080, 1, 0
 
 cget_loop:
-    BRK_ORIX  XRDW0
+    BRK_KERNEL  XRDW0
     bmi cget_loop
     ; A bit crap to flush screen ...
+    ; read again ?
 out:   
-    BRK_ORIX XHIRES
-    BRK_ORIX XTEXT
+    BRK_KERNEL XHIRES
+    BRK_KERNEL XTEXT
     
     SWITCH_ON_CURSOR
 
     lda MAN_SAVE_MALLOC_PTR
     ldy MAN_SAVE_MALLOC_PTR+1
-    BRK_ORIX XFREE
+    BRK_KERNEL XFREE
 
-    fclose(MAN_SAVE_MALLOC_FP)
+    fclose(MAN_FP)
     
     rts
 
