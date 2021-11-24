@@ -1,5 +1,9 @@
 Github action : ![shell](https://github.com/orix-software/shell/workflows/main/badge.svg)
 
+# Build code 
+./configure
+make
+
 Maintainers :
 
 * Jede
