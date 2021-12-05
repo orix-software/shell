@@ -624,7 +624,7 @@ internal_commands_length:
 .endif
 
 .ifdef WITH_DATE
-.include "commands/date.asm"
+.include "commands/otimer.asm"
 .endif
 
 .ifdef WITH_ENV
