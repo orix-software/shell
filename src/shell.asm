@@ -1108,7 +1108,7 @@ commands_length:
 .endif
 
 .ifdef WITH_DATE
-    .byt 4 ; _date 
+    .byt 5 ; _otimer
 .endif    
 
 .ifdef WITH_DEBUG
@@ -1285,7 +1285,7 @@ cp:
 ; 6
 .ifdef WITH_DATE    
 date:
-    .asciiz "date"
+    .asciiz "otimer"
 .endif    
 
 .ifdef WITH_DEBUG
