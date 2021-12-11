@@ -2,24 +2,42 @@
 
 .export _twil
 
-twil_ptr1:= userzp ;
 
 twil_current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
 twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
 
-.proc _twil
-    ldx     #$01
-    jsr     _orix_get_opt           ; get arg 
-    bcc     usage      ; if there is no args, let's displays all banks
+    twil_ptr1:= userzp ;
+    twil_mainargs_argv     := userzp+2
+    twil_mainargs_argc     := userzp+4 ; 8 bits
+    twil_mainargs_arg1_ptr := userzp+5 ; 16 bits
 
-    lda     ORIX_ARGV
+.proc _twil
+
+    BRK_KERNEL XMAINARGS
+    sta     twil_mainargs_argv
+    sty     twil_mainargs_argv+1
+    stx     twil_mainargs_argc
+
+    cpx     #$01
+    beq     usage      ; if there is no args, let's displays all banks
+
+    ldx     #$01
+    lda     twil_mainargs_argv
+    ldy     twil_mainargs_argv+1
+
+    BRK_KERNEL XGETARGV
+    sta     twil_mainargs_arg1_ptr
+    sty     twil_mainargs_arg1_ptr+1
+
+    ldy     #$00
+    lda     (twil_mainargs_arg1_ptr),y
     cmp     #'-'
     bne     usage
-    ldx     #$01
-    lda     ORIX_ARGV,x
+    iny
+    lda     (twil_mainargs_arg1_ptr),y
     cmp     #'f'
     bne     check_next_parameter_u
-    PRINT   str_version
+    print   str_version,NOSAVE
     lda     TWILIGHTE_REGISTER       ; get Twilighte register
     and     #%00001111 ; Select last 4 bits
     cmp     #15        ; Max version #15 
@@ -30,17 +48,17 @@ twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     RETURN_LINE
     rts
 error:
-    PRINT   str_unknown
+    print   str_unknown,NOSAVE
     RETURN_LINE
     rts
 
 usage:
-    PRINT   str_usage
+    print   str_usage,NOSAVE
     RETURN_LINE
     rts    
 
 error_overflowbanking:
-    PRINT   str_usage
+    print   str_usage,NOSAVE
     RETURN_LINE
     rts 
 
@@ -57,7 +75,7 @@ check_next_parameter_u:
     ldy   #$00
     sta   (twil_ptr1),y
     jsr   savemount
-    PRINT str_swap_root_to_usbkey
+    print str_swap_root_to_usbkey,NOSAVE
     RETURN_LINE
     rts
 
@@ -76,7 +94,7 @@ check_next_parameter_d:
     sta   (twil_ptr1),y
     ; and save 
     jsr     savemount
-    PRINT str_swap_root_to_sdcard
+    print str_swap_root_to_sdcard,NOSAVE
     RETURN_LINE
     rts
 savemount:
@@ -93,29 +111,6 @@ savemount:
     rts
 
 
-
-    ;PRINT   str_twilighte_register
-    ;lda     TWILIGHTE_REGISTER
-    ;LDY     #$00
-    ;LDX     #$20 ;
-    ;STX     DEFAFF
-    ;LDX     #$03
-    ;;BRK_KERNEL XDECIM
-    ;RETURN_LINE
-    ;PRINT   str_twilighte_banking_register
-    ;lda     TWILIGHTE_BANKING_REGISTER
-    ;LDY     #$00
-    ;LDX     #$20 ;
-    ;STX     DEFAFF
-    ;LDX     #$03
-    ;BRK_ORIX XDECIM
-    ;RETURN_LINE
-
-    ;rts
-;str_twilighte_register:
-    ;.asciiz "Twilighte register : "
-;str_twilighte_banking_register:
-    ;.asciiz "Twilighte Banking register : "
 
 
 
@@ -137,10 +132,5 @@ str_usage:
 	.byte "Usage: twil -f",$0A,$0D
     .byte "       twil -u",$0A,$0D
     .byte "       twil -d",$0A,$0D
-    ;.byte "       twil -u",$0A,$0D   ; update main rom (kernel)
-    ;.byte "       twil -e",$0A,$0D   ; EEPROM informations
-    ;.byte "       twil -l[file64KB]",$0A,$0D
     .byte $00
 .endproc 
-
-
