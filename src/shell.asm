@@ -11,19 +11,44 @@
 .include   "dependencies/kernel/src/include/files.inc"
 ;.include   "dependencies/twilighte/src/include/io.inc"
 
-.include   "dependencies/orix-sdk/macros/SDK.mac"
+.include   "dependencies/orix-sdk/macros/SDK_print.mac"
+.include   "dependencies/orix-sdk/macros/SDK_memory.mac"
+.include   "dependencies/orix-sdk/macros/SDK_file.mac"
+.include   "dependencies/orix-sdk/macros/SDK_string.mac"
+
+;.include   "dependencies/orix-sdk/macros/strnxxx.mac"
 
 .include   "../libs/usr/arch/include/twil.inc"
 
-bash_struct_ptr              :=userzp ; 16bits
+.macro cursor mode
+	.if (.xmatch(.string(mode), .string(ON)) .or .xmatch(.string(mode), .string(on)))
+		ldx #$00
+		.byte $00, XCSSCR
+
+	.elseif (.xmatch(.string(mode), .string(OFF)) .or .xmatch(.string(mode), .string(off)))
+		ldx #$00
+		.byte $00, XCOSCR
+
+	.else
+		.error .sprintf("Unknown parameter value: %s (must be on or off)", .string(mode))
+	.endif
+.endmacro
+
+bash_struct_ptr              :=userzp   ; Struct for shell, when shell start, it malloc a struct 16bits
 sh_esc_pressed               :=userzp+2
-sh_length_of_command_line    :=userzp+3 ; 
+
+sh_length_of_command_line    :=userzp+3 ; Only useful when we are un prompt mode
+tmp1_for_internal_command    :=userzp+3
+
 exec_address                 :=userzp+4
+ptr1_for_internal_command    :=userzp+4
 
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 bash_tmp1                    :=userzp+8 
 sh_ptr_for_internal_command  :=userzp+10
+
 sh_ptr1                      :=userzp+12
+ptr2_for_internal_command    :=userzp+12
 
 STORE_CURRENT_DEVICE :=$99
 
@@ -55,7 +80,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 start_sh_interactive:
 
-.out     .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
+    .out     .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
 
     MALLOC .sizeof(shell_bash_struct)
 

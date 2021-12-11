@@ -1,11 +1,13 @@
 .export _cd
 
-
 .proc _cd
-    cd_path := sh_ptr_for_internal_command
-    cd_fp := userzp+2
-    cd_fp_tmp := userzp+2
-
+    cd_path           := sh_ptr_for_internal_command
+    cd_fp             := userzp+2
+    cd_fp_tmp         := userzp+4
+    ; Avoid userzp+6
+    cd_argv1_ptr      := ptr1_for_internal_command ; 16 bits
+    
+    
 
     ; Let's malloc
     MALLOC(KERNEL_MAX_PATH_LENGTH)
@@ -13,20 +15,49 @@
     bne     @not_null_1
     cpy     #NULL
     bne     @not_null_1
-    PRINT   str_oom
+    print   str_oom,NOSAVE
     rts 
 @not_null_1:
     sta     cd_path
     sty     cd_path+1
 
-    ldx     #$01
-    jsr     _orix_get_opt
+    ; Get first arg
+
+    lda     bash_struct_ptr
+    sta     cd_argv1_ptr
+    
+    lda     bash_struct_ptr+1
+    sta     cd_argv1_ptr+1
+
+    ldy     #shell_bash_struct::command_line
+@get_first_arg:    
+    lda     (bash_struct_ptr),y
+    beq     @found_eos
+    cmp     #' ' ; Read command line until we reach a space.
+    beq     @found_space  
+    inc     cd_argv1_ptr
+    bne     @skip30
+    inc     cd_argv1_ptr+1
+@skip30:
+    iny
+    bne     @get_first_arg
+@found_eos:    
+    mfree(cd_path)
+    rts
+
+
+
+@found_space:
+    inc     cd_argv1_ptr
+    bne     @skip40
+    inc     cd_argv1_ptr+1
+@skip40:
 
 
     ; copy in malloc args
     ldy     #$00
 @L1:
-    lda     ORIX_ARGV,y
+    lda     (cd_argv1_ptr),y
     beq     @S1
     sta     (cd_path),y
     iny
@@ -128,7 +159,7 @@ not_dot:
 
     mfree(cd_path)
 
-    PRINT str_not_a_directory
+    print str_not_a_directory,NOSAVE
     rts
     
 
