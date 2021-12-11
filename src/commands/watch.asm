@@ -1,29 +1,39 @@
 .export _watch
 
-save_mainargs_ptr  := userzp
-watch_ptr1         := userzp+2
-watch_ptr2         := userzp+4
 
 .proc _watch
-    ldx     #$01
-    jsr     _orix_get_opt
-    
+    save_mainargs_ptr       := userzp
+    watch_ptr1              := userzp+2
+    watch_ptr2              := userzp+4
+    watch_mainargs_argv     := userzp+6
+    watch_mainargs_argc     := userzp+8
+    watch_mainargs_arg1_ptr := userzp+10
 
     MALLOC_AND_TEST_OOM_EXIT 100 
     sta     save_mainargs_ptr
     sty     save_mainargs_ptr+1
     
+    BRK_KERNEL XMAINARGS
+    sta     watch_mainargs_argv
+    sty     watch_mainargs_argv+1
+    stx     watch_mainargs_argc
+
+    cpx     #$01
+   
+    beq     @usage
+
     ldx     #$01
-    jsr     _orix_get_opt
-    bcc     @usage
+    lda     watch_mainargs_argv
+    ldy     watch_mainargs_argv+1
 
-    lda     #<ORIX_ARGV
+    BRK_KERNEL XGETARGV
+    sta     watch_mainargs_arg1_ptr
+    sty     watch_mainargs_arg1_ptr+1
+
+    lda     watch_mainargs_arg1_ptr
     sta     watch_ptr1
-    lda     #>ORIX_ARGV
+    lda     watch_mainargs_arg1_ptr+1
     sta     watch_ptr1+1
-    
-
-
     ; copy command
     ldy     #$00
 @L5:
@@ -64,7 +74,7 @@ watch_ptr2         := userzp+4
     lda     save_mainargs_ptr
     ldy     save_mainargs_ptr+1
     BRK_KERNEL XWSTR0 
-    PRINT str_not_found
+    print str_not_found,NOSAVE
     rts
 
 @usage:    

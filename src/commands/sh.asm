@@ -40,7 +40,7 @@
 
 thereis_a_script_to_execute: 
 
-    fopen (sh_mainargs_arg1_ptr),#O_RDONLY
+    fopen (sh_mainargs_arg1_ptr),O_RDONLY
     
 
  

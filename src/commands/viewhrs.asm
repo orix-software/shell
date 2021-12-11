@@ -1,13 +1,32 @@
 .export _viewhrs
 
 .proc _viewhrs
-    VIEWHRS_SAVE_FP:=userzp
-    ; get the first parameter
-    ldx     #$01
-    jsr     _orix_get_opt
-    bcc     @error                 ; there is not parameter, jumps and displays str_man_error
+
+
+    VIEWHRS_SAVE_FP       :=userzp
+    viewhrs_mainargs_arg1 := userzp+2
+    viewhrs_mainargs_argv := userzp+4
+    viewhrs_mainargs_argc := userzp+6
+
+    BRK_KERNEL XMAINARGS
+    sta     viewhrs_mainargs_argv
+    sty     viewhrs_mainargs_argv+1
+    stx     viewhrs_mainargs_argc
     
-    FOPEN   ORIX_ARGV,O_RDONLY
+    cpx     #$01
+   
+    beq     @error                 ; there is not parameter, jumps and displays str_man_error
+    
+    ldx     #$01
+    lda     viewhrs_mainargs_argv
+    ldy     viewhrs_mainargs_argv+1
+
+    BRK_KERNEL XGETARGV
+    sta     viewhrs_mainargs_arg1
+    sty     viewhrs_mainargs_arg1+1
+    
+
+    fopen   (viewhrs_mainargs_arg1),O_RDONLY
     
     cpx     #$FF
     bne     next
@@ -16,14 +35,13 @@
     beq     not_found
     rts
 @error:
-    PRINT   str_viewhrs_error
+    print   str_viewhrs_error,NOSAVE
     rts
 not_found: 
 
-    PRINT   txt_file_not_found
-    ldx     #$01
-    jsr     _orix_get_opt
-    PRINT   ORIX_ARGV
+    print   txt_file_not_found,NOSAVE
+
+    print   (viewhrs_mainargs_arg1),NOSAVE
     RETURN_LINE
     rts 
 next:
@@ -35,12 +53,12 @@ next:
     fclose (VIEWHRS_SAVE_FP)
   
 cget_loop:
-    BRK_ORIX XRDW0
+    BRK_KERNEL XRDW0
     bmi     cget_loop
     ; A bit crap to flush screen ...
 out:    
-    BRK_ORIX XHIRES
-    BRK_ORIX XTEXT
+    BRK_KERNEL XHIRES
+    BRK_KERNEL XTEXT
 
     rts
 
@@ -48,4 +66,3 @@ str_viewhrs_error:
   .byte "What hrs do you want?",$0D,$0A,0
 
 .endproc
-
