@@ -2,7 +2,14 @@
 
 CP_SIZE_OF_BUFFER=40000
 
-cp_tmp := userzp+4
+
+
+cp_mv_rm_argv_ptr       := userzp ; 16 bits
+cp_mv_rm_argc           := userzp+2 ; 8 bits
+cp_tmp                  := userzp+4
+cp_mv_rm_save_argv_ptr  := userzp+6
+cp_mv_rm_save_argv_ptr2 := userzp+8
+
 
 .export _mv,_cp
 
@@ -17,7 +24,7 @@ cp_tmp := userzp+4
 .proc _cp
   rts
   lda     #$00 ; don't Delete param1 file FIXME 65c02
-  sta   cp_tmp
+  sta    cp_tmp
   jmp   _cp_mv_execute
 .endproc
 
@@ -36,14 +43,35 @@ cp_tmp := userzp+4
   
 @next:
   ; open first params
-  ldx   #$01
-  jsr   _orix_get_opt
 
-  lda   #<ORIX_ARGV
-  ldx   #>ORIX_ARGV
-  
-  ldy   #O_RDONLY ; Open in readonly
-  BRK_TELEMON XOPEN
+
+    XMAINARGS = $2C
+    XGETARGV =  $2E
+
+
+    BRK_KERNEL XMAINARGS
+
+    sta     cp_mv_rm_argv_ptr
+    sty     cp_mv_rm_argv_ptr+1
+    stx     cp_mv_rm_argc
+
+;cp_mv_rm_argv_ptr := userzp ; 16 bits
+;cp_mv_rm_argc     := userzp+2 ; 8 bits
+;cp_tmp            := userzp+4
+
+    ldx     #$01
+    lda     cp_mv_rm_argv_ptr
+    ldy     cp_mv_rm_argv_ptr+1
+
+    BRK_KERNEL XGETARGV
+
+    sta     cp_mv_rm_save_argv_ptr
+    sty     cp_mv_rm_save_argv_ptr+1
+
+
+    fopen (cp_mv_rm_save_argv_ptr),#O_RDONLY 
+ 
+
   cmp   #$FF
   beq   no_such_file
 
@@ -61,9 +89,9 @@ cp_tmp := userzp+4
   ;MALLOC(209)
   cmp   #$00
   bne   @not_oom
-  cpy #$00
+  cpy   #$00
   bne   @not_oom
-  PRINT str_oom
+  print str_oom,NOSAVE
   ; oom
   rts
 @not_oom:  
@@ -91,15 +119,19 @@ cp_tmp := userzp+4
 
   BRK_TELEMON XCLOSE
  
-  ldx   #$02
-  jsr   _orix_get_opt ; get second arg
+    ldx     #$02
+    lda     cp_mv_rm_argv_ptr
+    ldy     cp_mv_rm_argv_ptr+1
 
-  lda   #<ORIX_ARGV
-  ldx   #>ORIX_ARGV
-  
-  ldy   #O_WRONLY ; Open in readonly
-  BRK_KERNEL XOPEN
- 
+    BRK_KERNEL XGETARGV
+
+    sta     cp_mv_rm_save_argv_ptr2
+    sty     cp_mv_rm_save_argv_ptr2+1
+
+
+    fopen (cp_mv_rm_save_argv_ptr2),#O_WRONLY
+
+
   lda   MALLOC_PTR1
   sta   PTR_READ_DEST
   lda   MALLOC_PTR1+1
@@ -116,10 +148,10 @@ cp_tmp := userzp+4
   lda   cp_tmp
   beq   @out
   
-  ldx   #$01
-  jsr   _orix_get_opt
-  lda   #<ORIX_ARGV
-  ldx   #>ORIX_ARGV
+  lda     cp_mv_rm_save_argv_ptr2
+  ldx     cp_mv_rm_save_argv_ptr2+1
+
+
   BRK_KERNEL XRM
   ; now remove file
 
@@ -127,17 +159,15 @@ cp_tmp := userzp+4
   
   rts
 no_such_file:
-  PRINT   cp
+  print   cp,NOSAVE
   CPUTC   ':'
   CPUTC   ' ' 
-  PRINT   str_cannot_stat
+  print   str_cannot_stat,NOSAVE
   CPUTC   '''
   
- 
-  ldx   #$01
-  jsr   _orix_get_opt
- 
-  PRINT ORIX_ARGV
+  print (cp_mv_rm_save_argv_ptr2),NOSAVE
+  
+
   lda     #$27
   BRK_KERNEL XWR0
   
