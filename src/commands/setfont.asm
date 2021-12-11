@@ -18,11 +18,20 @@
 .proc _setfont
     setfont_fp :=userzp+2 ; 2 bytes
 
-    ldx #$01
-    jsr _orix_get_opt
-    bcs *+5
-    jmp usage
+    setfont_mainargs_argv      := userzp+4
+    setfont_mainargs_argc      := userzp+6
+    setfont_mainargs_arg1_ptr  := userzp+8
 
+    BRK_KERNEL XMAINARGS
+    sta     setfont_mainargs_argv
+    sty     setfont_mainargs_argv+1
+    stx     setfont_mainargs_argc
+
+    cpx     #$02
+    beq     @continue
+
+    jmp usage
+@continue:
     MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
     TEST_OOM_AND_MAX_MALLOC
 
@@ -41,9 +50,17 @@
 
     jsr _strcpy
 
+    ldx     #$01
+    lda     setfont_mainargs_argv
+    ldy     setfont_mainargs_argv+1
+
+    BRK_KERNEL XGETARGV
+    sta     setfont_mainargs_arg1_ptr
+    sty     setfont_mainargs_arg1_ptr+1
+
     ; Source
-    lda #<ORIX_ARGV
-    ldy #>ORIX_ARGV
+    lda     setfont_mainargs_arg1_ptr
+    ldy     setfont_mainargs_arg1_ptr+1
     sta RESB
     sty RESB+1
 
@@ -68,7 +85,7 @@
     lda userzp
     ldx userzp+1
     ldy #O_RDONLY
-    BRK_ORIX XOPEN
+    BRK_KERNEL XOPEN
     
     cmp #$FF
     bne @S1
@@ -90,18 +107,14 @@
     
     lda setfont_fp
     ldy setfont_fp+1
-    BRK_ORIX XCLOSE
+    BRK_KERNEL XCLOSE
 
 	
 
 
 
      mfree (userzp)
-    ;lda userzp
-    ;ldy userzp+1
-    ;BRK_ORIX XFREE
 
-    ;BRK_ORIX XCRLF
 
     ; Code de retour
     lda #$00
