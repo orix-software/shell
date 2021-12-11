@@ -3,46 +3,22 @@
     debug_mainargs_ptr := userzp
 
 
-;    BRK_KERNEL XMAINARGS
-    ;sta   debug_mainargs_ptr
-  ;  sty   debug_mainargs_ptr+1
-    
-    ; Get argv
-   ; txa
-    ;clc 
-    ;adc    #$30
-
-    
-
-    ;BRK_KERNEL XWR0
-    ;BRK_KERNEL XCRLF
-    ;ldx   #$02
-    ;lda   debug_mainargs_ptr
-    ;ldy   debug_mainargs_ptr+1
-
-    ;BRK_KERNEL XMAINARGS_GETV
-    ;BRK_KERNEL XWSTR0
-    ;RETURN_LINE
-
-
-
-;CPU_6502
     ; routine used for some debug
-    PRINT   str_cpu
+    print   str_cpu,NOSAVE
     jsr     _getcpu
     cmp     #CPU_65C02
     bne     @is6502
-    PRINT   str_65C02
+    print   str_65C02,NOSAVE
     RETURN_LINE
 .pc02    
     bra     @next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 .p02    
 @is6502:
 	
-    PRINT   str_6502
+    print   str_6502,NOSAVE
 	RETURN_LINE
 @next:
-    PRINT   str_ch376
+    print   str_ch376,NOSAVE
     jsr     _ch376_ic_get_ver
     BRK_KERNEL XWR0
     BRK_KERNEL XCRLF
@@ -78,10 +54,10 @@ mount_sdcard:
     jsr     _ch376_disk_mount
 	cmp 	#CH376_USB_INT_SUCCESS
 	beq 	ok
-    PRINT   str_error_sdcard   	
+    print   str_error_sdcard,NOSAVE
     rts
 ok:    
-    PRINT   str_ok_sdcard   
+    print   str_ok_sdcard,NOSAVE
     rts
 
 mount_key:
@@ -95,10 +71,10 @@ mount_key:
     jsr     _ch376_disk_mount
 	cmp 	#CH376_USB_INT_SUCCESS
 	beq 	ok2
-    PRINT   str_error_key	
+    print   str_error_key,NOSAVE
     rts
 ok2:    
-    PRINT   str_ok_key
+    print   str_ok_key,NOSAVE
     rts    
     
 
