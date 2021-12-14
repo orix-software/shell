@@ -21,9 +21,8 @@
     sta     basic11_ptr3+1
 
     tay
-    lda     basic11_ptr3
-    ;BRK_KERNEL XWSTR0
-    ; end of Probably not useful
+    lda     basic11_ptr3 ; ??? FIXME
+
     
     lda     basic11_ptr4
     sta     basic11_ptr1
@@ -84,23 +83,16 @@
     lda     #$00
     sta     (basic11_ptr1),y
 
-    lda     basic11_ptr4
-    ldy     basic11_ptr4+1
-    BRK_KERNEL XFREE
-
-
-    lda     basic11_ptr2
-    ldy     basic11_ptr2+1
-    BRK_KERNEL XFREE
-
+ 
+    mfree(basic11_ptr4)
+    mfree(basic11_ptr2)
+    ;jsr     _lsmem
+;@me12:    
+    ;jmp     @me12   
 
     ldy     basic11_ptr1+1
     lda     basic11_ptr1
     BRK_KERNEL XEXEC
-   ; BRK_KERNEL XWSTR0
-
-    
-
 
     rts
 str_basic11:     

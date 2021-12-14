@@ -30,7 +30,7 @@
     cpx     #$02
     beq     @continue
 
-    jmp usage
+    jmp     usage
 @continue:
     MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
     TEST_OOM_AND_MAX_MALLOC

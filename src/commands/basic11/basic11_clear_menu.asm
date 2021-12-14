@@ -36,4 +36,4 @@
     bne     @display_line
 @outline:
     rts
-.endproc    
+.endproc

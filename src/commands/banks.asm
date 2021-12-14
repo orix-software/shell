@@ -1,35 +1,27 @@
-
 .export _banks
 
 .proc _banks
 
-    current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
-    
-    
-    ptr1         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes : Used when we type "bank ID"
-    tmp2         := userzp                          ; 1 bytes
-    bank_save_banking_register := userzp+1	        ; one byte
-    save_twilighte_register    := userzp+2          ; 1 bytes
-    save_twilighte_banking_register    := userzp+3  ; 1 bytes
-    bank_decimal_current_bank := userzp+4 ; One byte
-    ptr2         := userzp+5                        ; 2 bytes : Used when we type "bank ID"
-    ptr3         := userzp+7                        ; 2 bytes
-    bank_stop_listing :=userzp+9                    ; 
-    
-    
-    bank_save_argvlow :=userzp+11
-    bank_save_argvhigh:=userzp+12
-    bank_all_banks_display :=userzp+13              ; use when bank has no option
-    bank_save_argc :=userzp+14
-    first_char_id_bank := userzp+15
-
-    
+    current_bank                    := ID_BANK_TO_READ_FOR_READ_BYTE  ; 1 bytes
+    ptr1                            := OFFSET_TO_READ_BYTE_INTO_BANK  ; 2 bytes : Used when we type "bank ID"
+    tmp2                            := userzp                         ; 1 bytes
+    bank_save_banking_register      := userzp+1	                      ; one byte
+    save_twilighte_register         := userzp+2                       ; 1 bytes
+    save_twilighte_banking_register := userzp+3                       ; 1 bytes
+    bank_decimal_current_bank       := userzp+4                       ; One byte
+    ptr2                            := userzp+5                       ; 2 bytes : Used when we type "bank ID"
+    ptr3                            := userzp+7                       ; 2 bytes
+    bank_stop_listing               := userzp+9                    
+    bank_save_argvlow               := userzp+11
+    bank_save_argvhigh              := userzp+12
+    bank_all_banks_display          := userzp+13                      ; used when bank has no option
+    bank_save_argc                  := userzp+14
+    first_char_id_bank              := userzp+15
+   
 
     XMAINARGS = $2C
     XGETARGV =  $2E
 
-   ; ldx     #$00
-   ; stx     bank_save_argc ; Recycle var
 
     lda         #$01
     sta         bank_all_banks_display

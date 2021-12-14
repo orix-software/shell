@@ -120,7 +120,6 @@ start_prompt:
 .IFPC02
 .pc02
     stz    sh_length_of_command_line               ; Used to store the length of the command line
-    stz    ORIX_ARGV
     lda    #$00
     ldy    #shell_bash_struct::command_line
     sta    (bash_struct_ptr),y
@@ -132,7 +131,6 @@ start_prompt:
 .else
     lda    #$00
     sta    sh_length_of_command_line               ; Used to store the length of the command line
-    sta    ORIX_ARGV            ; argv buffer
     lda    #$00
     ldy    #shell_bash_struct::command_line
     sta    (bash_struct_ptr),y
@@ -250,10 +248,6 @@ start_commandline:
     jmp     start_commandline
 @key_del_routine:
     jmp     key_del
-
-
-
-
 
 @sh_launch_command:    
     RETURN_LINE
@@ -445,8 +439,7 @@ no_more_space:
 find_command:
     ; Search command
     ; Insert each command pointer in zpTemp02Word
-    ;ldx     #$01
-    ;jsr     _orix_get_opt
+
   
     ldx     #$00
     
@@ -791,8 +784,7 @@ internal_commands_length:
 .include "lib/strcat.asm"
 .include "lib/strlen.asm"
 .include "lib/fread.asm"
-.include "lib/get_opt.asm"
-.include "lib/get_opt2.asm"
+
 .include "lib/_clrscr.asm"
 
 ; hardware
@@ -1543,7 +1535,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2021.4.1"
+    .asciiz  "Shell v2022.1"
 str_compile_time:
     .byt    __DATE__
     .byt    " "

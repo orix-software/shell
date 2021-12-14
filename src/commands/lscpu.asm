@@ -1,6 +1,5 @@
 .export _lscpu
 
-
 .proc _lscpu
     print   str_architecture,NOSAVE
     jsr     _getcpu
@@ -33,6 +32,3 @@ str_lscpu:
     .byte   "CPU MHz:        1",$0D,$0A,0
     ;.asc "BogoMIPS:              5187.00"
 .endproc
-
-
-

@@ -1,6 +1,6 @@
 .proc _oconfig
 
-    PRINT oconfig_str_compile_time
+    print oconfig_str_compile_time,NOSAVE
     rts
     
 

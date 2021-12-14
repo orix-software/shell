@@ -9,7 +9,7 @@
     ps_current_process_read      :=userzp+6 ; 1 bytes max 256 process to display
 
 
-    PRINT   str_ps_title
+    print   str_ps_title,NOSAVE
 
     ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
     BRK_KERNEL XVARS
@@ -23,7 +23,6 @@
     ldy     ps_current_process_read
 
     
-
     lda     (ptr_kernel_process),y
     beq     @SKIP_NOPROCESS
 

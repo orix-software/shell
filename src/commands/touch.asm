@@ -51,7 +51,7 @@
 
 
 ; prevent the rm / case
-  ;PRINT    ORIX_ARGV
+
   ; compute the and store
   lda     #<ORIX_MAX_PATH_LENGTH
   ldy     #>ORIX_MAX_PATH_LENGTH

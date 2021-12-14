@@ -1,11 +1,8 @@
 .proc _sedsd
   ; open first params
-  ldx #$01
-  jsr _orix_get_opt
 
-  lda   #<ORIX_ARGV
-  ldx   #>ORIX_ARGV
-  
+  ; FIXME err
+
   ldy #O_RDONLY ; Open in readonly
   BRK_TELEMON XOPEN
   cmp #$FF

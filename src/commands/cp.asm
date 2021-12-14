@@ -177,4 +177,3 @@ str_cannot_stat:
   .asciiz   "cannot stat "
 
 .endproc
-

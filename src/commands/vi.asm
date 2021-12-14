@@ -167,9 +167,8 @@ not_oom:
     jsr     vi_editor_switch_on_cursor
 	
 
-    ldx     #$01				; get the first arg, 
-    jsr     _orix_get_opt
-    FOPEN ORIX_ARGV,O_RDONLY    ; tries to open the file
+
+    ; fopen command line
         
     cpx     #$FF
     bne     load_file
@@ -185,7 +184,7 @@ load_file:                       ; Valid file
     ldy     #$00             
 
 @loop:
-    lda     ORIX_ARGV,y         ; store the filename in vi struct
+   ; FIXME arg
     sta     (vi_struct),y
     beq     @out
 	
@@ -311,7 +310,7 @@ not_found:
     ldy     #$00
     sta     (vi_struct),y
 .endif    
-    lda     ORIX_ARGV     
+    ; FIXME command line
     beq     start ; not args
     ; at this step we have a filename passed in first arg
     ; let's displays "new file ..."
@@ -323,7 +322,7 @@ not_found:
     ldy     #$00
 
 @loop:
-    lda     ORIX_ARGV,y                     ; read filename passed in arg
+    ; FIXME command line
     sta     (vi_struct),y
     beq     @out3
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x   ; and displays in command line
@@ -416,7 +415,7 @@ vi_detect_syntax_highlight:
    
     ldx     #$00
 @loop:
-    lda     ORIX_ARGV,x
+    ; FIXME read arg1 from command line
     beq     @out
     cmp     #'.'
     beq     @dot_found
@@ -425,14 +424,15 @@ vi_detect_syntax_highlight:
     jmp     @out
 @dot_found:
     inx
-    lda     ORIX_ARGV,x
+       ; FIXME read arg1 from command line
     cmp     #'a'
     bne     @out
     inx 
-    lda     ORIX_ARGV,x
+        ; FIXME read arg1 from command line
+    
     cmp     #'s'
     bne     @out    
-    lda     ORIX_ARGV,x
+        ; FIXME read arg1 from command line
     cmp     #'m'
     bne     @out
     ; asm

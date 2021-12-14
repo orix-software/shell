@@ -124,4 +124,3 @@ man_path:
 str_man_hlp:
   .asciiz ".hlp"
 .endproc
-

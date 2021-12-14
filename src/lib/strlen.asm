@@ -1,4 +1,4 @@
-.proc _strlen
+.proc _strlen2
 	ldy #$00
 loop:	
 	lda (RES),y

@@ -22,6 +22,7 @@
     tax
     dex
 
+
     lda     shortcut_action_type,x
     beq     @exit ;  if shortcut_high then shortcut does not exists
     cmp     #SHORTCUT_VECTOR
@@ -73,7 +74,9 @@
     ; When shortcut is successful we are here, we return $00
     lda     #$00 ; Successful
     rts
-@run:        
+@run:    
+
+
     jmp     (RES)
   
 str_exec_basic11:
@@ -92,7 +95,7 @@ shortcut_low:
     .byte $00 ; I    
     .byte $00 ; J 
     .byte $00 ; K       
-    .byte <twillaunchbank ; L   
+    .byte <twillauncher ; L   
     .byte $00 ; M 
     .byte <network_start ; N    
     .byte $00 ; O 
@@ -113,7 +116,7 @@ shortcut_high:
     .byte $00 ; I    
     .byte $00 ; J 
     .byte $00 ; K       
-    .byte >twillaunchbank ; L    
+    .byte >twillauncher ; L    
     .byte $00 ; M 
     .byte >network_start ; N    
     .byte $00 ; O 

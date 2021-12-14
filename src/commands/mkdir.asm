@@ -1,14 +1,13 @@
 .export _mkdir
 
 
-mkdir_length_to_malloc := userzp
-mkdir_temp             := userzp+3
-mkdir_malloc_ptr       := userzp+1 ; .word
+    mkdir_length_to_malloc := userzp
+    mkdir_temp             := userzp+3
+    mkdir_malloc_ptr       := userzp+1 ; .word
 ; LIMIT : can't malloc more than 255 for the path
-   mkdir_mainargs_ptr := userzp+9
-   mkdir_argc         := userzp+12
-
-   mkdir_arg          := userzp+14
+    mkdir_mainargs_ptr := userzp+9
+    mkdir_argc         := userzp+12
+    mkdir_arg          := userzp+14
 
 .proc _mkdir
 
@@ -46,8 +45,8 @@ mkdir_malloc_ptr       := userzp+1 ; .word
     print str_arg_not_managed_yet,NOSAVE
     rts
 @missing_operand:
-    print str_mkdir
-    print str_missing_operand
+    print str_mkdir,NOSAVE
+    print str_missing_operand,NOSAVE
     rts
 .endproc
 

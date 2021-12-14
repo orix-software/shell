@@ -1,5 +1,4 @@
-.define NETWORK_ROM        $02
-.define MENULAUNCHBANK_ROM $03
+.define NETWORK_ROM $02
 
 .proc network_start 
     ; Test version
@@ -20,13 +19,6 @@
     jmp    _twilbank
 .endproc
 
-.proc twillaunchbank
-
-    lda    #MENULAUNCHBANK_ROM
-    jmp    _twilbank
-.endproc
-
-
 .proc twilfirmware
     lda    #$00
     jmp    _twilbank
@@ -35,18 +27,21 @@
 save_mode := userzp+11 ; FIXME erase shell commands
 
 .proc _twilbank
-    fd_systemd := userzp+13 ; FIXME erase shell commands
     buffer := userzp+2 ; FIXME erase shell commands
     routine_to_load:=userzp+4 ; FIXME erase shell commands
     ptr1 := userzp+6 ; FIXME erase shell commands
     current_bank:= userzp+8 ; FIXME erase shell commands
     ptr2 := userzp+9 ; FIXME erase shell commands
+    fd_systemd := userzp+13 ; FIXME erase shell commands
 
+    
+    
+    
     sta     save_mode
     ;PRINT str_starting
 
     malloc   100,ptr1,str_oom ; [,fail_value]
-    
+
 
     lda     save_mode
     cmp     #NETWORK_ROM
@@ -66,6 +61,8 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda     #>str_path_rom    
     sta     ptr2+1
 
+
+
 @copy:
     ldy     #$00
 @loop4:    
@@ -76,6 +73,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     iny
     bne     @loop4
     
+
 @out:
     sta     (ptr1),y
     
@@ -91,19 +89,9 @@ save_mode := userzp+11 ; FIXME erase shell commands
     bne     @read ; not null then  start because we did not found a conf
     PRINT   str_failed
     mfree(ptr1)
-    
-    
-
-    lda     save_mode
-    cmp     #NETWORK_ROM
-    bne     @not_systemd_rom
-    print str_path_network,NOSAVE
-    jmp     @not_found_str
-    
-@not_systemd_rom:    
     print str_path_rom,NOSAVE
-@not_found_str:    
     print str_not_found
+
     rts
 @read:
     sta     fd_systemd
@@ -166,7 +154,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda     save_mode
     cmp     #NETWORK_ROM
     bne     @systemd_bank
-    ldx     #34 ; bank34 Reserved for network
+    ldx     #34 ; bank33
     jmp     @loading_rom
 
 @systemd_bank:
@@ -178,11 +166,13 @@ save_mode := userzp+11 ; FIXME erase shell commands
 
     jsr     run
 
-
+   ; jsr     _lsmem
     mfree   (routine_to_load)
     
     rts
     
+    ;jsr     twil_copy_buffer_to_ram_bank
+    ; XMAINARGS
 
     ; if s, then start : load rom into ram
     ; execute RAM
@@ -243,6 +233,8 @@ str_path_network:
 	ora		#%00100000
 	sta		TWILIGHTE_REGISTER
 
+
+
     ldx     #$00
     ldy     #$00
 @loop:    
@@ -256,18 +248,19 @@ str_path_network:
     cpx     RES 
     bne     @loop
     ; then execute
+
+
     mfree    (buffer)
     lda     save_mode
     beq     @firmware
 
 
 
-@default:
-
-    jsr     $c006       ; Twil form buffer
+    jsr     $c006       ; Twil firm buffer
     lda     #$00
     beq     @out
 @firmware:    
+
     jsr     $c003
 
 

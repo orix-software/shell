@@ -13,6 +13,7 @@ ls_fp                    := userzp+7
 ls_file                  := userzp+9
 ls_mainargs              := userzp+11
 ls_arg                   := userzp+13
+ls_arg2                  := userzp+15
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
@@ -21,30 +22,6 @@ ls_arg                   := userzp+13
 .proc _ls
     lda     #$03
     sta     ls_column_max
-
-    ;lda     #$01
-    ;ldy     #$00
-    ;BRK_KERNEL XMALLOC 
-    ;sta     ls_file
-    ;sty     ls_file+1
-
-    ;lda     #$00
-    ;ldy     #$00
-    ;sta     (ls_file),y
-
-    ;fopen (ls_file), O_RDONLY
-
-    ;cpx     #$FF
-    ;bne     @not_null
-    ;cmp     #$FF
-    ;bne     @not_null
-
-    ;jsr     _ch376_verify_SetUsbPort_Mount
-    ;bcc     @ZZ0001
-    ;bcs     *+5
-    ;jmp     ZZ0001
-
-
     BRK_KERNEL XGETCWD ; Return A and Y the string
 
 
@@ -85,7 +62,7 @@ ls_arg                   := userzp+13
     cpx   #$01
     beq   list
     ; Get arg 2
-    ldx   #$02
+    ldx   #$01
     BRK_KERNEL XGETARGV
     sta     ls_arg
     sty     ls_arg+1
@@ -93,48 +70,74 @@ ls_arg                   := userzp+13
 
 
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
-    ; ORIX_ARGV[0] = 0 si pas de paramètre
-;@not_null:
-    ;sta     ls_fp
-    ;stx     ls_fp+1
+    ; ls_arg[0] = 0 si pas de paramètre
 
-    ;fclose (ls_fp)    
-    ldx     #$01
-    stx     ls_argc
-    jsr     _orix_get_opt
-    ;bcc     list
 
     ; Paramètre: -l ?
     ldy     #$00
     lda     (ls_arg),y
-    lda     ORIX_ARGV
     cmp     #'-'
     bne     list
     iny
     lda     (ls_arg),y
-    lda     ORIX_ARGV+1
     cmp     #'l'
     bne     list
     iny
     lda     (ls_arg),y
-    lda     ORIX_ARGV+2
     bne     list
     ; format long
     lda     #$ff
     sta     ls_column_max
 
-    ldx     #$02
-    stx     ls_argc
-    jsr     _orix_get_opt
+
+
+    lda     ls_argc
+    cmp     #$02
+    beq     @set_bufnom_empty
+
+    lda   ls_mainargs
+    ldy   ls_mainargs+1
+    ldx   ls_argc
+ 
+
+    ; Get arg 2
+    ldx   #$02
+    BRK_KERNEL XGETARGV
+    sta     ls_arg
+    sty     ls_arg+1
+
+
+    jmp     list
+@set_bufnom_empty:
+    lda     #$00
+    sta     BUFNOM
+    jmp     no_arg_for_dash_l_option
+
+
 
 list:
     ; Potentiel buffer overflow ici
     ; Il faudrait un STRNCPY
     ; Utilisation de la macro strcpy pour remplacer le code suivant
-    ; STRCPY ORIX_ARGV, BUFNOM
     ; /!\ ATTENTION les paramètrtes sont inversés par rapport à STRCPY
-    strcpy BUFNOM, ORIX_ARGV
 
+    ldy     #$00
+@loop_cpy:    
+    lda     (ls_arg),y
+    beq     @EOS
+    sta     BUFNOM,y
+
+    iny
+    bne     @loop_cpy
+@EOS:
+    sta     BUFNOM,y
+
+
+
+@skip:
+
+
+no_arg_for_dash_l_option:
 .ifdef ls_use_malloc
     malloc 13
     sta RESB
@@ -301,13 +304,12 @@ Error:
     print txt_file_not_found, NOSAVE
 ;    .BYTE $2C
 
-;display_one_file_catalog:
-;    .BYTE $00, XWR0
+
 
     ;FREE RESB
 
-    ;print BUFNOM, NOSAVE
-    print ORIX_ARGV, NOSAVE
+    print BUFNOM, NOSAVE
+
 
 error_oom:
     BRK_KERNEL XCRLF

@@ -1,14 +1,11 @@
 .export _cat
 
-
-
 .proc _cat
 
     cat_save_argvlow  := userzp+1
     cat_save_argvhigh := userzp+2
     cat_save_argc     := userzp+3
     cat_save_ptr_arg  := userzp+4 ; 16 bits
-
 
     XMAINARGS = $2C
     XGETARGV =  $2E
@@ -22,24 +19,6 @@
 
     cpx     #$01
     beq     @print_usage
-
-
-    ;BRK_KERNEL XGETCWD ; Return A and Y the string
-  
-
-    ;sty     TR6
-    ;ldy     #O_RDONLY
-    ;ldx     TR6
-    ;BRK_KERNEL XOPEN
-    ;cmp     #$FF
-    ;bne     @free
-    
-    ;cpx     #$FF
-    ;bne     @free
-
-;    jmp     @cat_error_param
-    ; get A&Y
-;@free:
 
 
     ldx   #$01 ; get arg 

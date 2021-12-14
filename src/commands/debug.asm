@@ -22,7 +22,7 @@
     jsr     _ch376_ic_get_ver
     BRK_KERNEL XWR0
     BRK_KERNEL XCRLF
-    ;RETURN_LINE
+    
     
     PRINT   str_ch376_check_exist
     jsr     _ch376_check_exist
