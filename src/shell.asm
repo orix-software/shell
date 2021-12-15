@@ -783,8 +783,6 @@ internal_commands_length:
 .include "lib/trim.asm"
 .include "lib/strcat.asm"
 .include "lib/strlen.asm"
-.include "lib/fread.asm"
-
 .include "lib/_clrscr.asm"
 
 ; hardware

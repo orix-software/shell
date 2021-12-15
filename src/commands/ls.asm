@@ -95,13 +95,13 @@ ls_arg2                  := userzp+15
     cmp     #$02
     beq     @set_bufnom_empty
 
-    lda   ls_mainargs
-    ldy   ls_mainargs+1
-    ldx   ls_argc
+    lda     ls_mainargs
+    ldy     ls_mainargs+1
+    ldx     ls_argc
  
 
     ; Get arg 2
-    ldx   #$02
+    ldx     #$02
     BRK_KERNEL XGETARGV
     sta     ls_arg
     sty     ls_arg+1
@@ -385,7 +385,7 @@ display_catalog:
   ZZ0012:
     lda #$00
     sta BUFNOM,Y
-    ;sty TEMP_ORIX_1
+
 
     ldx #$14
 
@@ -490,7 +490,6 @@ _verbose:
     bne loop
   end:
 
-    ;ldy TEMP_ORIX_1
 
   ZZ0017:
     cpx #13

@@ -243,12 +243,6 @@ basic11_argv1_ptr               :=userzp+21 ; 16 bits
     sta     basic11_fp
     sty     basic11_fp+1
 
-    ;lda     #$14
-    ;sta     $bb80
-    ;@me3:    
-        ;jmp @me3
-    ;rts
-
 
   ; define target address
     lda     #$F1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
