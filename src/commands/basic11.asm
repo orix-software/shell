@@ -88,6 +88,17 @@ basic11_argv1_ptr               :=userzp+21 ; 16 bits
     cpy     #$00
     bne     @no_oom5
     print   str_enomem,NOSAVE
+
+    BRK_KERNEL XCRLF
+
+    lda     #basic11_sizeof_max_length_of_conf_file_bin
+    ldy     #$00
+    ldx     #$20 ;
+    stx     DEFAFF
+    ldx     #$00
+    BRK_KERNEL XDECIM
+
+
     rts
     
 @no_oom5:
@@ -201,6 +212,16 @@ basic11_argv1_ptr               :=userzp+21 ; 16 bits
     sta     $2DF ; Flush keyboard for atmos rom
 
     jsr     prepare_rom_rnd
+
+
+   
+    ldx     #$00
+@L1000:    
+    lda     code_overlay_switch_sedoric,x
+    sta     $477,x
+    inx
+    cpx     #13
+    bne     @L1000
 
     jmp     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
 @copy:
@@ -442,6 +463,15 @@ basic11_argv1_ptr               :=userzp+21 ; 16 bits
     cpy     #$00
     bne     @no_oom
     print   str_enomem,NOSAVE
+
+    lda     #<16384
+    ldy     #>16384
+    ldx     #$20 ;
+    stx     DEFAFF
+    ldx     #$00
+    BRK_KERNEL XDECIM
+    BRK_KERNEL XCRLF
+
     ;lda     #$13
     ;sta     $bb80
     ;@me:    
@@ -597,7 +627,7 @@ basic11_argv1_ptr               :=userzp+21 ; 16 bits
     ; Copy the driver
     ; and start
 
-    malloc 100,basic11_ptr3 ; Index ptr
+    malloc 150,basic11_ptr3 ; Index ptr
     cmp     #$00
     bne     @no_oom2
     cpy     #$00
@@ -612,7 +642,7 @@ basic11_argv1_ptr               :=userzp+21 ; 16 bits
     lda     basic11_driver,y
     sta     (basic11_ptr3),y
     iny
-    cpy     #100
+    cpy     #150
     bne     @L200
 
     ; and start
@@ -643,9 +673,20 @@ basic11_argv1_ptr               :=userzp+21 ; 16 bits
 
     jmp     VEXBNK
 
-
+code_overlay_switch_sedoric:
+    .byt $08,$48,$78,$a9,$00,$8d,$21,$03,$68,$28,$60
 basic11_driver:
     sei
+
+   
+    ldx     #$00
+@L1000:    
+    lda     code_overlay_switch_sedoric,x
+    sta     $477,x
+    inx
+    cpx     #13
+    bne     @L1000
+
 
     lda     VIA2::PRA
     and     #%11111000
@@ -703,6 +744,8 @@ basic11_driver:
 
 @hobbit_rom_do_not_forge_path:
     ;$FE6F
+    ; now copy sedoric code
+
 
 
     jmp     $F88F ; NMI vector of ATMOS rom
