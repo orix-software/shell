@@ -70,7 +70,7 @@
     cmp     #'b'
     bne     usage
 @read_next_byte:    
-    inx
+    iny
     lda     (help_argv1_ptr),y ; get arg
     beq     usage
     cmp     #' '
@@ -129,6 +129,9 @@ usage:
     print str_usage,NOSAVE
     rts
 list_command_in_bank:
+
+    ;jmp     list_command_in_bank
+
     sec
     sbc     #$30
     sta     current_bank
