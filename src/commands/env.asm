@@ -1,9 +1,9 @@
 .export _env
 
 .proc _env
-    PRINT str_PATH
+    print str_PATH,NOSAVE
     BRK_KERNEL XCRLF
-    PRINT str_PWD
+    print str_PWD,NOSAVE
     BRK_KERNEL XGETCWD ; XGETCWD
     BRK_KERNEL XWSTR0
     BRK_KERNEL XCRLF

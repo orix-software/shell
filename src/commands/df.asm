@@ -151,9 +151,7 @@ df_suite:
 
 	print (userzp)
 
-	;lda userzp
-	;ldy userzp+1
-	;.byte $00, XFREE
+
 	mfree (userzp)
 
 	; Récupère le périphérique de root

@@ -1,12 +1,12 @@
-# Command: date
+# Command: otimer
 
-### Display system time
+### Display timer since the Oric is power on
 
 ## SYNOPSYS
-+ date
++ otimer
 
 ## NOTES
-Each time Oric reboots, this time is reset because there is no available RTC.
+Each time Oric reboots, this timer is reset
 
 ## SOURCE
-https://github.com/orix-software/shell/blob/master/src/commands/date.asm
+https://github.com/orix-software/shell/blob/master/src/commands/otimer.asm

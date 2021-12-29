@@ -1,3 +1,5 @@
+.export _ping
+
 .proc _ping
   rts
-.end proc
+.endproc

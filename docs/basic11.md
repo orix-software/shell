@@ -4,6 +4,9 @@
 
 ## SYNOPSYS
 + basic11
++ basic11 -g
++ basic11 -l
++ basic11 "MYTAPE
 
 ## DESCRIPTION
 This command starts the atmos rom. This rom did not test RAM and cload/csave or done on sdcard. It means that it calls file from sdcard.

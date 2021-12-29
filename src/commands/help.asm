@@ -19,28 +19,59 @@
     current_bank            :=  ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
     ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK    ; 2 bytes
     help_ID_BANK_TO_READ_FOR_READ_BYTE_save := userzp+8
-    bank_save_argc := userzp+10
+    bank_save_argc          := userzp+10
+    help_argv1_ptr          := userzp+12
+    help_save_value         := userzp+14
+
 .code
     ; let's get opt
     lda     ID_BANK_TO_READ_FOR_READ_BYTE
     sta     help_ID_BANK_TO_READ_FOR_READ_BYTE_save
 
+  ; Get first arg
 
-    ldx     #$01
-    jsr     _orix_get_opt
-    ldx     #$00
-    lda     ORIX_ARGV,x
+    lda     bash_struct_ptr
+    sta     help_argv1_ptr
+    
+    lda     bash_struct_ptr+1
+    sta     help_argv1_ptr+1
+
+    ldy     #shell_bash_struct::command_line
+@get_first_arg:    
+    lda     (bash_struct_ptr),y
+    beq     @noparam
+    cmp     #' ' ; Read command line until we reach a space.
+    beq     @found_space  
+    inc     help_argv1_ptr
+    bne     @skip30
+    inc     help_argv1_ptr+1
+@skip30:
+    iny
+    bne     @get_first_arg
+@found_eos:    
+   ; mfree(cd_path)
+    rts
+
+@found_space:
+
+    inc     help_argv1_ptr
+    bne     @skip31
+    inc     help_argv1_ptr+1
+@skip31:
+
+    ldy     #$00
+    lda     (help_argv1_ptr),y
     beq     @noparam
     cmp     #'-'
     bne     usage
-    inx
-    lda     ORIX_ARGV,x
+    iny
+    lda     (help_argv1_ptr),y
     beq     usage
     cmp     #'b'
     bne     usage
 @read_next_byte:    
-    inx
-    lda     ORIX_ARGV,x ; get arg
+    iny
+    lda     (help_argv1_ptr),y ; get arg
     beq     usage
     cmp     #' '
     beq     @read_next_byte
@@ -95,15 +126,18 @@ loopme:
     RETURN_LINE
     rts
 usage:
-    PRINT str_usage
+    print str_usage,NOSAVE
     rts
 list_command_in_bank:
+
+    ;jmp     list_command_in_bank
+
     sec
     sbc     #$30
     sta     current_bank
 
-    inx
-    lda     ORIX_ARGV,x ; FIXME
+    iny
+    lda     (help_argv1_ptr),y
     beq     @only_one_digit
     ; convert to decimal 
 
@@ -220,7 +254,7 @@ list_command_in_bank:
     rts
 @no_commands:    
     cli
-    PRINT str_nocommands_found
+    print str_nocommands_found,NOSAVE
     rts
 @add_spaces:
     sty     help_ptr2
@@ -248,4 +282,3 @@ str_nocommands_found:
 str_usage:
     .byte "Usage: help [-bBANKID]",$0A,$0D,0
 .endproc 
-
