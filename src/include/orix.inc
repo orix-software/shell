@@ -23,14 +23,7 @@ READ_BYTE_FROM_OVERLAY_RAM:
 .org BUFEDT
 ;ORIX_ARGV:
 .res 110
-ORIX_ARGV:
-	.res    MAX_LENGTH_OF_FILES*BASH_MAX_ARGS
-TEMP_ORIX_1:
-    .res 1
-ORIX_ARGC:
-    .res 1
-.out     .sprintf("ORIX_ARGV  : %x", ORIX_ARGV)
-.out     .sprintf("ORIX_ARGC  : %x", ORIX_ARGC)
+
 
 .macro  BRK_ORIX   value
 	.byte $00,value
@@ -41,10 +34,7 @@ ORIX_ARGC:
   sta KERNEL_ERRNO
 .endmacro
   
-.macro RETURN0
-    lda #$00
-    sta KERNEL_ERRNO  
-.endmacro
+
 
 .macro PRINT_BINARY_TO_DECIMAL_16BITS justif
     LDX #$20
@@ -78,16 +68,6 @@ ORIX_ARGC:
 .macro HIRES
 	BRK_KERNEL XHIRES
 .endmacro    
-
-; O_WRONLY
-; O_RDONLY   
-.macro FOPEN file, mode
-  lda   #<file
-  ldx   #>file
-  ldy   #mode
-  .byte $00,XOPEN
-.endmacro  
- 
 
 .macro MKDIR PATH 
   lda   #<PATH
@@ -552,4 +532,4 @@ BASH_NUMBER_OF_COMMANDS=BASIC11+CP+CAT+CLEAR+DEBUG+DF+DATE+ENV+FORTH+HISTORY+IOP
 COLOR_FOR_FILES =             $87 ; colors when ls displays files 
 COLOR_FOR_DIRECTORY  =        $86 ; colors when ls display directory
 
-userzp                  :=	VARLNG
+

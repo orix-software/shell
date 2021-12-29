@@ -1,5 +1,10 @@
 .define NETWORK_ROM $02
 
+.define NO_LOAD_ROM $00
+.define LOAD_ROM    $01
+
+save_mode := userzp+11 ; FIXME erase shell commands
+
 .proc network_start 
     ; Test version
     lda     $342
@@ -15,20 +20,44 @@
 .endproc
 
 .proc twillauncher
+    jmp     @load_and_start
+  ;  lda     #NO_LOAD_ROM ; No Force to check rom signature to load or not
+    ;sta     TR2
+    ;lda     #$01
+    ;sta     save_mode
+    ;jsr     checking_rom_signature
+    ;lda     TR2
+    ;cmp     #NO_LOAD_ROM
+    ;beq     @load_and_start
+    ;rts
+@load_and_start:
     lda    #$01
     jmp    _twilbank
 .endproc
 
 .proc twilfirmware
+    ;lda     #NO_LOAD_ROM ; No Force to check rom signature to load or not
+    ;sta     TR0
+
+    lda     #$00
+    sta     save_mode
+
+   ; jsr    checking_rom_signature
+
+;    lda     TR0
+    ;cmp     #NO_LOAD_ROM
+    ;beq     @load_and_start
+    ;rts
+@load_and_start:
     lda    #$00
     jmp    _twilbank
 .endproc
 
-save_mode := userzp+11 ; FIXME erase shell commands
+
 
 .proc _twilbank
     buffer := userzp+2 ; FIXME erase shell commands
-    routine_to_load:=userzp+4 ; FIXME erase shell commands
+    routine_to_load:= userzp+4 ; FIXME erase shell commands
     ptr1 := userzp+6 ; FIXME erase shell commands
     current_bank:= userzp+8 ; FIXME erase shell commands
     ptr2 := userzp+9 ; FIXME erase shell commands
@@ -87,10 +116,10 @@ save_mode := userzp+11 ; FIXME erase shell commands
     bne     @read ; not null then  start because we did not found a conf
     cmp     #$FF
     bne     @read ; not null then  start because we did not found a conf
-    PRINT   str_failed
+    print   str_failed,NOSAVE
     mfree(ptr1)
     print str_path_rom,NOSAVE
-    print str_not_found
+    print str_not_found,NOSAVE
 
     rts
 @read:
@@ -98,13 +127,33 @@ save_mode := userzp+11 ; FIXME erase shell commands
     stx     fd_systemd+1
     mfree(ptr1)
 
- 
+    ;lda     #<userzp
+    ;ldy     #>usze
+
+;@me:
+ ;   jmp @me
+
     malloc   512,routine_to_load,str_oom ;  [,fail_value]
+    cmp      #$00
+    bne      @not_oom
+    cpy      #$00
+    bne      @not_oom
+    fclose(fd_systemd)
+    rts
  
-    
+@not_oom:
+
     malloc   16384,buffer,str_oom ; [,fail_value]
 
- 
+    cmp      #$00
+    bne      @not_oom2
+    cpy      #$00
+    bne      @not_oom2
+    mfree (routine_to_load)
+    fclose(fd_systemd)
+    rts
+@not_oom2:
+
     
     lda     buffer ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
@@ -166,7 +215,8 @@ save_mode := userzp+11 ; FIXME erase shell commands
 
     jsr     run
 
-   ; jsr     _lsmem
+    
+
     mfree   (routine_to_load)
     
     rts
@@ -191,14 +241,14 @@ str_path_network:
 .endproc
 
 .proc twil_copy_buffer_to_ram_bank
-    buffer := userzp+2
-    current_bank:=TR0
-    sector_to_update:=TR1
-    nb_bytes:=TR2
-    tmp1:=TR3
-    tmp3:=TR4
-    ptr1:=TR5 ; 2 bytes adress of the buffer
-    save_bank:= TR7
+    buffer             := userzp+2
+    current_bank       := TR0
+    sector_to_update   := TR1
+    nb_bytes           := TR2
+    tmp1               := TR3
+    tmp3               := TR4
+    ptr1               := TR5 ; 2 bytes adress of the buffer
+    save_bank          := TR7
     
     sta     ptr1
     sty     ptr1+1
@@ -281,3 +331,4 @@ str_path_network:
 
 .endproc
 
+.include "lib/checking_rom_signature.asm"

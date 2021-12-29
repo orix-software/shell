@@ -20,6 +20,8 @@
 
 .include   "../libs/usr/arch/include/twil.inc"
 
+userzp                  :=	VARLNG
+
 .macro cursor mode
 	.if (.xmatch(.string(mode), .string(ON)) .or .xmatch(.string(mode), .string(on)))
 		ldx #$00
@@ -164,11 +166,12 @@ start_commandline:
 
 
 @checkkey:    
-
-    ldx     KBDSHT
-    cpx     #$40
+    pha
+    lda     KBDSHT
+    and     #%01000000
+    cmp     #$40
     bne     @check_standard_key
-
+    pla
     jsr     _manage_shortcut
     cmp     #$01
     beq     @check_standard_key
@@ -178,6 +181,7 @@ start_commandline:
     
 
 @check_standard_key:
+    pla
     cmp     #KEY_LEFT
     beq     start_commandline    ; left key not managed
     cmp     #KEY_RIGHT

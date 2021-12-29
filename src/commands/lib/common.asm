@@ -5,5 +5,7 @@
 
   rts  
 str_missing_operand_after:  
-.asciiz "missing destination file operand after '"
+  .asciiz "missing destination file operand after '"
 .endproc
+
+

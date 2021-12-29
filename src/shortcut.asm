@@ -1,11 +1,18 @@
 .define SHORTCUT_XEXEC  $01
 .define SHORTCUT_VECTOR $02
 
+; This code manage shortcur from shell
+
+
+
 .proc _manage_shortcut
+
+
     cmp     #'B'+$40
     beq     @start_shortcut
     cmp     #'L'+$40
-    beq     @start_shortcut
+    beq     @start_shortcut        
+
     cmp     #'C'+$40
     beq     @start_shortcut    
     cmp     #'N'+$40
@@ -16,13 +23,22 @@
     beq     @start_shortcut
  
     bne     @exit
+ 
 @start_shortcut:
     and     #%01111111 ; Remove ctrl/fonct
 
     tax
     dex
+    ; Checking shift.define NO_LOAD_ROM $00
 
 
+    lda     KBDSHT
+    and     #%00000001
+    cmp     #$01
+    bne     @not_shift
+
+
+@not_shift:
     lda     shortcut_action_type,x
     beq     @exit ;  if shortcut_high then shortcut does not exists
     cmp     #SHORTCUT_VECTOR
@@ -70,6 +86,7 @@
     sta     RES+1
     lda     shortcut_low,x
     sta     RES
+
     jsr     @run
     ; When shortcut is successful we are here, we return $00
     lda     #$00 ; Successful
