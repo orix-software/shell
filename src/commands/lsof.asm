@@ -7,7 +7,7 @@
     lsof_ptr_struct_tmp_fp            :=userzp+6 ; 16 bits
 
 .proc _lsof
-    PRINT   lsof_header
+    print   lsof_header,NOSAVE
     RETURN_LINE
     ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
     BRK_KERNEL XVARS

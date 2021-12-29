@@ -1,16 +1,16 @@
 .export _ioports
 
 .proc _ioports
-    PRINT ioports_via1
+    print ioports_via1,NOSAVE
 
 .ifdef WITH_ACIA    
-	PRINT ioports_acia
+	print ioports_acia,NOSAVE
 .endif     
 
-    PRINT ioports_via2
-    PRINT ioports_ch376
+    print ioports_via2,NOSAVE
+    print ioports_ch376,NOSAVE
 .ifdef WITH_TWILIGHTE_BOARD    
-    PRINT ioports_twil
+    print ioports_twil,NOSAVE
 .endif    
     rts
 ; TODO : replace by defines
@@ -31,4 +31,3 @@ ioports_twil:
     .byte "$342-$343 : TWILIGHTE BOARD",$0D,$0A,0
 .endif    
 .endproc	
-

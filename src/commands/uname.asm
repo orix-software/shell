@@ -8,15 +8,15 @@
     BRK_KERNEL XMAINARGS
     sta     uname_mainargs_ptr
     sty     uname_mainargs_ptr+1
-    stx   uname_mainargs_argc
+    stx     uname_mainargs_argc
     
-    ldx   #$01
-    lda   uname_mainargs_ptr
-    ldy   uname_mainargs_ptr+1
+    ldx     #$01
+    lda     uname_mainargs_ptr
+    ldy     uname_mainargs_ptr+1
 
     BRK_KERNEL XGETARGV
-    sta   uname_mainargs_argv
-    sty   uname_mainargs_argv+1
+    sta     uname_mainargs_argv
+    sty     uname_mainargs_argv+1
 
     lda     uname_mainargs_argc
     cmp     #$01
@@ -31,14 +31,14 @@
     lda     (uname_mainargs_argv),y    
     cmp     #'a'
     bne     error
-    PRINT   str_os
+    print   str_os,NOSAVE
     lda     #' '                ; FIXME CGETC
     BRK_KERNEL XWR0
-    PRINT   str_compile_time 
+    print   str_compile_time,NOSAVE
     BRK_KERNEL XCRLF
     rts
 no_param:
-    PRINT   str_os
+    print   str_os,NOSAVE
     BRK_KERNEL XCRLF
 error:
     rts

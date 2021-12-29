@@ -1,24 +1,34 @@
 .export _lsmem
 
+.define LSMEM_KERNEL_MAX_NUMBER_OF_MALLOC 7
+.define MALLOC_TABLE_COPY 2
+.define XVALUES $2D
+
 .proc _lsmem
 
    lsmem_ptr_malloc     := userzp
    lsmem_ptr_pid_table  := userzp+2	 ; Get struct
    lsmem_savey_kernel_malloc_busy_pid_list := userzp+4
-   lsmem_savey          := userzp+6  ; 1 byte
-   lsmem_savex          := userzp+7  ; 1 byte
-   lsmem_savexbis       := userzp+8  ; 1 byte
-   lsmem_ptr_command_name := userzp+10
+   lsmem_savey                             := userzp+6  ; 1 byte
+   lsmem_savex                             := userzp+7  ; 1 byte
+   lsmem_savexbis             := userzp+8  ; 1 byte
+   lsmem_ptr_command_name     := userzp+10
    lsmem_ptr_command_name_tmp := userzp+12
    lsmem_current_process_read := userzp+14
-   lsmem_ptr_one_process := userzp+16
-
-
+   lsmem_ptr_one_process        := userzp+16
+   lsmem_copy_malloc_struct_ptr := userzp+18
 
    ldx     #XVARS_KERNEL_PROCESS  ; Get struct process adress  from kernel
    BRK_KERNEL XVARS
    sta     lsmem_ptr_pid_table
    sty     lsmem_ptr_pid_table+1
+ 
+
+   ldx     #MALLOC_TABLE_COPY
+   BRK_KERNEL XVALUES
+   sta     lsmem_copy_malloc_struct_ptr
+   sty     lsmem_copy_malloc_struct_ptr+1
+
 
 
    ldx     #XVARS_KERNEL_MALLOC ; Get adress struct of malloc from kernel
@@ -27,7 +37,7 @@
    sty     lsmem_ptr_malloc+1
 
 
-   PRINT   str_column
+   print   str_column,NOSAVE
 
    BRK_KERNEL XCRLF
 
@@ -60,10 +70,8 @@
     beq     @S5
 
 @S4:
-    PRINT   str_FREE
-    ;lda  #$82
-    ;BRK_KERNEL XWR0
-   ; PRINT   str_SPACE
+    print   str_FREE,NOSAVE
+
     ldx     lsmem_savex
     txa
     clc
@@ -79,8 +87,6 @@
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_low
     tay
     lda     (lsmem_ptr_malloc),y
-
-
 
     jsr     _print_hexa_no_sharp
         
@@ -148,21 +154,15 @@ myloop2:
     sty     lsmem_savey_kernel_malloc_busy_pid_list
  
         
-    ;lda  #$81
-    ;BRK_KERNEL XWR0
-    PRINT   str_BUSY
+
+    print   str_BUSY,NOSAVE
 
     ; Get start adress of busy chunk
 kernel_malloc_busy_begin := $2BA
     ; Displays the beginning of the Offset (busy)
     ldx     lsmem_savex
     lda     kernel_malloc_busy_begin,x
-
-    ;txa
-    ;clc
-    ;adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_begin_high
-    ;tay
-    ;lda     (lsmem_ptr_malloc),y
+    
     jsr     _print_hexa
 
    ; Displays the low Offset (busy)
@@ -216,11 +216,9 @@ kernel_malloc_busy_begin := $2BA
     sty     lsmem_savey
     
     ldy     lsmem_savey_kernel_malloc_busy_pid_list
-    ;jsr     display_process2
     
     ldy     lsmem_savey
-    ;lda     lsmem_savey_kernel_malloc_busy_pid_list
-    ;jsr     display_pid
+
 
 @S1:
 
@@ -231,7 +229,7 @@ kernel_malloc_busy_begin := $2BA
 busy_chunk_is_empty:
     iny
     inx
-    cpx     #KERNEL_MAX_NUMBER_OF_MALLOC
+    cpx     #LSMEM_KERNEL_MAX_NUMBER_OF_MALLOC
     bne     myloop2
 
 

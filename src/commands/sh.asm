@@ -1,22 +1,37 @@
 .proc _sh
  
-    ptr_file_sh_interactive_ptr_save := userzp+2
-    
-    ptr_file_sh_interactive_size_file :=userzp+4  ; 16 bits
+    ptr_file_sh_interactive_ptr_save  := userzp+2
+    ptr_file_sh_interactive_size_file := userzp+4  ; 16 bits
+    ptr_file_sh_interactive_ptr       := userzp+6
+    sh_interactive_line_number        := userzp+8  
+    sh_interactive_save_ptr           := userzp+10    ; one byte
+    fp_ptr_file_sh_interactive        := userzp+12
 
-    ptr_file_sh_interactive_ptr := userzp+6
+    sh_mainargs_argv                  := userzp+14
+    sh_mainargs_argc                  := userzp+16
+    sh_mainargs_arg1_ptr              := userzp+18
+    sh_saveY                          := userzp+20
 
-    sh_interactive_line_number  := userzp+8  
-    sh_interactive_save_ptr  := userzp+10    ; one byte
-    fp_ptr_file_sh_interactive := userzp+12
+    BRK_KERNEL XMAINARGS
+    sta     sh_mainargs_argv
+    sty     sh_mainargs_argv+1
+    stx     sh_mainargs_argc
 
-    sh_saveY := userzp +14
+    cpx     #$01
+
+    beq     @start_normal
+
 
     ldx     #$01
-    jsr     _orix_get_opt
-    bcc     @start_normal
-   
-    lda     ORIX_ARGV
+    lda     sh_mainargs_argv
+    ldy     sh_mainargs_argv+1
+
+    BRK_KERNEL XGETARGV
+    sta     sh_mainargs_arg1_ptr
+    sty     sh_mainargs_arg1_ptr+1
+    
+    ldy     #$00
+    lda     (sh_mainargs_arg1_ptr),y
     bne     thereis_a_script_to_execute
 
 @start_normal:
@@ -25,8 +40,9 @@
 
 thereis_a_script_to_execute: 
 
+    fopen (sh_mainargs_arg1_ptr),O_RDONLY
     
-    FOPEN   ORIX_ARGV,O_RDONLY
+
  
     ; A register contains FP id
     sta     fp_ptr_file_sh_interactive

@@ -8,11 +8,12 @@ ls_column_max            := userzp
 ls_column                := userzp+1
 ls_save_line_command_ptr := userzp+2 ; 2 bytes
 ls_file_found            := userzp+4
-ls_argc                  := userzp+5
 ls_fp                    := userzp+7
 ls_file                  := userzp+9
 ls_mainargs              := userzp+11
 ls_arg                   := userzp+13
+ls_arg2                  := userzp+15
+ls_argc                  := userzp+17
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
@@ -21,30 +22,6 @@ ls_arg                   := userzp+13
 .proc _ls
     lda     #$03
     sta     ls_column_max
-
-    ;lda     #$01
-    ;ldy     #$00
-    ;BRK_KERNEL XMALLOC 
-    ;sta     ls_file
-    ;sty     ls_file+1
-
-    ;lda     #$00
-    ;ldy     #$00
-    ;sta     (ls_file),y
-
-    ;fopen (ls_file), O_RDONLY
-
-    ;cpx     #$FF
-    ;bne     @not_null
-    ;cmp     #$FF
-    ;bne     @not_null
-
-    ;jsr     _ch376_verify_SetUsbPort_Mount
-    ;bcc     @ZZ0001
-    ;bcs     *+5
-    ;jmp     ZZ0001
-
-
     BRK_KERNEL XGETCWD ; Return A and Y the string
 
 
@@ -78,70 +55,102 @@ ls_arg                   := userzp+13
     ; get A&Y
 @free:
     BRK_KERNEL XMAINARGS
-    sta   ls_mainargs
-    sty   ls_mainargs+1
-    stx   ls_argc
+    sta     ls_mainargs
+    sty     ls_mainargs+1
+    stx     ls_argc
     
-    cpx   #$01
-    beq   list
+    cpx     #$01
+    beq     @set_bufnom_empty
     ; Get arg 2
-    ldx   #$02
+    ldx     #$01
     BRK_KERNEL XGETARGV
     sta     ls_arg
     sty     ls_arg+1
     ;BRK_KERNEL XWSTR0
 
 
-    ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
-    ; ORIX_ARGV[0] = 0 si pas de paramètre
-;@not_null:
-    ;sta     ls_fp
-    ;stx     ls_fp+1
 
-    ;fclose (ls_fp)    
-    ldx     #$01
-    stx     ls_argc
-    jsr     _orix_get_opt
-    ;bcc     list
+
+    ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
+    ; ls_arg[0] = 0 si pas de paramètre
+
 
     ; Paramètre: -l ?
     ldy     #$00
     lda     (ls_arg),y
-    lda     ORIX_ARGV
     cmp     #'-'
     bne     list
     iny
     lda     (ls_arg),y
-    lda     ORIX_ARGV+1
     cmp     #'l'
     bne     list
     iny
     lda     (ls_arg),y
-    lda     ORIX_ARGV+2
     bne     list
     ; format long
     lda     #$ff
     sta     ls_column_max
 
+
+
+    lda     ls_argc
+    cmp     #$02
+    beq     @set_bufnom_empty
+
+    lda     ls_mainargs
+    ldy     ls_mainargs+1
+    ldx     ls_argc
+ 
+
+    ; Get arg 2
     ldx     #$02
-    stx     ls_argc
-    jsr     _orix_get_opt
+    BRK_KERNEL XGETARGV
+    sta     ls_arg
+    sty     ls_arg+1
+
+
+    jmp     list
+@set_bufnom_empty:
+    lda     #<BUFNOM
+    sta     ls_arg
+    lda     #>BUFNOM
+    sta     ls_arg+1
+    lda     #$00
+    sta     BUFNOM
+    jmp     no_arg_for_dash_l_option
+
+
 
 list:
     ; Potentiel buffer overflow ici
     ; Il faudrait un STRNCPY
     ; Utilisation de la macro strcpy pour remplacer le code suivant
-    ; STRCPY ORIX_ARGV, BUFNOM
     ; /!\ ATTENTION les paramètrtes sont inversés par rapport à STRCPY
-    strcpy BUFNOM, ORIX_ARGV
 
+    ldy     #$00
+@loop_cpy:    
+    lda     (ls_arg),y
+    beq     @EOS
+    sta     BUFNOM,y
+
+    iny
+    bne     @loop_cpy
+@EOS:
+    sta     BUFNOM,y
+
+
+
+@skip:
+
+
+no_arg_for_dash_l_option:
 .ifdef ls_use_malloc
     malloc 13
-    sta RESB
-    sty RESB+1
-    ora RESB
-    bne copy_mask
-    jmp error_oom
+    sta     RESB
+    sty     RESB+1
+    ora     RESB
+    bne     copy_mask
+    jmp     error_oom
     ;MALLOC 13
     ; FIXME test OOM
     ;TEST_OOM_AND_MAX_MALLOC
@@ -190,6 +199,7 @@ copy_mask:
     lda #$00
     sta BUFNOM+1
 
+
   ZZ0002:
     jsr     _ch376_set_file_name
     jsr     _ch376_file_open
@@ -200,9 +210,11 @@ copy_mask:
     ; $41 -> Fin de liste (ERR_OPEN_DIR) ou ouverture répertoire (cas 'ls repertoire')
     ; $42 -> fichier inexistant (ERR_MISS_FILE)
 
-    cmp #CH376_ERR_MISS_FILE
+    cmp     #CH376_ERR_MISS_FILE
 
     beq Error
+
+
 nextme:
     ; Indique pas de fichier trouvé pour le moment
     ldx #$00
@@ -219,39 +231,41 @@ nextme:
     bne *+4
     inc ls_save_line_command_ptr+1
 
-  ZZ1001:
-    cmp #CH376_USB_INT_SUCCESS
-    bne ZZ1002
-    lda #COLOR_FOR_FILES
-    bne display_one_file_catalog
+ZZ1001:
+    cmp     #CH376_USB_INT_SUCCESS
+    bne     ZZ1002
+    lda     #COLOR_FOR_FILES
+    bne     display_one_file_catalog
 
-  ZZ1002:
-    cmp #CH376_ERR_OPEN_DIR
-    bne ZZ0003
-    lda #COLOR_FOR_DIRECTORY
-    bne display_one_file_catalog
+ZZ1002:
+    cmp     #CH376_ERR_OPEN_DIR
+    bne     ZZ0003
+    lda     #COLOR_FOR_DIRECTORY
+    bne     display_one_file_catalog
 
   ZZ0003:
-    cmp #CH376_USB_INT_DISK_READ
-    bne ZZ0004
-    beq go
+    cmp     #CH376_USB_INT_DISK_READ
+    bne     ZZ0004
+    beq     go
 
 display_one_file_catalog:
-    lda #CH376_DIR_INFO_READ
-    sta CH376_COMMAND
-    lda #$ff
-    sta CH376_DATA
-    jsr _ch376_wait_response
-    cmp #CH376_USB_INT_SUCCESS
+    lda     #CH376_DIR_INFO_READ
+    sta     CH376_COMMAND
+    lda     #$ff
+    sta     CH376_DATA
+    jsr     _ch376_wait_response
+    cmp     #CH376_USB_INT_SUCCESS
 
-    bne Error
+
+    bne     Error
+
 
 go:
-    lda #CH376_RD_USB_DATA0
-    sta CH376_COMMAND
-    lda CH376_DATA
-    cmp #$20
-    beq ZZ0005
+    lda     #CH376_RD_USB_DATA0
+    sta     CH376_COMMAND
+    lda     CH376_DATA
+    cmp     #$20
+    beq     ZZ0005
 
 .ifdef ls_use_malloc
     ;FREE RESB
@@ -260,13 +274,13 @@ go:
     rts
 
   ZZ0005:
-    jsr display_catalog
+    jsr     display_catalog
 
     ; display_one_file_catalog renvoie la valeur de _ch376_wait_response qui renvoie 1 en cas d'erreur
     ; et le CH376 ne renvoie pas de valeur 0
     ; donc le bne devient un saut inconditionnel!
     ; jmp @ZZ0003
-    bne ZZ0003
+    bne     ZZ0003
 
   ZZ0004:
     ;FREE RESB
@@ -274,15 +288,15 @@ go:
     BRK_KERNEL XCRLF
 
     ; Erreur si aucun fichier trouvé
-    lda ls_file_found
+    lda     ls_file_found
 
-    beq Error
+    beq     Error
 
 .ifdef ls_use_malloc
     ;FREE RESB
     mfree (RESB)
 
-    ldx ls_argc
+    ldx     ls_argc
     inx
     stx ls_argc
     jsr _orix_get_opt
@@ -292,22 +306,15 @@ go:
 
   ZZ0001:
     rts
-ls_debug:
-    lda #'A'    
-    sta $bb80
+
+
 
 ; ------------------------------------------------------------------------------
 Error:
     print txt_file_not_found, NOSAVE
-;    .BYTE $2C
-
-;display_one_file_catalog:
-;    .BYTE $00, XWR0
-
     ;FREE RESB
+    print BUFNOM, NOSAVE
 
-    ;print BUFNOM, NOSAVE
-    print ORIX_ARGV, NOSAVE
 
 error_oom:
     BRK_KERNEL XCRLF
@@ -383,7 +390,7 @@ display_catalog:
   ZZ0012:
     lda #$00
     sta BUFNOM,Y
-    ;sty TEMP_ORIX_1
+
 
     ldx #$14
 
@@ -488,7 +495,6 @@ _verbose:
     bne loop
   end:
 
-    ;ldy TEMP_ORIX_1
 
   ZZ0017:
     cpx #13

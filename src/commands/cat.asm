@@ -1,49 +1,53 @@
 .export _cat
 
 .proc _cat
-    ldx      #$01
-    jsr     _orix_get_opt
-    bcc     print_usage
 
-    BRK_KERNEL XGETCWD ; Return A and Y the string
-  
+    cat_save_argvlow  := userzp+1
+    cat_save_argvhigh := userzp+2
+    cat_save_argc     := userzp+3
+    cat_save_ptr_arg  := userzp+4 ; 16 bits
 
-    sty     TR6
-    ldy     #O_RDONLY
-    ldx     TR6
-    BRK_KERNEL XOPEN
-    cmp     #$FF
-    bne     @free
+    XMAINARGS = $2C
+    XGETARGV =  $2E
+
+    BRK_KERNEL XMAINARGS
+
     
+    sta     cat_save_argvlow
+    sty     cat_save_argvhigh
+    stx     cat_save_argc
+
+    cpx     #$01
+    beq     @print_usage
+
+
+    ldx   #$01 ; get arg 
+    lda   cat_save_argvlow
+    ldy   cat_save_argvhigh
+    BRK_KERNEL XGETARGV
+
+
+    sta   cat_save_ptr_arg
+    sty   cat_save_ptr_arg+1
+
+    fopen (cat_save_ptr_arg), O_RDONLY
     cpx     #$FF
-    bne     @free
+    bne     @readfile
+    cmp     #$FF
+    bne     @readfile
 
-    jmp     cat_error_param
-    ; get A&Y
-@free:
+    print (cat_save_ptr_arg),NOSAVE
 
-
-
-    ldx     #$01
-    jsr     _orix_get_opt
-
-    STRCPY  ORIX_ARGV,BUFNOM
-    jsr     _ch376_set_file_name
-
-    jsr _ch376_file_open
-    cmp #CH376_ERR_MISS_FILE
-    bne cat_file
-
-    PRINT BUFNOM
-    PRINT str_not_found
+    print str_not_found,NOSAVE
     rts
 
-print_usage:
-cat_error_param:
-    PRINT txt_usage
+@print_usage:
+@cat_error_param:
+    print txt_usage,NOSAVE
     rts
 
-cat_file:
+@readfile:
+
     lda #$FF
     tay
     jsr _ch376_set_bytes_read

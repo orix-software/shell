@@ -11,19 +11,46 @@
 .include   "dependencies/kernel/src/include/files.inc"
 ;.include   "dependencies/twilighte/src/include/io.inc"
 
-.include   "dependencies/orix-sdk/macros/SDK.mac"
+.include   "dependencies/orix-sdk/macros/SDK_print.mac"
+.include   "dependencies/orix-sdk/macros/SDK_memory.mac"
+.include   "dependencies/orix-sdk/macros/SDK_file.mac"
+.include   "dependencies/orix-sdk/macros/SDK_string.mac"
+
+;.include   "dependencies/orix-sdk/macros/strnxxx.mac"
 
 .include   "../libs/usr/arch/include/twil.inc"
 
-bash_struct_ptr              :=userzp ; 16bits
+userzp                  :=	VARLNG
+
+.macro cursor mode
+	.if (.xmatch(.string(mode), .string(ON)) .or .xmatch(.string(mode), .string(on)))
+		ldx #$00
+		.byte $00, XCSSCR
+
+	.elseif (.xmatch(.string(mode), .string(OFF)) .or .xmatch(.string(mode), .string(off)))
+		ldx #$00
+		.byte $00, XCOSCR
+
+	.else
+		.error .sprintf("Unknown parameter value: %s (must be on or off)", .string(mode))
+	.endif
+.endmacro
+
+bash_struct_ptr              :=userzp   ; Struct for shell, when shell start, it malloc a struct 16bits
 sh_esc_pressed               :=userzp+2
-sh_length_of_command_line    :=userzp+3 ; 
+
+sh_length_of_command_line    :=userzp+3 ; Only useful when we are un prompt mode
+tmp1_for_internal_command    :=userzp+3
+
 exec_address                 :=userzp+4
+ptr1_for_internal_command    :=userzp+4
 
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed
 bash_tmp1                    :=userzp+8 
 sh_ptr_for_internal_command  :=userzp+10
+
 sh_ptr1                      :=userzp+12
+ptr2_for_internal_command    :=userzp+12
 
 STORE_CURRENT_DEVICE :=$99
 
@@ -55,7 +82,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 start_sh_interactive:
 
-.out     .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
+    .out     .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
 
     MALLOC .sizeof(shell_bash_struct)
 
@@ -95,7 +122,6 @@ start_prompt:
 .IFPC02
 .pc02
     stz    sh_length_of_command_line               ; Used to store the length of the command line
-    stz    ORIX_ARGV
     lda    #$00
     ldy    #shell_bash_struct::command_line
     sta    (bash_struct_ptr),y
@@ -107,7 +133,6 @@ start_prompt:
 .else
     lda    #$00
     sta    sh_length_of_command_line               ; Used to store the length of the command line
-    sta    ORIX_ARGV            ; argv buffer
     lda    #$00
     ldy    #shell_bash_struct::command_line
     sta    (bash_struct_ptr),y
@@ -141,11 +166,12 @@ start_commandline:
 
 
 @checkkey:    
-
-    ldx     KBDSHT
-    cpx     #$40
+    pha
+    lda     KBDSHT
+    and     #%01000000
+    cmp     #$40
     bne     @check_standard_key
-
+    pla
     jsr     _manage_shortcut
     cmp     #$01
     beq     @check_standard_key
@@ -155,6 +181,7 @@ start_commandline:
     
 
 @check_standard_key:
+    pla
     cmp     #KEY_LEFT
     beq     start_commandline    ; left key not managed
     cmp     #KEY_RIGHT
@@ -225,10 +252,6 @@ start_commandline:
     jmp     start_commandline
 @key_del_routine:
     jmp     key_del
-
-
-
-
 
 @sh_launch_command:    
     RETURN_LINE
@@ -420,8 +443,7 @@ no_more_space:
 find_command:
     ; Search command
     ; Insert each command pointer in zpTemp02Word
-    ;ldx     #$01
-    ;jsr     _orix_get_opt
+
   
     ldx     #$00
     
@@ -624,7 +646,7 @@ internal_commands_length:
 .endif
 
 .ifdef WITH_DATE
-.include "commands/date.asm"
+.include "commands/otimer.asm"
 .endif
 
 .ifdef WITH_ENV
@@ -765,9 +787,6 @@ internal_commands_length:
 .include "lib/trim.asm"
 .include "lib/strcat.asm"
 .include "lib/strlen.asm"
-.include "lib/fread.asm"
-.include "lib/get_opt.asm"
-.include "lib/get_opt2.asm"
 .include "lib/_clrscr.asm"
 
 ; hardware
@@ -1108,7 +1127,7 @@ commands_length:
 .endif
 
 .ifdef WITH_DATE
-    .byt 4 ; _date 
+    .byt 5 ; _otimer
 .endif    
 
 .ifdef WITH_DEBUG
@@ -1285,7 +1304,7 @@ cp:
 ; 6
 .ifdef WITH_DATE    
 date:
-    .asciiz "date"
+    .asciiz "otimer"
 .endif    
 
 .ifdef WITH_DEBUG
@@ -1518,7 +1537,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2021.4.1"
+    .asciiz  "Shell v2022.1"
 str_compile_time:
     .byt    __DATE__
     .byt    " "

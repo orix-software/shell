@@ -29,8 +29,16 @@
 
 .proc basic11_start_gui
     cursor off
-    malloc #.sizeof(basic11_gui_struct),basic11_ptr4,str_enomem ; Index ptr
+    malloc #.sizeof(basic11_gui_struct),basic11_ptr4 ; Index ptr
+    cmp     #$00
+    bne     @no_oom
+    cpy     #$00
+    bne     @no_oom
 
+    print str_enomem,NOSAVE
+    rts
+    
+@no_oom:
     ; init index
     ldy     #basic11_gui_struct::index
     lda     #$00

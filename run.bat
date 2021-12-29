@@ -27,8 +27,10 @@ IF "%1"=="NORUN" GOTO End
 
 copy %ROM%.rom %ORICUTRON%\roms\ > NUL
 copy shellext.rom  %ORICUTRON%\roms\ > NUL
+copy myprojectbp.txt %ORICUTRON%
+
 cd %ORICUTRON%
-oricutron
+oricutron -r :myprojectbp.txt
 :End
 cd %ORIGIN_PATH%
 %OSDK%\bin\MemMap "%ORIGIN_PATH%\xa_labels_orix.txt" memmap.html O docs/shell.css

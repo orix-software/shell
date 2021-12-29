@@ -3,17 +3,33 @@
 .proc _touch
  ; .byte $00,$2C ; XMAINARGS
 
-  touch_ptr1       :=userzp
-  touch_arg_length :=userzp+2
+    touch_ptr1              :=userzp
+    touch_arg_length        :=userzp+2
+    touch_mainargs_argv     := userzp+4
+    touch_mainargs_argc     := userzp+8 ; 8 bits
+    touch_mainargs_arg1_ptr := userzp+15
 
-  ldx     #$01
-  jsr     _orix_get_opt
-  lda     ORIX_ARGV
-  beq     @missing_operand
+    BRK_KERNEL XMAINARGS
+    sta     touch_mainargs_argv
+    sty     touch_mainargs_argv+1
+    stx     touch_mainargs_argc
+
+    cpx     #$01
+    beq     @missing_operand
+
+    ldx     #$01
+    lda     touch_mainargs_argv
+    ldy     touch_mainargs_argv+1
+
+    BRK_KERNEL XGETARGV
+    sta     touch_mainargs_arg1_ptr
+    sty     touch_mainargs_arg1_ptr+1
+
+  
 
   ldy     #$00
 @L20:
-  lda     ORIX_ARGV,y
+  lda     (touch_mainargs_arg1_ptr),y
   beq     @out20
   cmp     #'/'
   beq     @slash_found
@@ -22,20 +38,20 @@
 @out20:
   ldy     #O_WRONLY
 
-  lda     #<ORIX_ARGV
-  ldx     #>ORIX_ARGV
+  lda     touch_mainargs_arg1_ptr
+  ldx     touch_mainargs_arg1_ptr+1
 
   BRK_KERNEL XOPEN
   BRK_KERNEL XCLOSE
 
   rts  
 @slash_found:
-  PRINT str_arg_not_managed_yet
+  print str_arg_not_managed_yet,NOSAVE
   rts
 
 
 ; prevent the rm / case
-  ;PRINT    ORIX_ARGV
+
   ; compute the and store
   lda     #<ORIX_MAX_PATH_LENGTH
   ldy     #>ORIX_MAX_PATH_LENGTH
@@ -49,8 +65,8 @@
   rts
 
 @missing_operand:
-  PRINT   touch
-  PRINT   str_missing_operand
+  print   touch,NOSAVE
+  print   str_missing_operand,NOSAVE
   rts  
 
 
@@ -60,7 +76,7 @@
   ; Copy args
   ldy     #$00
 @L2:
-  lda     ORIX_ARGV,y
+  lda     (touch_mainargs_arg1_ptr),y
   beq     @out
   sta     (touch_ptr1),y
   iny
@@ -130,24 +146,13 @@
 
   rts
 
-; Y the length
-  
 
-
-
-
-
-  ;lda ORIX_ARGV
-  ;cmp #'/'
-  ;bne skip_touch_slash_case ;  
-  ;lda ORIX_ARGV+1
-  ;beq @missing_operand
   
 skip_touch_slash_case:
-  FOPEN ORIX_ARGV,O_WRONLY
+  fopen (touch_mainargs_argv),O_WRONLY
   rts
   
 
 .endproc
 str_arg_not_managed_yet:
-  .asciiz "path with folders in arg not managed yet"
+    .asciiz "path with folders in arg not managed yet"
