@@ -24,11 +24,13 @@ rem
 
 
 IF "%1"=="NORUN" GOTO End
-
+echo me
 copy %ROM%.rom %ORICUTRON%\roms\ > NUL
+echo me2
 copy shellext.rom  %ORICUTRON%\roms\ > NUL
+echo me3
 copy myprojectbp.txt %ORICUTRON%
-
+echo me4
 cd %ORICUTRON%
 oricutron -r :myprojectbp.txt
 :End
