@@ -53,9 +53,25 @@
     adc     #$01
     sta     (basic11_ptr4),y
 
-    jsr     basic11_compute_software_to_display
+
+    jsr     _basic11_find_next_software_down_key
 
 
+    ldx     #$00
+    ldy     #$00
+
+@L2001:
+
+    lda     (basic11_ptr3),y
+    cmp     #';'
+    beq     @out501
+   
+    
+    iny
+    jmp     @L2001
+
+@out501:
+    iny
 @L2000:
 
     lda     (basic11_ptr3),y
@@ -70,8 +86,7 @@
     bne     @L2000
 @out500:    
 
-  ;key_software_index_low              .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
-  ;key_software_index_high             .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
+
 
     rts
 @skip:
@@ -109,7 +124,16 @@
     jsr     displays_bar    
 
 
+    jsr     _basic11_find_next_software_down_key
 
+@out:
+    ; Compute software
+
+    rts
+.endproc
+
+
+.proc _basic11_find_next_software_down_key
     ldy     #basic11_gui_struct::software_key_to_launch_low
     lda     (basic11_ptr4),y   
     sta     basic11_ptr3
@@ -122,6 +146,8 @@
 @L1000:    
     lda     (basic11_ptr3),y
     beq     @out2
+
+    
     iny
     bne     @L1000
 @out2:    
@@ -142,44 +168,61 @@
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     basic11_ptr3+1
     sta     (basic11_ptr4),y
-
-
-
-
-@out:
-    ; Compute software
-
     
-    
+
+
 
     rts
 .endproc
 
-.proc basic11_compute_software_to_display
 
+.proc _basic11_find_next_software_up_key
 
-    ldy     #basic11_gui_struct::current_entry_id 
- 
-    lda     (basic11_ptr4),y
-    sta     basic11_current_parse_software
-
-    ;tax
-    ldy     #basic11_gui_struct::key_software_index_low
-    tya
-    clc
-    adc     basic11_current_parse_software
-    tay
-    lda     (basic11_ptr4),y
+    ldy     #basic11_gui_struct::software_key_to_launch_low
+    lda     (basic11_ptr4),y   
     sta     basic11_ptr3
-
-    ldy     #basic11_gui_struct::key_software_index_high
-    tya
-    clc
-    adc     basic11_current_parse_software
-    tay
+    
+    ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
-    
+
+    lda     basic11_ptr3
+    bne     @do_not_dec2
+    dec     basic11_ptr3+1
+@do_not_dec2:    
+    dec     basic11_ptr3
+
+    lda     basic11_ptr3
+    bne     @do_not_dec3
+    dec     basic11_ptr3+1
+@do_not_dec3:    
+    dec     basic11_ptr3
+
+
+
+
+    ldy     #$00
+@L1000:    
+    lda     (basic11_ptr3),y
+    beq     @out2
+
+
+    lda     basic11_ptr3
+    bne     @do_not_dec
+    dec     basic11_ptr3+1
+
+
+@do_not_dec:    
+    dec     basic11_ptr3
+    jmp     @L1000
+
+@out2:
+    inc     basic11_ptr3
+    bne     @do_not_inc
+    inc     basic11_ptr3+1
+
+@do_not_inc:    
+
 
     ldy     #basic11_gui_struct::software_key_to_launch_low
     lda     basic11_ptr3
@@ -190,13 +233,8 @@
     lda     basic11_ptr3+1
     sta     (basic11_ptr4),y
     
-    ldy     #$FF
-@L1:
-    iny    
-    lda     (basic11_ptr3),y
-    cmp     #';'
-    bne     @L1
-    iny
-    ldx     #$00
+
+
+
     rts
 .endproc
