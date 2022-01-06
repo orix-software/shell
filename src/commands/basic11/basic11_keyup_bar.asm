@@ -39,7 +39,29 @@
     sbc     #$01
     sta     (basic11_ptr4),y
 
-    jsr     basic11_compute_software_to_display
+
+
+
+
+    jsr     _basic11_find_next_software_up_key
+
+    ldx     #$00
+    ldy     #$00
+
+@L2001:
+
+    lda     (basic11_ptr3),y
+    cmp     #';'
+    beq     @out501
+   
+    
+    iny
+    jmp     @L2001
+
+@out501:
+    iny
+
+    
 @L2000:
 
     lda     (basic11_ptr3),y
@@ -86,10 +108,48 @@
     sec
     sbc     #$01
     sta     (basic11_ptr4),y
+    jsr     _basic11_find_next_software_up_key
+    
 
-    jsr     basic11_compute_software_to_display
+
+
+  
+    
+    
 
 @out:
     rts
 .endproc
 
+.proc _debug_basic11
+
+    ldy     #$00
+    lda     #' '
+@L2004:    
+    
+    sta     $bb80,y
+    iny
+    cpy     #39
+    bne     @L2004
+
+    ldy     #basic11_gui_struct::software_key_to_launch_low
+    lda     (basic11_ptr4),y   
+    sta     basic11_ptr3
+    
+    ldy     #basic11_gui_struct::software_key_to_launch_high
+    lda     (basic11_ptr4),y
+    sta     basic11_ptr3+1
+
+
+
+    ldy     #$00
+@L200:    
+    lda     (basic11_ptr3),y
+    beq     @out20
+    sta     $bb80,y
+    iny
+    jmp     @L200
+    
+@out20:    
+    rts
+.endproc

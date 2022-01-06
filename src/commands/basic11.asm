@@ -39,6 +39,8 @@ basic11_argc                    :=userzp+20
 basic11_save_pos_arg            :=userzp+20
 basic11_argv1_ptr               :=userzp+21 ; 16 bits
 
+basic11_ptr_index_software      :=userzp+23 ; 16 bits
+
 .proc _basic11
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
 

@@ -15,8 +15,6 @@
   current_entry_id                    .res 1
 
   command_launch                      .res 7+1+1+8+1 ; basic11 "12345678\0
-  key_software_index_low              .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
-  key_software_index_high             .res BASIC11_MAX_NUMBER_OF_SOFTWARE_PER_PAGE
   software_key_to_launch_low          .res 1
   software_key_to_launch_high         .res 1
 .endstruct
@@ -367,7 +365,7 @@
     sta     basic11_do_not_display
     
     ;       index first software
-    jsr     basic11_build_index_software
+   
 
     ldy     #basic11_gui_struct::current_entry_id
     lda     #$00
@@ -442,8 +440,7 @@
     bcc     @skip200
     inc     basic11_ptr2+1
 @skip200:    
-    ;jsr     basic11_build_index_software
-    ; $ce1A
+
 
 
     jmp     update_index
@@ -538,7 +535,7 @@
 @S10:
     sta     basic11_ptr2
 
-    jsr     basic11_build_index_software
+
 
     ldy     #basic11_gui_struct::number_of_lines_displayed
     lda     (basic11_ptr4),y
@@ -584,62 +581,6 @@
     bne     @S2
 @S2:        
     lda     #$00
-    rts
-.endproc
-
-
-.proc basic11_build_index_software
-    ;jmp   basic11_build_index_software
-    ; $4D
-    
-    ldy     #basic11_gui_struct::current_entry_id
-        ; $3705+$4d
-    lda     (basic11_ptr4),y
-    sta     basic11_current_parse_software
-
-    lda     #basic11_gui_struct::key_software_index_high ; $AB
-    clc
-    adc     basic11_current_parse_software
-    tay
-    lda     basic11_ptr2+1
-    sta     (basic11_ptr4),y ; $AB ($08)
-    tya
-    pha
-
-    lda     #basic11_gui_struct::key_software_index_low ;$60
-    clc
-    adc     basic11_current_parse_software
-    tay 
-
-    lda     #$00
-    sta     basic11_saveA
-
-    lda     basic11_ptr2
-    
-    ldx     basic11_current_parse_software
-    beq     @do_not_inc ; First software of the letter, we don't need to skip \0
-    
-
-    clc
-    adc     #$01 ; Skip
-    bcc     @skip2
-    pha
-    lda     #$01
-    sta     basic11_saveA
-    pla
-@do_not_inc:  
-@skip2:    
-    sta     (basic11_ptr4),y   ; $25 ($3705+#60)
-    
-    pla
-    tay
-  
-    
-    lda     (basic11_ptr4),y ; $AB ($08)    
-    clc
-    adc     basic11_saveA
-    sta     (basic11_ptr4),y ; $AB ($08)    
-    
     rts
 .endproc
 

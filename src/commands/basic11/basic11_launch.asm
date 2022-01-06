@@ -1,28 +1,6 @@
 
 .proc   basic11_launch
 
-    ldy     #basic11_gui_struct::current_entry_id
-    lda     (basic11_ptr4),y
-    sta     basic11_saveA
-    clc
-    adc     #basic11_gui_struct::key_software_index_low
-    
-    tay
-    lda     (basic11_ptr4),y
-    sta     basic11_ptr3
-    
-    ; Probably not useful
-    lda     basic11_saveA
-    clc
-    adc     #basic11_gui_struct::key_software_index_high
-    sta     basic11_ptr3+1
-    tay
-    lda     (basic11_ptr4),y
-    sta     basic11_ptr3+1
-
-    tay
-    lda     basic11_ptr3 ; ??? FIXME
-
     
     lda     basic11_ptr4
     sta     basic11_ptr1
