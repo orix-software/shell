@@ -28,24 +28,44 @@ basic11_fp                      := userzp+9
 
 basic11_ptr3                    := userzp+11
 basic11_mainargs_ptr            := userzp+11
+  ;basic11_ptr3  := userzp+12
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui        := userzp+14
 
 basic11_ptr4                    := userzp+15 ; Contains basic11 gui struct
 basic11_do_not_display          := userzp+17
 
-basic11_argv_ptr                :=userzp+18
-basic11_argc                    :=userzp+20
-basic11_save_pos_arg            :=userzp+20
-basic11_argv1_ptr               :=userzp+21 ; 16 bits
+basic11_argv_ptr                := userzp+18
+basic11_argc                    := userzp+20
+basic11_save_pos_arg            := userzp+20
+basic11_argv1_ptr               := userzp+21 ; 16 bits
 
-basic11_ptr_index_software      :=userzp+23 ; 16 bits
+basic11_mode                    := userzp+23 ; 8 bits store if we need to start atmos rom or oric-1
+
+.define BASIC10_ROM $01
+.define BASIC11_ROM $02
+
+.proc _basic10
+    lda     #BASIC10_ROM
+    sta     basic11_mode   ; Save the mode     
+    jmp     _basic_main
+.endproc
+
 
 .proc _basic11
+    lda     #BASIC11_ROM     
+    sta     basic11_mode   ; Save the mode
+    jmp     _basic_main
+.endproc
+
+
+.proc _basic_main
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
 
     XMAINARGS = $2C
     XGETARGV =  $2E    
+    
+    
 
     BRK_KERNEL XMAINARGS
     
@@ -75,6 +95,13 @@ basic11_ptr_index_software      :=userzp+23 ; 16 bits
     jmp     @basic11_option_management
 @no_arg:    
     mfree (basic11_argv_ptr)
+
+    lda     basic11_mode
+    cmp     #BASIC11_ROM
+    beq     @start_rom_in_eeprom
+    jmp     @load_ROM_in_memory_and_start
+
+@start_rom_in_eeprom:
     jmp     @start
 @is_a_tape_file_in_arg:
 
@@ -201,6 +228,17 @@ basic11_ptr_index_software      :=userzp+23 ; 16 bits
 
     jsr     basic11_stop_via
 
+    ; erase memory with 0
+    ;ldx     #$00
+    ;lda     #$00
+;@nloop:
+    ;sta     $00,x 
+    ;sta     $200,x 
+    ;sta     $400,x
+    ;sta     $500,x
+    ;inx
+    ;bne     @nloop
+
 
     ldx     #$00
 @loop:
@@ -249,7 +287,16 @@ basic11_ptr_index_software      :=userzp+23 ; 16 bits
     ora     #ATMOS_ID_BANK
     sta     VIA2::PRA
 
+
+    ;lda     basic11_mode
+    ;cmp     #BASIC10_ROM
+    ;beq     @jmp_basic10_vector
+
+
+
     jmp     $F88F ; NMI vector of ATMOS rom
+@jmp_basic10_vector:
+    jmp     $F42D    
     ; Check if it's a .tap
 @noparam_free:
 
@@ -481,22 +528,32 @@ basic11_ptr_index_software      :=userzp+23 ; 16 bits
     rts
 
 @no_oom:
-    ; Manage path now
 
-;    lda     #$12
-    ;sta     $bb80
-    ;@me2:    
-        ;jmp @me2
 
-    
+    lda     basic11_mode
+    cmp     #BASIC10_ROM
+    bne     @start_copy_path
+    ; For rom oric-1 we force to rom 2 (why because i don't know :) => it's the only rom available :)
+    lda     #$02
+    sta     $F2
 
+@start_copy_path:
     ; copy path
     ldy     #$00
-@L100:    
+@L100:
+    lda     basic11_mode
+    cmp     #BASIC10_ROM
+    bne     @copy_rom_path
+    
+    lda     rom_path_basic10,y
+    jmp     @enter_test_eos
+
+
+@copy_rom_path:
     lda     rom_path,y
+@enter_test_eos:
     beq     @end_copy
     sta     (basic11_ptr1),y
-
 
     iny
     bne     @L100
@@ -581,6 +638,7 @@ basic11_ptr_index_software      :=userzp+23 ; 16 bits
 @no_enomem_kernel_error:
     cmp     #ENOENT
     bne     @no_enoent_kernel_error
+    print   (basic11_ptr1),NOSAVE
     print   str_not_found,NOSAVE
     rts
 @no_enoent_kernel_error:    
@@ -653,7 +711,7 @@ basic11_ptr_index_software      :=userzp+23 ; 16 bits
     lda     basic11_ptr3+1
     sta     VEXBNK+2
   
-  basic11_ptr3  := userzp+12
+
 
     ; stop t2 from via1
     jsr     basic11_stop_via
@@ -713,6 +771,10 @@ basic11_driver:
     lda     $F2 ; Load id ROM
     beq     @hobbit_rom_do_not_forge_path
 
+    lda     basic11_mode
+    cmp     #BASIC10_ROM
+    beq     @skip_forge_path
+
     ; Let's forge path
     ldx     #$00
     ldy     #tapes_path-basic11_driver
@@ -743,18 +805,26 @@ basic11_driver:
     sta     $FE70,x
 
     stx     $FE6F
+@skip_forge_path:
 
 @hobbit_rom_do_not_forge_path:
     ;$FE6F
     ; now copy sedoric code
-
-
+    lda     basic11_mode
+    cmp     #BASIC10_ROM
+    beq     @jmp_basic10_vector
 
     jmp     $F88F ; NMI vector of ATMOS rom
+
+@jmp_basic10_vector:
+    jmp     $F42D        
 
 ; don't move it because it's used in the copy of basic11_driver
 tapes_path:
     .asciiz "/usr/share/basic11/"    
+tapes_path_basic10:
+    .asciiz "/usr/share/basic10/"
+
 
 .proc   basic11_read_main_dbfile
 
@@ -863,6 +933,8 @@ str_basic11_missing_rom:
     .asciiz "Missing ROM file : "
 rom_path:
     .asciiz "/usr/share/basic11/basic"
+rom_path_basic10:
+    .asciiz "/usr/share/basic10/basic"    
 str_can_not:
     .asciiz "Can not open"
 str_enomem:
