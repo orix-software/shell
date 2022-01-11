@@ -2,6 +2,7 @@
 
 .define basic11_color_bar $11
 .define BASIC11_PATH_DB "/var/cache/basic11/"
+.define BASIC10_PATH_DB "/var/cache/basic10/"
 .define BASIC11_MAX_MAINDB_LENGTH 20000
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 .define basic11_sizeof_binary_conf_file 9 ; Rom + direction + fire1 + fire2 + fire3
@@ -953,6 +954,14 @@ str_basic11_maindb:
     .asciiz "basic11.db"
 basic_conf_str:
     .asciiz BASIC11_PATH_DB
+
+basic10_conf_str:
+    .asciiz BASIC10_PATH_DB
+
+str_basic10_maindb:
+    .byte BASIC10_PATH_DB
+    .asciiz "basic10.db"
+
 basic_str_search:
     .byte  "+--------+-----------------------------+"
     .byte  "|  key   |            NAME             |"
