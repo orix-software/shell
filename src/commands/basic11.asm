@@ -842,8 +842,15 @@ tapes_path_basic10:
 @no_oom3:    
 
     ldy     #$00
-@L10:    
+@L10:
+    lda     basic11_mode
+    cmp     #BASIC10_ROM
+    bne     @isBasic11
+    lda     str_basic10_maindb,y
+    jmp     @continue
+@isBasic11:
     lda     str_basic11_maindb,y
+@continue:
     beq     @S10
     sta     (basic11_ptr2),y
     iny
