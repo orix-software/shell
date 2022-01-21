@@ -2,9 +2,16 @@
 .proc basic11_displays_frame
     ; displays line
     ldy     #$00
-@display_line:    
+@display_line:
+    lda     basic11_mode
+    cmp     #BASIC10_ROM
+    bne     @basic11
+    lda     basic10_str_fullline_title,y
+    jmp     @continue
+@basic11:
+
     lda     basic_str_fullline_title,y
-    
+@continue:    
     beq     @outline
     
     sta     $bb80,y
