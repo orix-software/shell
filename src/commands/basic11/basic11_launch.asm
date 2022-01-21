@@ -15,10 +15,19 @@
 @S500:    
     sta     basic11_ptr1
 
+
     ldx     #$00
     ldy     #$00
 @L500:    
+    lda     basic11_mode
+    cmp     #BASIC11_ROM
+    beq     @command_basic11
+    lda     str_basic10,x
+    jmp     @continue_copy_command
+
+@command_basic11:
     lda     str_basic11,x
+@continue_copy_command:
     beq     @out500
     sta     (basic11_ptr1),y
     inx
@@ -76,4 +85,10 @@
 str_basic11:     
     .byte "basic11 "
     .byte $22,$00 ; "
+
+str_basic10:     
+    .byte "basic10 "
+    .byte $22,$00 ; "
+
+
 .endproc
