@@ -655,8 +655,6 @@
 
 basic_str_fullline_title:
     .asciiz  "+-Basic 11 Menu------------------------+"        
-basic10_str_fullline_title:
-    .asciiz  "+-Basic 10 Menu------------------------+"    
 basic_str_fullline:
     .asciiz  "+--------------------------------------+"    
 basic_str_emptyline:

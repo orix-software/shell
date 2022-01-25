@@ -20,7 +20,7 @@
 
 .include   "../libs/usr/arch/include/twil.inc"
 
-userzp                      :=	VARLNG ; $8C
+userzp                  :=	VARLNG
 
 .macro cursor mode
 	.if (.xmatch(.string(mode), .string(ON)) .or .xmatch(.string(mode), .string(on)))
@@ -924,16 +924,9 @@ _print_hexa_no_sharp:
 
 addr_commands:
 ; 0
-
-; 0
-.ifdef WITH_BASIC10
-    .addr  _basic10
-.endif    
-
 .ifdef WITH_BASIC11
     .addr  _basic11
 .endif    
-
 ; 1
 .ifdef WITH_BANK    
     .addr  _banks
@@ -1108,11 +1101,6 @@ addr_commands_end:
 
 
 commands_length:
-
-.ifdef WITH_BASIC10
-    .byt 7 ; _basic10
-.endif    
-
 .ifdef WITH_BASIC11
     .byt 7 ; _basic11
 .endif    
@@ -1286,11 +1274,6 @@ commands_length:
 
 list_of_commands_bank:
 ; 0
-.ifdef WITH_BASIC10
-basic10:
-    .asciiz "basic10"
-.endif    
-
 .ifdef WITH_BASIC11    
 basic11:
     .asciiz "basic11"
@@ -1554,7 +1537,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.1.1"
+    .asciiz  "Shell v2022.1"
 str_compile_time:
     .byt    __DATE__
     .byt    " "
