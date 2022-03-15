@@ -35,6 +35,7 @@
     bne     thereis_a_script_to_execute
 
 @start_normal:
+    mfree(sh_mainargs_argv)
     jmp     start_sh_interactive
 
 
