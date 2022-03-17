@@ -125,7 +125,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
 @read:
     sta     fd_systemd
     stx     fd_systemd+1
-    mfree(ptr1)
+    mfree(ptr1)     ; Free path string
 
     ;lda     #<userzp
     ;ldy     #>usze
@@ -165,6 +165,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
   ; We read the file with the correct
     lda     #<16384
     ldy     #>16384
+    ldx     fd_systemd
 
   ; reads byte 
     BRK_KERNEL XFREAD
@@ -258,6 +259,7 @@ str_path_network:
     stx     sector_to_update
     sta     current_bank
 
+
 @start:
 	sei
     ldx     TWILIGHTE_BANKING_REGISTER
@@ -303,7 +305,6 @@ str_path_network:
     mfree    (buffer)
     lda     save_mode
     beq     @firmware
-
 
 
     jsr     $c006       ; Twil firm buffer
