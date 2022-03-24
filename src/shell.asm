@@ -269,6 +269,18 @@ start_commandline:
     sta    bash_struct_command_line_ptr
     sty    bash_struct_command_line_ptr+1  ; should be removed when orix_get_opt will be removed
 
+    ; Checking if we have . or / : which means that it's a diskcall
+    ldy    #$00
+    lda    (bash_struct_command_line_ptr),y
+    cmp    #'.' ; . find
+    beq    @call_xexec
+    cmp    #'/' ; / find
+    beq    @call_xexec
+
+    lda    bash_struct_command_line_ptr
+    ldy    bash_struct_command_line_ptr+1  
+
+
     ; jsr    _history
 
     ;lda    bash_struct_command_line_ptr
