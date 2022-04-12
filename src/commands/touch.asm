@@ -149,7 +149,7 @@
 
   
 skip_touch_slash_case:
-  fopen (touch_mainargs_argv),O_WRONLY
+  fopen (touch_mainargs_argv),O_WRONLY|O_CREAT
   rts
   
 
