@@ -47,13 +47,13 @@
 mount_sdcard:
     lda     #CH376_SET_USB_MODE ; $15
     sta     CH376_COMMAND
-	lda     #CH376_SET_USB_MODE_CODE_SDCARD
+    lda     #CH376_SET_USB_MODE_CODE_SDCARD
     sta     CH376_DATA
     nop
     nop    
     jsr     _ch376_disk_mount
-	cmp 	#CH376_USB_INT_SUCCESS
-	beq 	ok
+    cmp 	#CH376_USB_INT_SUCCESS
+    beq 	ok
     print   str_error_sdcard,NOSAVE
     rts
 ok:    
@@ -69,8 +69,8 @@ mount_key:
     nop
     nop
     jsr     _ch376_disk_mount
-	cmp 	#CH376_USB_INT_SUCCESS
-	beq 	ok2
+    cmp 	#CH376_USB_INT_SUCCESS
+    beq 	ok2
     print   str_error_key,NOSAVE
     rts
 ok2:    

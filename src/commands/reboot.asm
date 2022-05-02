@@ -43,4 +43,3 @@ _copy_code:
 	jmp     ($fffc)
 
 .endproc
-

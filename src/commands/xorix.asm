@@ -49,7 +49,7 @@ posx_byte_cur       := userzp+13
   lda     #$00
   sta     (XORIX_STRUCT_ptr),y
   iny
-  sta (XORIX_STRUCT_ptr),y
+  sta     (XORIX_STRUCT_ptr),y
  
  ; lda #$17
   ;sta $A000   ; empty
@@ -69,7 +69,7 @@ posx_byte_cur       := userzp+13
   ;jsr _blit_menu
   ;jsr _blit_background
 loopme:
-  jsr _get_joystick_mouse
+  jsr     _get_joystick_mouse
   jsr put_cursor
   jsr wait
   jmp  loopme

@@ -68,10 +68,7 @@
 
     ldy     lsof_ptr_struct_tmp_fp+1
     BRK_KERNEL XWSTR0    
-   ; inc
-
-
-   ; sta     
+ 
 @not_fp:
     ldy     lsof_saveY
     iny

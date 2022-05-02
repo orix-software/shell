@@ -37,9 +37,9 @@ start_man:
     sta     RES+1
     jsr     _strcpy               ; MAN_SAVE_MALLOC_PTR contains adress of a new string
  
-    ldx   #$01 ; get arg 
-    lda   man_xmainargs_ptr
-    ldy   man_xmainargs_ptr+1
+    ldx     #$01 ; get arg 
+    lda     man_xmainargs_ptr
+    ldy     man_xmainargs_ptr+1
     BRK_KERNEL XGETARGV
 
     sta     RESB
@@ -78,9 +78,9 @@ start_man:
 
     print   txt_file_not_found
 
-    ldx   #$01 ; get arg 
-    lda   man_xmainargs_ptr
-    ldy   man_xmainargs_ptr+1
+    ldx     #$01 ; get arg 
+    lda     man_xmainargs_ptr
+    ldy     man_xmainargs_ptr+1
     BRK_KERNEL XGETARGV
     BRK_KERNEL XWSTR0
 

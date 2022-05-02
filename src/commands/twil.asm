@@ -69,12 +69,12 @@ check_next_parameter_u:
     ldx   #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
 
-    sta   twil_ptr1
-    sty   twil_ptr1+1
-    lda   #CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY
-    ldy   #$00
-    sta   (twil_ptr1),y
-    jsr   savemount
+    sta     twil_ptr1
+    sty     twil_ptr1+1
+    lda     #CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY
+    ldy     #$00
+    sta     (twil_ptr1),y
+    jsr     savemount
     print str_swap_root_to_usbkey,NOSAVE
     RETURN_LINE
     rts
@@ -84,30 +84,30 @@ check_next_parameter_d:
     cmp     #'d'       ; Swap
     bne     usage
 
-    ldx   #XVARS_KERNEL_CH376_MOUNT
+    ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
 
-    sta   twil_ptr1
-    sty   twil_ptr1+1
-    lda   #CH376_SET_USB_MODE_CODE_SDCARD
-    ldy   #$00
-    sta   (twil_ptr1),y
+    sta     twil_ptr1
+    sty     twil_ptr1+1
+    lda     #CH376_SET_USB_MODE_CODE_SDCARD
+    ldy     #$00
+    sta     (twil_ptr1),y
     ; and save 
     jsr     savemount
     print str_swap_root_to_sdcard,NOSAVE
     RETURN_LINE
     rts
 savemount:
-    sta   RES
-    ldx   #XVARS_KERNEL_CH376_MOUNT
+    sta     RES
+    ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
-    sta   twil_ptr2
-    sty   twil_ptr2+1
-    lda   #$00
-    sta   twil_current_bank
-    ldy   #$00
-    ldx   #$01
-    jsr   READ_BYTE_FROM_OVERLAY_RAM
+    sta     twil_ptr2
+    sty     twil_ptr2+1
+    lda     #$00
+    sta     twil_current_bank
+    ldy     #$00
+    ldx     #$01
+    jsr     READ_BYTE_FROM_OVERLAY_RAM
     rts
 
 

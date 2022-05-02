@@ -23,11 +23,8 @@
     ldx   #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
 
-    sta    mount_ptr1
-    sty    mount_ptr1+1
-
-
-
+    sta     mount_ptr1
+    sty     mount_ptr1+1
 
     ldx     mount_mainargs_argc
     cpx     #$01
@@ -51,8 +48,8 @@
     cpy     #9
     bne     @L1
 @out:
-    cpy    #$09
-    bne    check_sdb1
+    cpy     #$09
+    bne     check_sdb1
 
 check_sdb1:
 
@@ -66,18 +63,18 @@ check_sdb1:
     cpy     #9
     bne     @L2
 @out2:
-    cpy    #$09
-    bne    error
+    cpy     #$09
+    bne     error
     rts
 
 
 mount_no_param:
 
     print str_mount,NOSAVE
-    ldy   #$00
-    lda   (mount_ptr1),y
-	cmp   #CH376_SET_USB_MODE_CODE_SDCARD
-    bne   usb_key
+    ldy     #$00
+    lda     (mount_ptr1),y
+	cmp     #CH376_SET_USB_MODE_CODE_SDCARD
+    bne     usb_key
     print str_sdcard,NOSAVE
     rts
 usb_key:

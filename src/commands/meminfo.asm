@@ -61,4 +61,3 @@ strMemFree:
 strKB:
     .byte " KB",$0A,$0D,0
 .endproc
-

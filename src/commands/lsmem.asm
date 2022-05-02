@@ -364,4 +364,3 @@ str_INIT:
 str_SPACE:
     .asciiz "unkn "
 .endproc
-

@@ -21,14 +21,14 @@
     beq     @print_usage
 
 
-    ldx   #$01 ; get arg 
-    lda   cat_save_argvlow
-    ldy   cat_save_argvhigh
+    ldx     #$01 ; get arg 
+    lda     cat_save_argvlow
+    ldy     cat_save_argvhigh
     BRK_KERNEL XGETARGV
 
 
-    sta   cat_save_ptr_arg
-    sty   cat_save_ptr_arg+1
+    sta     cat_save_ptr_arg
+    sty     cat_save_ptr_arg+1
 
     fopen (cat_save_ptr_arg), O_RDONLY
     cpx     #$FF

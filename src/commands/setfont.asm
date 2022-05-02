@@ -35,20 +35,20 @@
     MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
     TEST_OOM_AND_MAX_MALLOC
 
-    sta userzp
-    sty userzp+1
+    sta     userzp
+    sty     userzp+1
 
     ; Destination du _strcpy
-    sta RESB
-    sty RESB+1
+    sta     RESB
+    sty     RESB+1
 
     ; Source du _strcpy
-    lda #<fontpath
-    ldy #>fontpath
-    sta RES
-    sty RES+1
+    lda     #<fontpath
+    ldy     #>fontpath
+    sta     RES
+    sty     RES+1
 
-    jsr _strcpy
+    jsr     _strcpy
 
     ldx     #$01
     lda     setfont_mainargs_argv
@@ -61,13 +61,13 @@
     ; Source
     lda     setfont_mainargs_arg1_ptr
     ldy     setfont_mainargs_arg1_ptr+1
-    sta RESB
-    sty RESB+1
+    sta     RESB
+    sty     RESB+1
 
     ; Destination
-    lda userzp
-    ldy userzp+1
-    sta RES
+    lda     userzp
+    ldy     userzp+1
+    sta     RES
     sty RES+1
 
     jsr _strcat
@@ -105,15 +105,16 @@
     ; FCLOSE 0
     ; mfree (setfont_fp)
     
-    lda setfont_fp
-    ldy setfont_fp+1
+    
+    lda     setfont_fp
+    ldy     setfont_fp+1
     BRK_KERNEL XCLOSE
 
 	
 
 
 
-     mfree (userzp)
+    mfree (userzp)
 
 
     ; Code de retour

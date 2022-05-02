@@ -74,29 +74,29 @@ df_suite:
 ;	jsr _strcpy
 
 	print df_header
-	jsr   _ch376_disk_query
+	jsr     _ch376_disk_query
 
 	; Sauvegarde l'espace dispo pour plus tard
 	; (XWSTR0 utilise TRx)
 	;Conversion en blocs de 1k de l'espace libre
-	lsr TR7
-	ror TR6
-	ror TR5
-	ror TR4
+	lsr     TR7
+	ror     TR6
+	ror     TR5
+	ror     TR4
 
 	; Sauvegarde l'espace dispo pour plus tard
 	; (XWSTR0 utilise TRx)
-	lda TR4
-	sta userzp+2
-	lda TR5
-	sta userzp+3
-	lda TR6
-	sta userzp+4
-	lda TR7
-	sta userzp+5
+	lda     TR4
+	sta     userzp+2
+	lda     TR5
+	sta     userzp+3
+	lda     TR6
+	sta     userzp+4
+	lda     TR7
+	sta     userzp+5
 
 	; Conversion en blocs de 1k de l'espace total
-	lsr TR3
+	lsr     TR3
 	ror TR2
 	ror TR1
 	ror TR0
