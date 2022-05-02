@@ -99,8 +99,11 @@ thereis_a_script_to_execute:
 @L1:
     ldy    #$00
 @L4:    
-    lda    (ptr_file_sh_interactive_ptr),y  
-    cmp    #$0A 
+    lda    (ptr_file_sh_interactive_ptr),y
+    pha
+    BRK_KERNEL XWR0
+    pla  
+    cmp    #$0D
     beq    @compute
     inc    ptr_file_sh_interactive_ptr
     bne    @do_not_inc
@@ -120,19 +123,20 @@ thereis_a_script_to_execute:
 
 @do_not_inc3:
 
-    lda     ptr_file_sh_interactive_ptr_save
+   ; lda     ptr_file_sh_interactive_ptr_save
 
-    ldy     ptr_file_sh_interactive_ptr_save+1
+   ; ldy     ptr_file_sh_interactive_ptr_save+1
  
-    jsr    _bash
-    cmp    #EOK
-    bne    @call_xexec
+   ; jsr    _bash
+   ; cmp    #EOK
+  ;  bne    @call_xexec
 
-    jmp    @nextline
+   ; jmp    @nextline
 @call_xexec:
 
     lda     ptr_file_sh_interactive_ptr_save
     ldy     ptr_file_sh_interactive_ptr_save+1
+
     BRK_KERNEL XWSTR0
 
 @nextline2:
