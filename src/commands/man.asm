@@ -5,7 +5,13 @@
 .proc _man
     MAN_SAVE_MALLOC_PTR :=userzp
     MAN_FP              :=userzp+2
-    man_xmainargs_ptr  :=userzp+4
+    man_xmainargs_ptr   :=userzp+4
+    man_buffer          :=userzp+6
+    man_buffer_size     :=userzp+8
+    man_ptr1            :=userzp+10
+    man_buffer_bkp      :=userzp+12
+
+
 
     BRK_KERNEL XMAINARGS
     sta     man_xmainargs_ptr
@@ -92,15 +98,70 @@ error:
 next:
     sta     MAN_FP
     stx     MAN_FP+1
-    CLS
-    SWITCH_OFF_CURSOR
-  ; We read 1080 bytes
-    fread SCREEN, 1080, 1, MAN_FP
-  ;  FREAD   SCREEN, 1080, 1, 0
 
-cget_loop:
-    BRK_KERNEL  XRDW0
-    bmi cget_loop
+    malloc  1080,man_buffer,str_oom
+    cmp     #$00
+    bne     @continue
+    cpy     #$00
+    bne     @continue
+    rts
+@continue:    
+
+    SWITCH_OFF_CURSOR
+@readagain:
+    CLS
+    lda     man_buffer
+    sta     man_buffer_bkp
+    lda     man_buffer+1
+    sta     man_buffer_bkp+1
+  ; We read 1080 bytes
+ 
+    fread (man_buffer), 1080, 1, MAN_FP
+    sta     man_buffer_size
+    stx     man_buffer_size+1
+    cmp     #$00
+    bne     @display
+    cpx     #$00
+    beq     out
+
+
+@display:
+    lda     #<$BB80
+    sta     man_ptr1
+    lda     #>$BB80
+    sta     man_ptr1+1
+
+    ldx     #05
+
+    ldy     #$00
+@L1:    
+    lda     (man_buffer),y
+    sta     (man_ptr1),y
+
+    lda     man_buffer_size
+    bne     @dec
+    lda     man_buffer_size+1
+    beq     @readkeyboard ; branch when NUM = $0000 (NUM is not decremented in that case)
+    dec     man_buffer_size+1
+@dec:
+    dec     man_buffer_size
+
+    iny
+    bne     @L1
+    inc     man_buffer+1
+    inc     man_ptr1+1
+    dex
+    bne     @L1
+
+   ; FREAD   SCREEN, 1080, 1, 0
+   ; cmp   #<1080
+
+@readkeyboard:
+
+    BRK_KERNEL XRDW0
+    cmp     #27
+    jmp     @readagain
+   ; bmi     cget_loop
     ; A bit crap to flush screen ...
     ; read again ?
 out:   
@@ -109,8 +170,8 @@ out:
     
     SWITCH_ON_CURSOR
 
-    lda MAN_SAVE_MALLOC_PTR
-    ldy MAN_SAVE_MALLOC_PTR+1
+    lda     MAN_SAVE_MALLOC_PTR
+    ldy     MAN_SAVE_MALLOC_PTR+1
     BRK_KERNEL XFREE
 
     fclose(MAN_FP)
