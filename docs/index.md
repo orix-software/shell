@@ -3,6 +3,7 @@
 
 #commands
 
+* [basic10](basic10)
 * [basic11](basic11)
 * [cat](cat)
 * [cd]
