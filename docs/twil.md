@@ -1,6 +1,6 @@
-# Command: twil
+# twil
 
-### Displays manage twilighte board
+## Manage twilighte board options
 
 ## SYNOPSYS
 
@@ -12,4 +12,4 @@
 
 ## SOURCE
 
-https://github.com/orix-software/shell/blob/master/src/commands/mount.asm
+https://github.com/orix-software/shell/blob/master/src/commands/twil.asm

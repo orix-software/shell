@@ -1,4 +1,4 @@
-# Command: echo
+# echo
 
 ### Display a message
 

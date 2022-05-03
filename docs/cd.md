@@ -1,6 +1,8 @@
-# Command: cd
+# cd
 
-### Change directory
+## Introduction
+
+Change directory
 
 ## SYNOPSYS
 

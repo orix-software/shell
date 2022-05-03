@@ -1,4 +1,4 @@
-# Command: touch
+# touch
 
 ### Create an empty file
 

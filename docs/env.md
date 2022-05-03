@@ -1,4 +1,4 @@
-# Command: env
+# env
 
 ### Displays env variables
 

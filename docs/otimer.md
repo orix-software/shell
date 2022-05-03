@@ -1,4 +1,4 @@
-# Command: otimer
+# otimer
 
 ### Display timer since the Oric is power on
 

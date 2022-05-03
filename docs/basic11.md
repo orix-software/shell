@@ -1,6 +1,8 @@
-# Command: basic10
+# basic10
 
-### Start Atmos rom
+## Introduction
+
+Start Atmos rom
 
 ## SYNOPSYS
 

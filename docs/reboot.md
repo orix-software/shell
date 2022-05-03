@@ -1,4 +1,4 @@
-# Command: reboot
+# reboot
 
 ### reboot machine
 

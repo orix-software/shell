@@ -1,4 +1,4 @@
-# Command: ls
+# ls
 
 ### Display catalog
 
@@ -6,6 +6,7 @@
 
 + ls
 + ls *.tap
++ ls -l
 
 ## DESCRIPTION
 

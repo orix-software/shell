@@ -1,6 +1,8 @@
-# Command: basic10
+# basic10
 
-### Start Oric-1 rom
+## Introduction
+
+Start Oric-1 rom
 
 ## SYNOPSYS
 

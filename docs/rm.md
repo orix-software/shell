@@ -1,4 +1,4 @@
-# Command: rm
+# rm
 
 ### remove file
 

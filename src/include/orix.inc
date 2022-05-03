@@ -149,22 +149,7 @@ READ_BYTE_FROM_OVERLAY_RAM:
   lda #char
   BRK_KERNEL XWR0
 .endmacro
-  
-.macro  PRINT_CHAR str
-  pha
-  sta TR6
-  txa
-  pha
-  tya
-  pha
-  lda TR6
-  BRK_TELEMON XWR0
-  pla
-  tay
-  pla
-  txa
-  pla
-.endmacro	
+ 
 
 .macro PRINT str
 	pha
@@ -181,34 +166,6 @@ READ_BYTE_FROM_OVERLAY_RAM:
 	txa
     pla
 .endmacro
-
-.macro PRINT_NOSAVE_REGISTER str
-	lda #<str
-	ldy #>str
-	BRK_KERNEL XWSTR0
-.endmacro
-
-.macro RETURN_LINE_INTO_TELEMON
-	pha
-	txa
-	pha
-	tya
-	pha
-	lda RES
-	pha
-	lda RES+1
-	pha
-	jsr XCRLF_ROUTINE 
-	pla
-	sta RES+1
-	pla
-	sta RES
-	pla
-	tay
-	pla
-	txa
-	pla
-.endmacro    
 
 .macro RETURN_LINE
   BRK_KERNEL XCRLF

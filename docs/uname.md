@@ -1,4 +1,4 @@
-# Command: uname
+# uname
 
 ### Display kernel info
 

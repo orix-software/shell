@@ -1,4 +1,4 @@
-# Command: mkdir
+# mkdir
 
 ### Create a folder
 

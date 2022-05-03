@@ -1,4 +1,4 @@
-# Command: help
+# help
 
 ### Display commands
 

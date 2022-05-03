@@ -1,10 +1,10 @@
-# Command: meminfo
+# meminfo
 
 ### Displays memory info
 
 ## SYNOPSYS
 
-+ #meminfo
++ /#meminfo
 
 ## DESCRIPTION
 

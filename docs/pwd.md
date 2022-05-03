@@ -1,4 +1,4 @@
-# Command: pwd
+# pwd
 
 ### Display the current path
 

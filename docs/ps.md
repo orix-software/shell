@@ -1,4 +1,4 @@
-# Command: ps
+# ps
 
 ### Displays process list
 

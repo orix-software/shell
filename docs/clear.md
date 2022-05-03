@@ -1,6 +1,8 @@
 # Command: clear
 
-### Clear the screen
+## Introduction
+
+Clear the screen
 
 ## SYNOPSYS
 

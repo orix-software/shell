@@ -1,10 +1,10 @@
-# Command: man
+# man
 
 ### display manual pages
 
 ## SYNOPSYS
 
-+ # man orix
++ # man lsmem
 
 ## DESCRIPTION
 

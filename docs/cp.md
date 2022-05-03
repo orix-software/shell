@@ -1,4 +1,4 @@
-# Command: cp
+#  cp
 
 ### Copy a file to another file
 

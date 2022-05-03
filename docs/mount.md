@@ -1,4 +1,4 @@
-# Command: mount
+# mount
 
 ### Displays mounts
 

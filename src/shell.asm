@@ -1289,7 +1289,7 @@ commands_length:
 .endif    
 
 .ifdef WITH_WATCH
-    .byt 5  ; viewhrs
+    .byt 5  ; watch
 .endif    
 
 .ifdef WITH_XORIX
@@ -1530,9 +1530,6 @@ ca65:
     .asciiz "c"
 .endif
 
-str_impossible_to_mount_sdcard:
-    .asciiz "Impossible to mount sdcard"
-
 str_6502:                           ; use for lscpu
     .asciiz "6502"
 str_65C02:                          ; use for lscpu
@@ -1593,7 +1590,7 @@ parse_vector:
 ; fff3
 signature_adress_commands:
     .addr addr_commands
-; fff5-fff6        
+; fff5-fff6
 list_commands:
     .addr list_of_commands_bank
 ; fff7
@@ -1611,7 +1608,5 @@ NMI:
 RESET:
     .word   start_sh_interactive
 ; fffe-ffff
-BRK_IRQ:	
+BRK_IRQ:
     .word   IRQVECTOR
-
-	

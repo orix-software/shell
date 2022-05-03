@@ -1,4 +1,4 @@
-# Command: viewhrs
+# viewhrs
 
 ### Displays a hrs file
 

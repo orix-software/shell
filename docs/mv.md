@@ -1,4 +1,4 @@
-# Command: mv
+# mv
 
 ### move a file to another file
 

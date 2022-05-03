@@ -1,4 +1,4 @@
-#    OS   : Orix
+# Orix
 
 ### Operating system
 

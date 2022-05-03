@@ -1,4 +1,4 @@
-# Command: Monitor
+# Monitor
 
 ### Start monitor
 

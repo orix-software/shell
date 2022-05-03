@@ -1,4 +1,4 @@
-# Command: lsmem
+# lsmem
 
 ### Displays malloc table
 

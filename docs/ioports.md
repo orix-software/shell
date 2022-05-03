@@ -1,4 +1,4 @@
-# Command: ioports
+# ioports
 
 ### Display I/O Ports
 

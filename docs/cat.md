@@ -1,6 +1,8 @@
-# Command: cat
+# cat
 
-### Display a file to the screen
+## Introduction
+
+ Display a file to the screen
 
 ## SYNOPSYS
 

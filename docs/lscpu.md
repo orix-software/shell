@@ -1,4 +1,4 @@
-# Command: lscpu
+# lscpu
 
 ### Displays cpu info
 
