@@ -45,6 +45,8 @@
 @S3:
     sta     (save_mainargs_ptr),y
 
+    mfree   (watch_mainargs_argv)
+
     lda     save_mainargs_ptr
     ldy     save_mainargs_ptr+1
     BRK_KERNEL XWSTR0

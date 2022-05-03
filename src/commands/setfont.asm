@@ -32,9 +32,15 @@
 
     jmp     usage
 @continue:
-    MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
-    TEST_OOM_AND_MAX_MALLOC
-
+ ;   MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
+    malloc .strlen(setfont_path)+FNAME_LEN+1+1, userzp, str_oom
+    cmp     #$00
+    bne     @nooom
+    cpy     #$00
+    bne     @nooom
+    rts
+    
+@nooom:
     sta     userzp
     sty     userzp+1
 
@@ -68,57 +74,45 @@
     lda     userzp
     ldy     userzp+1
     sta     RES
-    sty RES+1
+    sty     RES+1
 
-    jsr _strcat
+    jsr     _strcat
+
+    mfree (setfont_mainargs_argv) ; save args
 
     ; Ajoute l'extension
-    ; Note: RES est toujours valable
-    ; (il pointe à la fin de fontpath avant la concaténation)
-    lda #<fontext
-    ldy #>fontext
-    sta RESB
-    sty RESB+1
-    jsr _strcat
 
-    ;FOPEN fontpath, O_RDONLY
-    lda userzp
-    ldx userzp+1
-    ldy #O_RDONLY
-    BRK_KERNEL XOPEN
+    strcat (userzp), fontext
     
-    cmp #$FF
-    bne @S1
-    cpx #$FF
-    bne @S1
-    beq error
+    fopen (userzp), O_RDONLY
+
+    cmp     #$FF
+    bne     @S1
+    cpx     #$FF
+    bne     @S1
+    beq     error
     
 @S1:
-	sta	setfont_fp
-	sty setfont_fp+1
+	sta     setfont_fp
+	sty     setfont_fp+1
 
     ; Chargement du fichier
     ; Destination
     ; count = 1, fp = 0?
-    FREAD $b500, $0300, 1, 0
+    fread $b500, $0300, 1, setfont_fp ; myptr is from a malloc for example
 
     ; FCLOSE 0
     ; mfree (setfont_fp)
     
-    
+
     lda     setfont_fp
     ldy     setfont_fp+1
     BRK_KERNEL XCLOSE
-
-	
-
-
-
     mfree (userzp)
 
 
     ; Code de retour
-    lda #$00
+    lda     #$00
     tay
 
     rts
@@ -128,15 +122,12 @@
 ;
 ;----------------------------------------------------------------------
 .proc usage
-    ; print msg_usage, NOSAVE
-    lda #<msg_usage
-    ldy #>msg_usage
-    BRK_ORIX XWSTR0
-
-    BRK_ORIX XCRLF
+    print msg_usage, NOSAVE
+    
+    BRK_ORIX     XCRLF
 
     ; Code de retour
-    lda #$ff
+    lda     #$ff
     tay
 
     rts
@@ -148,24 +139,17 @@
 .proc error
     BRK_ORIX XCRLF
 
-    ; print txt_file_not_found, NOSAVE
-    lda #<txt_file_not_found
-    ldy #>txt_file_not_found
-    BRK_ORIX XWSTR0
+    print txt_file_not_found, NOSAVE
 
-    ;print (userzp), NOSAVE
-    lda userzp
-    ldy userzp+1
-    BRK_ORIX XWSTR0
+
+    print (userzp), NOSAVE
+
 
     BRK_ORIX XCRLF
-    ; mfree userzp
-    lda userzp
-    ldy userzp+1
-    BRK_ORIX XFREE
+    mfree (userzp)
 
     ; Code de retour
-    lda #$ff
+    lda     #$ff
     tay
 
     rts
