@@ -9,17 +9,17 @@
     watch_mainargs_argc     := userzp+8
     watch_mainargs_arg1_ptr := userzp+10
 
-    MALLOC_AND_TEST_OOM_EXIT 100 
+    MALLOC_AND_TEST_OOM_EXIT 100
     sta     save_mainargs_ptr
     sty     save_mainargs_ptr+1
-    
+
     BRK_KERNEL XMAINARGS
     sta     watch_mainargs_argv
     sty     watch_mainargs_argv+1
     stx     watch_mainargs_argc
 
     cpx     #$01
-   
+
     beq     @usage
 
     ldx     #$01
@@ -57,7 +57,7 @@
 
     SWITCH_ON_CURSOR
 
-    
+
     rts
 
 @no_ctrl:
@@ -75,13 +75,13 @@
 @notfound:
     lda     save_mainargs_ptr
     ldy     save_mainargs_ptr+1
-    BRK_KERNEL XWSTR0 
-    print str_not_found,NOSAVE
+    BRK_KERNEL XWSTR0
+    print str_not_found
     rts
 
-@usage:    
+@usage:
     rts
- 
+
 
 
 @wait:
@@ -102,7 +102,7 @@
     bne     @lwait
     rts
 str_argc:
-    .asciiz "Argc: "  
+    .asciiz "Argc: "
 str_param:
-    .asciiz "Param: "      
+    .asciiz "Param: "
 .endproc

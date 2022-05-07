@@ -6,8 +6,8 @@
     cd_fp_tmp         := userzp+4
     ; Avoid userzp+6
     cd_argv1_ptr      := ptr1_for_internal_command ; 16 bits
-    
-    
+
+
 
     ; Let's malloc
     MALLOC(KERNEL_MAX_PATH_LENGTH)
@@ -15,8 +15,8 @@
     bne     @not_null_1
     cpy     #NULL
     bne     @not_null_1
-    print   str_oom,NOSAVE
-    rts 
+    print   str_oom
+    rts
 @not_null_1:
     sta     cd_path
     sty     cd_path+1
@@ -25,23 +25,23 @@
 
     lda     bash_struct_ptr
     sta     cd_argv1_ptr
-    
+
     lda     bash_struct_ptr+1
     sta     cd_argv1_ptr+1
 
     ldy     #shell_bash_struct::command_line
-@get_first_arg:    
+@get_first_arg:
     lda     (bash_struct_ptr),y
     beq     @found_eos
     cmp     #' ' ; Read command line until we reach a space.
-    beq     @found_space  
+    beq     @found_space
     inc     cd_argv1_ptr
     bne     @skip30
     inc     cd_argv1_ptr+1
 @skip30:
     iny
     bne     @get_first_arg
-@found_eos:    
+@found_eos:
     mfree(cd_path)
     rts
 
@@ -62,10 +62,10 @@
     sta     (cd_path),y
     iny
     bne     @L1
-@S1:    
+@S1:
     sta     (cd_path),y
     ; Remove / at the end (to avoid cd /usr///)
-@L7:    
+@L7:
     dey
     beq     @it_slash
     lda     (cd_path),y
@@ -89,7 +89,7 @@
 
     ; check if it's . or ..
     ; FIXME : add trim
-    
+
     ldy     #$00
     lda     (cd_path),y
     cmp     #'.'
@@ -98,11 +98,11 @@
     lda     (cd_path),y
     beq     @only_one_dot
     cmp     #'.'
-    bne     free_cd_memory ; it's  'cd .' only then, jump. 
+    bne     free_cd_memory ; it's  'cd .' only then, jump.
 
     ; Here we have 'cd ..'
     ; let's pull folder
-    BRK_KERNEL XGETCWD  ; Get A & Y 
+    BRK_KERNEL XGETCWD  ; Get A & Y
     sta     cd_path
     sty     cd_path+1
     ; loop until we reach 0
@@ -112,26 +112,26 @@
     beq     free_cd_memory ; yes we go out
 
     ldy     #$00
-@L2:    
+@L2:
     lda     (cd_path),y
     beq     @end_of_string_found
-    
+
     iny
     bne     @L2
     rts     ; Error overflow return with no error
 @end_of_string_found:
     ; now let's find last '/'
     dey
-@L3:    
+@L3:
     lda     (cd_path),y
     cmp     #'/'
     beq     try_to_recurse
     dey
     bne     @L3
     ; We reached 0 : then we are in "/" root
-    iny     
+    iny
     bne     @slash_found
-@only_one_dot:    
+@only_one_dot:
     rts
 
 @slash_found:
@@ -159,16 +159,16 @@ not_dot:
 
     mfree(cd_path)
 
-    print str_not_a_directory,NOSAVE
+    print str_not_a_directory
     rts
-    
+
 
 @not_null:
     ; Free FP
     sta     cd_fp
     stx     cd_fp+1
     fclose(cd_fp)
-    
+
 
     lda     cd_path
     ldy     cd_path+1
@@ -194,26 +194,26 @@ try_to_recurse:
 
     BRK_KERNEL   XPUTCWD_ROUTINE
     jmp     free_cd_memory
-    
+
     ; cdpath++
     ; cdpath++
     ; remove ..
     inc     cd_path
     bcc     @do_not_inc_1
     inc     cd_path+1
-@do_not_inc_1:    
+@do_not_inc_1:
     inc     cd_path
     bcc     @do_not_inc_2
     inc     cd_path+1
     ; cdpath++ (because ../usr/ for example)
-@do_not_inc_2:    
+@do_not_inc_2:
     inc     cd_path
     bcc     @do_not_inc_3
     inc     cd_path+1
 @do_not_inc_3:
-;   at this step cd_path should be here : usr/ 
-    jmp     free_cd_memory   
+;   at this step cd_path should be here : usr/
+    jmp     free_cd_memory
 
 str_not_a_directory:
-    .byte "Not a directory",$0D,$0A,0	
+    .byte "Not a directory",$0D,$0A,0
 .endproc

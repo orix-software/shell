@@ -36,7 +36,7 @@
 	; le périphérique avant de faire df)
 
     BRK_KERNEL XGETCWD ; Return A and Y the string
-  
+
 
     sty     TR6
     ldy     #O_RDONLY
@@ -44,7 +44,7 @@
     BRK_KERNEL XOPEN
     cmp     #$FF
     bne     @free
-    
+
     cpx     #$FF
     bne     @free
     rts
@@ -73,7 +73,7 @@ df_suite:
 ;	sty RES+1
 ;	jsr _strcpy
 
-	print df_header
+	print df_header, SAVE
 	jsr     _ch376_disk_query
 
 	; Sauvegarde l'espace dispo pour plus tard
@@ -149,7 +149,7 @@ df_suite:
 
 	jsr display_size
 
-	print (userzp)
+	print (userzp), SAVE
 
 
 	mfree (userzp)

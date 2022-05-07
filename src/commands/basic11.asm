@@ -49,13 +49,13 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 .proc _basic10
     lda     #BASIC10_ROM
-    sta     basic11_mode   ; Save the mode     
+    sta     basic11_mode   ; Save the mode
     jmp     _basic_main
 .endproc
 
 
 .proc _basic11
-    lda     #BASIC11_ROM     
+    lda     #BASIC11_ROM
     sta     basic11_mode   ; Save the mode
     jmp     _basic_main
 .endproc
@@ -65,13 +65,13 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
 
     XMAINARGS = $2C
-    XGETARGV =  $2E    
-    
+    XGETARGV =  $2E
+
     lda     #$00
     sta     basic11_no_arg_provided
 
     BRK_KERNEL XMAINARGS
-    
+
     sta     basic11_argv_ptr
     sty     basic11_argv_ptr+1
     stx     basic11_argc
@@ -91,13 +91,13 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 
 
-    ldy     #$00    
+    ldy     #$00
 
     lda     (basic11_argv1_ptr),y
     cmp     #'-'
     bne     @is_a_tape_file_in_arg
     jmp     @basic11_option_management
-@no_arg:    
+@no_arg:
     mfree (basic11_argv_ptr)
 
     lda     basic11_mode
@@ -119,14 +119,14 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ;malloc  basic11_sizeof_max_length_of_conf_file_bin,basic11_ptr1 ; Index ptr
 
     lda     #basic11_sizeof_max_length_of_conf_file_bin
-    
+
     ldy     #$00
     BRK_KERNEL XMALLOC
     cmp     #$00
     bne     @no_oom5
     cpy     #$00
     bne     @no_oom5
-    print   str_enomem,NOSAVE
+    print   str_enomem
 
     BRK_KERNEL XCRLF
 
@@ -139,7 +139,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 
     rts
-    
+
 @no_oom5:
     sta     basic11_ptr1
     sty     basic11_ptr1+1
@@ -158,9 +158,9 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 @copy_atmos_db_path:
     lda     basic_conf_str,y    ; Copy db path into ptr
-@continue_copy_path_db:    
+@continue_copy_path_db:
     beq     @outcpy
-    sta     (basic11_ptr1),y 
+    sta     (basic11_ptr1),y
     iny
     bne     @L2
 
@@ -183,7 +183,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     iny
     lda     #'/' ; add /
     sta     (basic11_ptr1),y ; get another letter
-   
+
     iny
 
 @L3:
@@ -191,8 +191,8 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     txa
     tay
     lda     (basic11_argv1_ptr),y
-    ldy     basic11_save_pos_arg    
- 
+    ldy     basic11_save_pos_arg
+
 
     cmp     #$22 ; " char
     beq     @outstrcat
@@ -200,12 +200,12 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     beq     @outstrcat
     sta     (basic11_ptr1),y ; get another letter
     iny
-    inx     
+    inx
     bne     @L3
 @outstrcat:
     ; concat .db
     ldx     #$00
-@L400:    
+@L400:
     lda     str_dot_db,x
     beq     @out_concat
     sta     (basic11_ptr1),y
@@ -214,7 +214,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @L400
 @out_concat:
     sta     (basic11_ptr1),y
-  
+
     mfree (basic11_argv_ptr)
 
     ;fopen src, O_RDONLY, TELEMON, ptr1, msg, $EC
@@ -233,13 +233,13 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 
     sei
-    
+
 
     ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
     sta     basic11_ptr2
     sty     basic11_ptr2+1
-    
+
     ldy     #$00
     lda     (basic11_ptr2),y
     pha
@@ -250,8 +250,8 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ;ldx     #$00
     ;lda     #$00
 ;@nloop:
-    ;sta     $00,x 
-    ;sta     $200,x 
+    ;sta     $00,x
+    ;sta     $200,x
     ;sta     $400,x
     ;sta     $500,x
     ;inx
@@ -272,9 +272,9 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     jsr     prepare_rom_rnd
 
 
-   
+
     ldx     #$00
-@L1000:    
+@L1000:
     lda     code_overlay_switch_sedoric,x
     sta     $477,x
     inx
@@ -293,12 +293,12 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #%10110111 ; 0001 0111
     sta     VIA2::DDRA
 
-    lda     #%10110110 
-    sta     VIA2::PRA   
+    lda     #%10110110
+    sta     VIA2::PRA
 
     lda     #%00010111
     sta     VIA2::DDRA
-    
+
 
     lda     VIA2::PRA
     and     #%10100000
@@ -314,14 +314,14 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     jmp     $F88F ; NMI vector of ATMOS rom
 @jmp_basic10_vector:
-    jmp     $F42D    
+    jmp     $F42D
     ; Check if it's a .tap
 @noparam_free:
 
 
 
     mfree (basic11_ptr1)
-    
+
 
 
 
@@ -335,14 +335,14 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
   ; define target address
     lda     #$F1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
-    
+
     lda     #$00
     sta     PTR_READ_DEST+1
 
   ; We read the file with the correct
     lda     #<basic11_sizeof_binary_conf_file
     ldy     #>basic11_sizeof_binary_conf_file
-  ; reads byte 
+  ; reads byte
     BRK_KERNEL XFREAD
 
     ; Close fp
@@ -360,17 +360,17 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @continuegui
     cpx     #$FF
     bne     @continuegui
-    print   str_basic11_missing,NOSAVE
+    print   str_basic11_missing
     rts
 
 @continuegui:
     ; save fp
-    
+
     jmp     basic11_start_gui
 
 @option_not_known:
     mfree (basic11_argv_ptr)
-    print   str_basic11_not_known,NOSAVE
+    print   str_basic11_not_known
     rts
 
 @basic11_option_management:
@@ -392,7 +392,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @continue_l_option
     cpy     #$FF
     bne     @continue_l_option
-    print   str_can_not,NOSAVE
+    print   str_can_not
     rts
 
 
@@ -400,12 +400,12 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 @continue_l_option:
 
     ; Search now
-    print   basic_str_search,NOSAVE
-    
+    print   basic_str_search
+
     jmp     @displays_all
-   
+
 @exit_search:
-    print   basic_str_last_line,NOSAVE
+    print   basic_str_last_line
 
 @exit:
 
@@ -413,10 +413,10 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     ; Open
     rts
-@end_of_line:    
+@end_of_line:
     rts
 @end_of_key:
-    rts    
+    rts
 @found:
     lda     #$00
     sta     basic11_found
@@ -457,7 +457,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     basic11_stop
     beq     @L12
 
-@no_char:    
+@no_char:
     lda     (basic11_ptr1),y
     beq     @end_of_line_all
     cmp     #$FF
@@ -469,7 +469,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     BRK_KERNEL XMINMA
     BRK_KERNEL XWR0
     inx
-    
+
     iny
     bne     @L12
     inc     basic11_ptr1+1
@@ -483,7 +483,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ; Displays a space until we reached the end of line
     lda     #' '
     BRK_KERNEL XWR0
-    inx     
+    inx
     bne     @end_of_line_all
 @next2:
     lda     (basic11_ptr1),y
@@ -496,7 +496,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #'|'
     BRK_KERNEL XWR0
     lda     #'|'
-    BRK_KERNEL XWR0    
+    BRK_KERNEL XWR0
     ldx     #$00
     iny
     bne     @L12
@@ -509,9 +509,9 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     beq     @next
     lda     #' '
     BRK_KERNEL XWR0
-    inx     
+    inx
     bne     @end_of_key_all
-@next:    
+@next:
     lda     #'|'
     BRK_KERNEL XWR0
     ldx     #$00
@@ -529,7 +529,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @no_oom
     cpy     #$00
     bne     @no_oom
-    print   str_enomem,NOSAVE
+    print   str_enomem
 
     lda     #<16384
     ldy     #>16384
@@ -541,7 +541,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     ;lda     #$13
     ;sta     $bb80
-    ;@me:    
+    ;@me:
         ;jmp @me
     rts
 
@@ -562,7 +562,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     basic11_mode
     cmp     #BASIC10_ROM
     bne     @copy_rom_path
-    
+
     lda     rom_path_basic10,y
     jmp     @enter_test_eos
 
@@ -580,7 +580,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sty     basic11_tmp0  ; Save Y
     iny
     sta     (basic11_ptr1),y
- 
+
     ; Get value
     ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
@@ -588,11 +588,11 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sty     basic11_ptr2+1
 
     ldy     #$00
-    lda     (basic11_ptr2),y   ; 
+    lda     (basic11_ptr2),y   ;
     cmp     #CH376_SET_USB_MODE_CODE_SDCARD
     beq     @sdcard
     ldy     basic11_tmp0
-    ; concat 'us' 
+    ; concat 'us'
     lda     #'u'
     sta     (basic11_ptr1),y
     iny
@@ -603,14 +603,14 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 @sdcard:
     ldy     basic11_tmp0
-    ; concat 'sd' 
+    ; concat 'sd'
     lda     #'s'
     sta     (basic11_ptr1),y
     iny
     lda     #'d'
     sta     (basic11_ptr1),y
     iny
-@concat_end:    
+@concat_end:
     lda     $F2 ; Load id ROM
     clc
     adc     #$30 ; Add '0' to get the right ascii rom
@@ -638,9 +638,9 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     fopen (basic11_ptr1), O_RDONLY
     cpx     #$FF
-    bne     @read_rom 
+    bne     @read_rom
     cmp     #$FF
-    bne     @read_rom 
+    bne     @read_rom
 
     ldx     #$04 ; Get kernel ERRNO
     BRK_KERNEL XVARS
@@ -651,17 +651,17 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     (basic11_ptr2),y ; FIXME ERRNO
     cmp     #ENOMEM
     bne     @no_enomem_kernel_error
-    print   str_enomem,NOSAVE
+    print   str_enomem
     rts
 @no_enomem_kernel_error:
     cmp     #ENOENT
     bne     @no_enoent_kernel_error
-    print   (basic11_ptr1),NOSAVE
-    print   str_not_found,NOSAVE
+    print   (basic11_ptr1)
+    print   str_not_found
     rts
-@no_enoent_kernel_error:    
+@no_enoent_kernel_error:
 
-    print   str_basic11_missing_rom,NOSAVE
+    print   str_basic11_missing_rom
 
     ldy     basic11_ptr1+1
     lda     basic11_ptr1
@@ -675,22 +675,22 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sta     basic11_fp
     sty     basic11_fp+1
  ; define target address
-    lda     basic11_ptr1 
+    lda     basic11_ptr1
     sta     PTR_READ_DEST
-    
+
     lda     basic11_ptr1+1
     sta     PTR_READ_DEST+1
 
   ; We read the file with the correct
     lda     #<$FFFF
     ldy     #>$FFFF
-  ; reads byte 
+  ; reads byte
     BRK_KERNEL XFREAD
 
 
 
     fclose(basic11_fp)
-   
+
 
     ldy     #$00
     lda     (basic11_ptr2),y
@@ -710,7 +710,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @no_oom2
     cpy     #$00
     bne     @no_oom2
-    print   str_enomem,NOSAVE
+    print   str_enomem
     rts
 
 
@@ -728,7 +728,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sta     VEXBNK+1
     lda     basic11_ptr3+1
     sta     VEXBNK+2
-  
+
 
 
     ; stop t2 from via1
@@ -756,9 +756,9 @@ code_overlay_switch_sedoric:
 basic11_driver:
     sei
 
-   
+
     ldx     #$00
-@L1000:    
+@L1000:
     lda     code_overlay_switch_sedoric,x
     sta     $477,x
     inx
@@ -780,11 +780,11 @@ basic11_driver:
     bne     @loop_copy_rom
     inc     basic11_ptr1+1
     inc     basic11_ptr2+1
-    inx     
+    inx
     cpx     #64
     bne     @loop_copy_rom
 
-    ; If the rom id is equal to 0, it means that it's for the hobbit. 
+    ; If the rom id is equal to 0, it means that it's for the hobbit.
     ; The hobbit rom does not handle path
     lda     $F2 ; Load id ROM
     beq     @hobbit_rom_do_not_forge_path
@@ -795,7 +795,7 @@ basic11_driver:
     beq     @forge_path
 
 
-    
+
     lda     basic11_no_arg_provided
     beq     @skip_forge_path
 
@@ -816,7 +816,7 @@ basic11_driver:
     bne     @L300
 @isatmosforpath_tape_path:
     ldy     #tapes_path-basic11_driver
-@L300:    
+@L300:
     lda     (basic11_ptr3),y
     beq     @end
     cmp     #'a'                        ; 'a'
@@ -836,7 +836,7 @@ basic11_driver:
 @isatmosforpath:
     lda     basic11_saveA
     sta     $FE70,x
-@continue_path:    
+@continue_path:
     iny
     inx
     bne     @L300
@@ -876,11 +876,11 @@ basic11_driver:
     jmp     $F88F ; NMI vector of ATMOS rom
 
 @jmp_basic10_vector:
-    jmp     $F42D        
+    jmp     $F42D
 
 ; don't move it because it's used in the copy of basic11_driver
 tapes_path:
-    .asciiz "/usr/share/basic11/"    
+    .asciiz "/usr/share/basic11/"
 tapes_path_basic10:
     .asciiz "/usr/share/basic10/"
 
@@ -895,9 +895,9 @@ tapes_path_basic10:
     bne     @no_oom3
     cpy     #$00
     bne     @no_oom3
-    print   str_enomem,NOSAVE
+    print   str_enomem
     rts
-@no_oom3:    
+@no_oom3:
 
     ldy     #$00
 @L10:
@@ -925,8 +925,8 @@ tapes_path_basic10:
     bne     @read_maindb ; not null then  start because we did not found a conf
     cmp     #$FF
     bne     @read_maindb ; not null then  start because we did not found a conf
-    
-    print   str_basic11_missing,NOSAVE
+
+    print   str_basic11_missing
     BRK_KERNEL XCRLF
     lda     #$FF
     ldx     #$FF
@@ -940,7 +940,7 @@ tapes_path_basic10:
 
 
     mfree(basic11_ptr2)
-    
+
 
     BRK_KERNEL XFREE
 
@@ -949,23 +949,23 @@ tapes_path_basic10:
     bne     @no_oom4
     cpy     #$00
     bne     @no_oom4
-    print   str_enomem,NOSAVE
+    print   str_enomem
     rts
-@no_oom4:    
+@no_oom4:
 
   ; define target address
     lda     basic11_ptr1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
-    
+
     lda     basic11_ptr1+1
     sta     PTR_READ_DEST+1
 
   ; We read the file with the correct
     lda     #<BASIC11_MAX_MAINDB_LENGTH
     ldy     #>BASIC11_MAX_MAINDB_LENGTH
-  ; reads byte 
+  ; reads byte
     BRK_KERNEL XFREAD
-   
+
     fclose  (basic11_fp)
 
 
@@ -976,13 +976,13 @@ tapes_path_basic10:
 .proc prepare_rom_rnd
 
     ldx     #$05
-@copy_rnd_value2:    
+@copy_rnd_value2:
     lda     basic_rnd_init,x
     sta     $FA,x
     dex
     bpl     @copy_rnd_value2
     rts
-.endproc    
+.endproc
 
 .proc basic11_stop_via
     lda     #$00+32
@@ -991,7 +991,7 @@ tapes_path_basic10:
     lda     #$00+32+64
     sta     VIA2::IER
     rts
-.endproc    
+.endproc
 
 .include "basic11/basic11_gui.asm"
 
@@ -1000,7 +1000,7 @@ str_basic11_missing_rom:
 rom_path:
     .asciiz "/usr/share/basic11/basic"
 rom_path_basic10:
-    .asciiz "/usr/share/basic10/basic"    
+    .asciiz "/usr/share/basic10/basic"
 str_can_not:
     .asciiz "Can not open"
 str_enomem:

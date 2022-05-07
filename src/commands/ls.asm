@@ -31,19 +31,19 @@ ls_argc                  := userzp+17
     BRK_KERNEL XOPEN
     cmp     #$FF
     bne     @free
-    
+
     cpx     #$FF
     bne     @free
 
 .define     KERNEL_ERRNO $200 ; FIXME tmp
-    
+
     lda	    KERNEL_ERRNO
     cmp     #EIO
     bne     @failed_path
-    print  str_i_o_error
+    print  str_i_o_error, SAVE
     rts
 
-@failed_path:    
+@failed_path:
 
     lda     #<@str
     ldy     #>@str
@@ -51,7 +51,7 @@ ls_argc                  := userzp+17
     rts
 @str:
     .byte  "Unable to open current path",$0D,$0A,$00
-   
+
     ; get A&Y
 @free:
 
@@ -64,7 +64,7 @@ ls_argc                  := userzp+17
     cpx     #$01
     beq     @set_bufnom_empty
 
- 
+
     ; Get arg 2
     ldx     #$01
     BRK_KERNEL XGETARGV
@@ -73,7 +73,7 @@ ls_argc                  := userzp+17
     ;BRK_KERNEL XWSTR0
 
 
- 
+
 
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ls_arg[0] = 0 si pas de paramètre
@@ -104,7 +104,7 @@ ls_argc                  := userzp+17
     lda     ls_mainargs
     ldy     ls_mainargs+1
     ldx     ls_argc
- 
+
 
     ; Get arg 2
     ldx     #$02
@@ -132,7 +132,7 @@ list:
     ; /!\ ATTENTION les paramètrtes sont inversés par rapport à STRCPY
 
     ldy     #$00
-@loop_cpy:    
+@loop_cpy:
     lda     (ls_arg),y
     beq     @EOS
     sta     BUFNOM,y
@@ -185,7 +185,7 @@ copy_mask:
     ; RESB pointe toujours sur BUFEDT
     jsr     WildCard
 .ifndef ls_use_malloc
-    
+
     bne Error       ; Il faut une autre erreur, ici c'est parce qu'il y a des caractères incorrects
     ;bcc @ZZ0002     ; Pas de '?' ni de '*'
 .else
@@ -315,9 +315,9 @@ go:
 
 ; ------------------------------------------------------------------------------
 Error:
-    print txt_file_not_found, NOSAVE
+    print txt_file_not_found
     ;FREE RESB
-    print BUFNOM, NOSAVE
+    print BUFNOM
 
 
 error_oom:
@@ -469,7 +469,7 @@ _verbose:
 
     pha
 ;    CPUTC '.'
-    print #'.', NOSAVE
+    print #'.'
     pla
     inx
 
@@ -483,9 +483,9 @@ _verbose:
 
   skip:
     BRK_KERNEL XWR0
-    
+
     ;bcs     @no_char_action
-    
+
     asl     KBDCTC
     bcc     @no_ctrl
 
@@ -494,7 +494,7 @@ _verbose:
 
 @no_ctrl:
 
-@no_char_action:    
+@no_char_action:
     inx
     bne     loop
   end:
@@ -506,7 +506,7 @@ _verbose:
 
     inx
 ;    CPUTC ' '
-    print #' ', NOSAVE
+    print #' '
     jmp ZZ0017
 
   ZZ0018:
@@ -940,7 +940,7 @@ error:
     jsr Bin2BCD
 
 ;    CPUTC '-'
-    print #'-', NOSAVE
+    print #'-'
 
 ;    lda #$00
 ;    sta TR1
@@ -957,7 +957,7 @@ error:
     jsr Bin2BCD
 
 ;    CPUTC '-'
-    print #'-', NOSAVE
+    print #'-'
 
 ;    ldy #$0c
     lda BUFEDT+13,y
@@ -967,7 +967,7 @@ error:
 ;    CPUTC ' '
 ;    CPUTC ' '
 ;    print #' ', NOSAVE
-    print #' ', NOSAVE
+    print #' '
 
     lda BUFEDT+12,y
     lsr
@@ -976,7 +976,7 @@ error:
     jsr Bin2BCD
 
 ;    CPUTC ':'
-    print #':', NOSAVE
+    print #':'
     lda BUFEDT+12,y
     and #$07
     sta TR1
@@ -1159,7 +1159,7 @@ Hex2Asc:
     bcc *+4
     inc RES+1
 
-    print (RES)
+    print (RES), SAVE
     rts
 .endproc
 

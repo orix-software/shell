@@ -1,23 +1,23 @@
 .export _lscpu
 
 .proc _lscpu
-    print   str_architecture,NOSAVE
+    print   str_architecture
     jsr     _getcpu
     cmp     #CPU_65816
     beq     is65c816
     cmp     #CPU_65C02
     bne     is6502
-    print   str_65C02,NOSAVE
+    print   str_65C02
     jmp     next         ; FIXME 65c02
 is65c816:
-    print   str_65c816,NOSAVE
-    jmp     next 
+    print   str_65c816
+    jmp     next
    ; bra     next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 is6502:
-    print   str_6502,NOSAVE
+    print   str_6502
 next:
-    RETURN_LINE  
-    print   str_lscpu,NOSAVE
+    RETURN_LINE
+    print   str_lscpu
     rts
 str_65c816:
     .asciiz "65c816"

@@ -2,11 +2,11 @@
 
 .proc _pstree
     jmp newpstree
-    print str_init,NOSAVE
+    print str_init
     RETURN_LINE
     rts
 str_init:
-    .asciiz "init---bash---pstree"    
+    .asciiz "init---bash---pstree"
 .endproc
 
 .proc newpstree
@@ -19,7 +19,7 @@ str_init:
 
 
     ldy     #kernel_process_struct::kernel_init_string
-@L1:    
+@L1:
     lda     (ptr_kernel_process),y
     beq     @S1
     BRK_KERNEL XWR0
@@ -41,7 +41,7 @@ str_init:
     BRK_KERNEL XWR0
     iny
     bne     @L2
-@S2:    
+@S2:
 
 
     rts
