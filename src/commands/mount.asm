@@ -5,7 +5,7 @@
 
 .proc _mount
     mount_ptr1          := userzp ; 16 bits
-    mount_mainargs_ptr  := userzp+2 
+    mount_mainargs_ptr  := userzp+2
 
     mount_mainargs_argv := userzp+4
     mount_mainargs_argc := userzp+6 ; 8 bits
@@ -15,7 +15,7 @@
     sta     mount_mainargs_ptr
     sty     mount_mainargs_ptr+1
     stx     mount_mainargs_argc
-    
+
 
 
 
@@ -44,7 +44,7 @@
     beq     @out
     cmp     str_sda1,y
     bne     check_sdb1
-    iny    
+    iny
     cpy     #9
     bne     @L1
 @out:
@@ -59,7 +59,7 @@ check_sdb1:
     beq     @out2
     cmp     str_sdb1,y
     bne     error
-    iny   
+    iny
     cpy     #9
     bne     @L2
 @out2:
@@ -70,18 +70,18 @@ check_sdb1:
 
 mount_no_param:
 
-    print str_mount,NOSAVE
+    print str_mount
     ldy     #$00
     lda     (mount_ptr1),y
 	cmp     #CH376_SET_USB_MODE_CODE_SDCARD
     bne     usb_key
-    print str_sdcard,NOSAVE
+    print str_sdcard
     rts
 usb_key:
-    print str_usbkey,NOSAVE
+    print str_usbkey
 	rts
 error:
-    print str_error,NOSAVE
+    print str_error
     rts
 str_error:
     .byt "error",$0A,$0D,0

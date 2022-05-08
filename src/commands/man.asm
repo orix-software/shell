@@ -19,8 +19,8 @@
     cpx     #$01 ; No args ?
     bne     start_man
     jmp     error
-start_man:   
-    ; 
+start_man:
+    ;
     MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+4)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
     TEST_OOM
@@ -36,32 +36,32 @@ start_man:
     lda     #>man_path
     sta     RES+1
     jsr     _strcpy               ; MAN_SAVE_MALLOC_PTR contains adress of a new string
- 
-    ldx     #$01 ; get arg 
+
+    ldx     #$01 ; get arg
     lda     man_xmainargs_ptr
     ldy     man_xmainargs_ptr+1
     BRK_KERNEL XGETARGV
 
     sta     RESB
     sty     RESB+1
-    
+
     lda     MAN_SAVE_MALLOC_PTR
     sta     RES
     lda     MAN_SAVE_MALLOC_PTR+1
     sta     RES+1
     jsr     _strcat
-    
+
     lda     #<str_man_hlp
     sta     RESB
     lda     #>str_man_hlp
     sta     RESB+1
-    
+
     lda     MAN_SAVE_MALLOC_PTR
     sta     RES
     lda     MAN_SAVE_MALLOC_PTR+1
     sta     RES+1
     jsr     _strcat
- 
+
 
     fopen (MAN_SAVE_MALLOC_PTR), O_RDONLY
     cpx     #$FF
@@ -76,9 +76,9 @@ start_man:
     ldy     MAN_SAVE_MALLOC_PTR+1
     BRK_KERNEL XFREE
 
-    print   txt_file_not_found
+    print   txt_file_not_found, SAVE
 
-    ldx     #$01 ; get arg 
+    ldx     #$01 ; get arg
     lda     man_xmainargs_ptr
     ldy     man_xmainargs_ptr+1
     BRK_KERNEL XGETARGV
@@ -92,7 +92,7 @@ error:
     lda     MAN_SAVE_MALLOC_PTR
     ldy     MAN_SAVE_MALLOC_PTR+1
     BRK_KERNEL XFREE
-    print   str_man_error
+    print   str_man_error, SAVE
     rts
 
 next:
@@ -105,7 +105,7 @@ next:
     cpy     #$00
     bne     @continue
     rts
-@continue:    
+@continue:
 
     SWITCH_OFF_CURSOR
 @readagain:
@@ -115,7 +115,7 @@ next:
     lda     man_buffer+1
     sta     man_buffer_bkp+1
   ; We read 1080 bytes
- 
+
     fread (man_buffer), 1080, 1, MAN_FP
     sta     man_buffer_size
     stx     man_buffer_size+1
@@ -134,7 +134,7 @@ next:
     ldx     #05
 
     ldy     #$00
-@L1: 
+@L1:
 
     lda     man_buffer_size
     bne     @dec
@@ -167,10 +167,10 @@ next:
    ; bmi     cget_loop
     ; A bit crap to flush screen ...
     ; read again ?
-out:   
+out:
     BRK_KERNEL XHIRES
     BRK_KERNEL XTEXT
-    
+
     SWITCH_ON_CURSOR
 
     lda     MAN_SAVE_MALLOC_PTR
@@ -178,7 +178,7 @@ out:
     BRK_KERNEL XFREE
 
     fclose(MAN_FP)
-    
+
     rts
 
 str_man_error:

@@ -12,7 +12,7 @@
 
     BRK_KERNEL XMAINARGS
 
-    
+
     sta     cat_save_argvlow
     sty     cat_save_argvhigh
     stx     cat_save_argc
@@ -21,7 +21,7 @@
     beq     @print_usage
 
 
-    ldx     #$01 ; get arg 
+    ldx     #$01 ; get arg
     lda     cat_save_argvlow
     ldy     cat_save_argvhigh
     BRK_KERNEL XGETARGV
@@ -36,14 +36,14 @@
     cmp     #$FF
     bne     @readfile
 
-    print   (cat_save_ptr_arg),NOSAVE
+    print   (cat_save_ptr_arg)
 
-    print   str_not_found,NOSAVE
+    print   str_not_found
     rts
 
 @print_usage:
 @cat_error_param:
-    print     txt_usage,NOSAVE
+    print     txt_usage
     rts
 
 @readfile:

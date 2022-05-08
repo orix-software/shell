@@ -42,10 +42,10 @@
     BRK_KERNEL XCLOSE ; ???
     rts
 @slash_found:
-    print str_arg_not_managed_yet,NOSAVE
+    print str_arg_not_managed_yet
     rts
 @missing_operand:
-    print str_mkdir,NOSAVE
-    print str_missing_operand,NOSAVE
+    print str_mkdir
+    print str_missing_operand
     rts
 .endproc

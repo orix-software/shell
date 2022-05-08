@@ -9,7 +9,7 @@
     sta     uname_mainargs_ptr
     sty     uname_mainargs_ptr+1
     stx     uname_mainargs_argc
-    
+
     ldx     #$01
     lda     uname_mainargs_ptr
     ldy     uname_mainargs_ptr+1
@@ -23,22 +23,22 @@
     beq     no_param
 
     ldy     #$00
-    lda     (uname_mainargs_argv),y    
+    lda     (uname_mainargs_argv),y
     cmp     #'-'
     bne     error
 
-    iny     
-    lda     (uname_mainargs_argv),y    
+    iny
+    lda     (uname_mainargs_argv),y
     cmp     #'a'
     bne     error
-    print   str_os,NOSAVE
+    print   str_os
     lda     #' '                ; FIXME CGETC
     BRK_KERNEL XWR0
-    print   str_compile_time,NOSAVE
+    print   str_compile_time
     BRK_KERNEL XCRLF
     rts
 no_param:
-    print   str_os,NOSAVE
+    print   str_os
     BRK_KERNEL XCRLF
 error:
     rts

@@ -1,4 +1,4 @@
- 
+
 
 .export _twil
 
@@ -37,10 +37,10 @@ twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     lda     (twil_mainargs_arg1_ptr),y
     cmp     #'f'
     bne     check_next_parameter_u
-    print   str_version,NOSAVE
+    print   str_version
     lda     TWILIGHTE_REGISTER       ; get Twilighte register
     and     #%00001111 ; Select last 4 bits
-    cmp     #15        ; Max version #15 
+    cmp     #15        ; Max version #15
     bcs     error
     clc
     adc     #48
@@ -48,19 +48,19 @@ twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     RETURN_LINE
     rts
 error:
-    print   str_unknown,NOSAVE
+    print   str_unknown
     RETURN_LINE
     rts
 
 usage:
-    print   str_usage,NOSAVE
+    print   str_usage
     RETURN_LINE
-    rts    
+    rts
 
 error_overflowbanking:
-    print   str_usage,NOSAVE
+    print   str_usage
     RETURN_LINE
-    rts 
+    rts
 
 check_next_parameter_u:
     cmp     #'u'       ; Swap
@@ -75,7 +75,7 @@ check_next_parameter_u:
     ldy     #$00
     sta     (twil_ptr1),y
     jsr     savemount
-    print str_swap_root_to_usbkey,NOSAVE
+    print str_swap_root_to_usbkey
     RETURN_LINE
     rts
 
@@ -92,9 +92,9 @@ check_next_parameter_d:
     lda     #CH376_SET_USB_MODE_CODE_SDCARD
     ldy     #$00
     sta     (twil_ptr1),y
-    ; and save 
+    ; and save
     jsr     savemount
-    print str_swap_root_to_sdcard,NOSAVE
+    print str_swap_root_to_sdcard
     RETURN_LINE
     rts
 savemount:
@@ -114,23 +114,23 @@ savemount:
 
 
 
-str_version: 
-  	.asciiz "Version : "    
-str_unknown:    
+str_version:
+  	.asciiz "Version : "
+str_unknown:
 	.asciiz "Unknown version"
 str_swap_root_to_usbkey:
-    .asciiz "Swap / to /dev/usb1"        
+    .asciiz "Swap / to /dev/usb1"
 str_swap_root_to_sdcard:
-    .asciiz "Swap / to /dev/sda1"    
+    .asciiz "Swap / to /dev/sda1"
 str_swap_to_bank_sram:
-    .asciiz "Swapped to RAM banking"    
+    .asciiz "Swapped to RAM banking"
 str_swap_to_bank_rom:
-    .asciiz "Swapped to EEPROM banking"        
-str_overflow_banking:    
-	.asciiz "This version of board can only manage 4 sets"    
-str_usage:    
+    .asciiz "Swapped to EEPROM banking"
+str_overflow_banking:
+	.asciiz "This version of board can only manage 4 sets"
+str_usage:
 	.byte "Usage: twil -f",$0A,$0D
     .byte "       twil -u",$0A,$0D
     .byte "       twil -d",$0A,$0D
     .byte $00
-.endproc 
+.endproc

@@ -39,7 +39,7 @@
     cpy     #$00
     bne     @nooom
     rts
-    
+
 @nooom:
     sta     userzp
     sty     userzp+1
@@ -83,7 +83,7 @@
     ; Ajoute l'extension
 
     strcat (userzp), fontext
-    
+
     fopen (userzp), O_RDONLY
 
     cmp     #$FF
@@ -91,7 +91,7 @@
     cpx     #$FF
     bne     @S1
     beq     error
-    
+
 @S1:
 	sta     setfont_fp
 	sty     setfont_fp+1
@@ -103,7 +103,7 @@
 
     ; FCLOSE 0
     ; mfree (setfont_fp)
-    
+
 
     lda     setfont_fp
     ldy     setfont_fp+1
@@ -122,8 +122,8 @@
 ;
 ;----------------------------------------------------------------------
 .proc usage
-    print msg_usage, NOSAVE
-    
+    print msg_usage
+
     BRK_ORIX     XCRLF
 
     ; Code de retour
@@ -139,10 +139,10 @@
 .proc error
     BRK_ORIX XCRLF
 
-    print txt_file_not_found, NOSAVE
+    print txt_file_not_found
 
 
-    print (userzp), NOSAVE
+    print (userzp)
 
 
     BRK_ORIX XCRLF

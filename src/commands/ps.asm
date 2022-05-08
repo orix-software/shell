@@ -2,40 +2,40 @@
 .export  _ps
 
 .proc _ps
-    
+
     ptr_kernel_process           :=userzp ; 2 bytes
     ptr_kernel_process_current   :=userzp+2
     ptr_one_process              :=userzp+4 ; 2 bytes
     ps_current_process_read      :=userzp+6 ; 1 bytes max 256 process to display
 
 
-    print   str_ps_title,NOSAVE
+    print   str_ps_title
 
     ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
     BRK_KERNEL XVARS
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
- 
+
     ldy     #$01 ; because init consume the first byte
-    
-@NEXT_PROCESS:    
+
+@NEXT_PROCESS:
     sty     ps_current_process_read
     ldy     ps_current_process_read
 
-    
+
     lda     (ptr_kernel_process),y
     beq     @SKIP_NOPROCESS
 
     iny
     tya
-    
+
     ldy     #$00
     PRINT_BINARY_TO_DECIMAL_16BITS 1
     CPUTC   ' '
 
-    
+
     lda     #kernel_process_struct::kernel_one_process_struct_ptr_low
-    clc     
+    clc
     adc     ps_current_process_read
     tay
 
@@ -44,7 +44,7 @@
 
 
     lda     #kernel_process_struct::kernel_one_process_struct_ptr_high
-    clc     
+    clc
     adc     ps_current_process_read
     tay
 
@@ -53,14 +53,14 @@
 
 
     ldy     #kernel_one_process_struct::process_name
-@L1:    
+@L1:
     lda     (ptr_one_process),y
 
     beq     @S1
     BRK_KERNEL XWR0
     iny
     bne     @L1
-@S1:    
+@S1:
 
 
     RETURN_LINE

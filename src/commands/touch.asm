@@ -25,7 +25,7 @@
     sta     touch_mainargs_arg1_ptr
     sty     touch_mainargs_arg1_ptr+1
 
-  
+
 
   ldy     #$00
 @L20:
@@ -44,9 +44,9 @@
   BRK_KERNEL XOPEN
   BRK_KERNEL XCLOSE
 
-  rts  
+  rts
 @slash_found:
-  print str_arg_not_managed_yet,NOSAVE
+  print str_arg_not_managed_yet
   rts
 
 
@@ -61,13 +61,13 @@
   bne     @S1
   cpy     #NULL
   bne     @S1
-  PRINT   str_oom
+  print   str_oom
   rts
 
 @missing_operand:
-  print   touch,NOSAVE
-  print   str_missing_operand,NOSAVE
-  rts  
+  print   touch
+  print   str_missing_operand
+  rts
 
 
 @S1:
@@ -89,7 +89,7 @@
 
   ; try to get the first / from the end in order to detect path
   dey
-@L3:  
+@L3:
   lda     (touch_ptr1),y
   cmp     #'/'
   beq     @path_found
@@ -99,7 +99,7 @@
 @path_found:
   cpy     #$00
   beq     @relative
-  
+
   lda     #$00
   sta     (touch_ptr1),y
 
@@ -112,7 +112,7 @@
   ; then create last arg
   ldy     touch_arg_length
   dey
-@L4:  
+@L4:
   lda     (touch_ptr1),y
   beq     @param_found
   dey
@@ -145,11 +145,11 @@
   BRK_KERNEL XOPEN
 
   rts
-  
+
 skip_touch_slash_case:
   fopen (touch_mainargs_argv),O_WRONLY|O_CREAT
   rts
-  
+
 
 .endproc
 str_arg_not_managed_yet:
