@@ -52,11 +52,11 @@
 		BRK_KERNEL XWSTR0
 
 		; display prompt (# char)
-           	; BRK_KERNEL XECRPR
+           	 BRK_KERNEL XECRPR
 		;lda	#'>'
 		;lda	#']'
-		lda	#'$'
-		cputc
+		;lda	#'$'
+		;cputc
 .endmacro
 
 ;----------------------------------------------------------------------

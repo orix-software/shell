@@ -679,7 +679,7 @@ addr_commands:
 .endif
 ; 6
 .ifdef WITH_DATE
-    .addr  _date
+    .addr  _otimer
 .endif
 ; 7
 .ifdef WITH_DEBUG

@@ -24,7 +24,7 @@
     BRK_KERNEL XCRLF
 
 
-    PRINT   str_ch376_check_exist
+    print   str_ch376_check_exist
     jsr     _ch376_check_exist
     jsr     _print_hexa
 
