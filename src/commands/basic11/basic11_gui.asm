@@ -148,7 +148,6 @@
 @joystick_pressed:
 
 
-   ; BRK_KERNEL XRDW0            ; read keyboard
     cmp     #KEY_RIGHT
     beq     @change_letter_right    ; right key not managed
 

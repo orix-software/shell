@@ -855,7 +855,6 @@ commands_length:
     .byt 4 ;ca65
 .endif
 
-
 .ifdef WITH_CLEAR
     .byt 5 ; _clear ;
 .endif
@@ -924,7 +923,6 @@ commands_length:
     .byt 5 ; _mkdir
 .endif
 
-
 .ifdef WITH_MV
     .byt 2 ; mv
 .endif
@@ -972,7 +970,6 @@ commands_length:
 ;.ifdef WITH_RESCUE
     ;.byt 6 ; sh
 ;.endif
-
 
 .ifdef WITH_TELNETD
     .byt 7 ; telnetd
@@ -1032,7 +1029,6 @@ cat:
     .asciiz "cat"
 .endif
 ; 3
-
 
 .ifdef WITH_CLEAR
 clear:
@@ -1288,7 +1284,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.1.1"
+    .asciiz  "Shell v2022.X"
 
 str_compile_time:
     .byt    __DATE__

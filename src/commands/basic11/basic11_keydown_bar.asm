@@ -16,7 +16,7 @@
     bcs     @scroll
     jmp     @skip
 
-@myout:    
+@myout:
     rts
 @scroll:
 
@@ -65,8 +65,7 @@
     lda     (basic11_ptr3),y
     cmp     #';'
     beq     @out501
-   
-    
+
     iny
     jmp     @L2001
 
@@ -84,9 +83,7 @@
     iny
 
     bne     @L2000
-@out500:    
-
-
+@out500:
 
     rts
 @skip:
@@ -105,9 +102,6 @@
     jsr     erase_bar
 
 
-
-
-    
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     (basic11_ptr4),y
     cmp     #24
@@ -117,11 +111,11 @@
 
 
     sta     (basic11_ptr4),y
-@skip_inc:    
+@skip_inc:
 
     jsr     compute_position_bar
 
-    jsr     displays_bar    
+    jsr     displays_bar
 
 
     jsr     _basic11_find_next_software_down_key

@@ -128,7 +128,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @no_oom5
     print   str_enomem
 
-    BRK_KERNEL XCRLF
+    crlf
 
     lda     #basic11_sizeof_max_length_of_conf_file_bin
     ldy     #$00
@@ -343,6 +343,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #<basic11_sizeof_binary_conf_file
     ldy     #>basic11_sizeof_binary_conf_file
   ; reads byte
+    ldx     basic11_fp
     BRK_KERNEL XFREAD
 
     ; Close fp
@@ -436,7 +437,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     asl     KBDCTC
     bcc     @no_ctrl
     pla
-    BRK_KERNEL XCRLF
+    crlf
     rts
 @no_ctrl:
     pla
@@ -537,7 +538,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     stx     DEFAFF
     ldx     #$00
     BRK_KERNEL XDECIM
-    BRK_KERNEL XCRLF
+    crlf
 
     ;lda     #$13
     ;sta     $bb80
@@ -667,7 +668,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     basic11_ptr1
 
     BRK_KERNEL XWSTR0
-    BRK_KERNEL XCRLF
+    crlf
 
     rts
 @read_rom:
@@ -685,6 +686,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #<$FFFF
     ldy     #>$FFFF
   ; reads byte
+    ldx     basic11_fp
     BRK_KERNEL XFREAD
 
 
@@ -916,10 +918,6 @@ tapes_path_basic10:
 @S10:
     sta     (basic11_ptr2),y
 
-
-
-
-
     fopen (basic11_ptr2), O_RDONLY
     cpx     #$FF
     bne     @read_maindb ; not null then  start because we did not found a conf
@@ -927,7 +925,7 @@ tapes_path_basic10:
     bne     @read_maindb ; not null then  start because we did not found a conf
 
     print   str_basic11_missing
-    BRK_KERNEL XCRLF
+    crlf
     lda     #$FF
     ldx     #$FF
     rts
@@ -964,6 +962,7 @@ tapes_path_basic10:
     lda     #<BASIC11_MAX_MAINDB_LENGTH
     ldy     #>BASIC11_MAX_MAINDB_LENGTH
   ; reads byte
+    ldx     basic11_fp
     BRK_KERNEL XFREAD
 
     fclose  (basic11_fp)

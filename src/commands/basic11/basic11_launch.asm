@@ -12,7 +12,7 @@
     adc     basic11_ptr1
     bcc     @S500
     inc     basic11_ptr1+1
-@S500:    
+@S500:
     sta     basic11_ptr1
 
 
@@ -70,23 +70,21 @@
     lda     #$00
     sta     (basic11_ptr1),y
 
- 
+
     mfree(basic11_ptr4)
     mfree(basic11_ptr2)
-    ;jsr     _lsmem
-;@me12:    
-    ;jmp     @me12   
+
 
     ldy     basic11_ptr1+1
     lda     basic11_ptr1
     BRK_KERNEL XEXEC
 
     rts
-str_basic11:     
+str_basic11:
     .byte "basic11 "
     .byte $22,$00 ; "
 
-str_basic10:     
+str_basic10:
     .byte "basic10 "
     .byte $22,$00 ; "
 
