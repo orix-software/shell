@@ -1,6 +1,8 @@
 # env
 
-### Displays env variables
+## Introduction
+
+Displays env variables
 
 ## SYNOPSYS
 

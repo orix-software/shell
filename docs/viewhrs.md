@@ -1,10 +1,12 @@
 # viewhrs
 
-### Displays a hrs file
+## Introduction
+
+Displays a hrs file
 
 ## SYNOPSYS
 
-+ #viewhrs toto.hrs
++ /#viewhrs toto.hrs
 
 ## DESCRIPTION
 

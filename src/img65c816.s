@@ -12,7 +12,7 @@ os_type:
         ; 1 : Sedoric
         ; 2 : Stratsed
         ; 3 : FTDOS
-        .byt $00	        ; 
+        .byt $00	        ;
         .byt $00                ; reserved
  
         .byt $00		; reserved

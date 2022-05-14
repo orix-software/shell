@@ -279,7 +279,7 @@ loop2:
 @exit:
 
     cli
-    RETURN_LINE
+    crlf
 
 @next_bank:
     dec     bank_decimal_current_bank

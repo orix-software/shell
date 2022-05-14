@@ -1,5 +1,9 @@
 # 2022.2
 
+* Add readline
+
+* update man pages
+
 # 2020.3
 
 * Fix overflow in command line

@@ -16,7 +16,7 @@ is65c816:
 is6502:
     print   str_6502
 next:
-    RETURN_LINE
+    crlf
     print   str_lscpu
     rts
 str_65c816:

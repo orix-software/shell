@@ -1,6 +1,8 @@
 # mount
 
-### Displays mounts
+## Introduction
+
+Displays mounts
 
 ## SYNOPSYS
 

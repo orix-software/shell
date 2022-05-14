@@ -1,6 +1,8 @@
 # mv
 
-### move a file to another file
+## Introduction
+
+ move a file to another file
 
 ## SYNOPSYS
 

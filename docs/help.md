@@ -1,6 +1,8 @@
 # help
 
-### Display commands
+## Introduction
+
+Display commands
 
 ## SYNOPSYS
 

@@ -21,11 +21,11 @@
     lda     $bb80+27*40+3,x
     and     #%01111111
     sta     $bb80+27*40+3,x
-    inx     
+    inx
     lda     $bb80+27*40+3,x
     ora     #$80
     sta     $bb80+27*40+3,x
-   
+
     txa
     sta     (basic11_ptr4),y
 

@@ -1,6 +1,8 @@
 # meminfo
 
-### Displays memory info
+## Introduction
+
+Displays memory info
 
 ## SYNOPSYS
 

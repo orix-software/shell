@@ -2,7 +2,7 @@
 
 ## Introduction
 
- Change the default font
+Change the default font
 
 ## SYNOPSYS
 

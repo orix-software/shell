@@ -63,7 +63,7 @@
 @S1:
 
 
-    RETURN_LINE
+    crlf
 @SKIP_NOPROCESS:
     ldy     ps_current_process_read
     iny

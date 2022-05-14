@@ -1,6 +1,8 @@
 # lsmem
 
-### Displays malloc table
+## Introduction
+
+ Displays malloc table
 
 ## SYNOPSYS
 
@@ -8,7 +10,7 @@
 
 ## DESCRIPTION
 
-Displays malloc table
+Displays malloc table. Free chunks and busy chuncks are displayed with ranges.
 
 ## EXAMPLES
 

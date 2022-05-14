@@ -1,7 +1,5 @@
-
 .proc _debug
     debug_mainargs_ptr := userzp
-
 
     ; routine used for some debug
     print   str_cpu
@@ -9,32 +7,32 @@
     cmp     #CPU_65C02
     bne     @is6502
     print   str_65C02
-    RETURN_LINE
+    crlf
 .pc02
     bra     @next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 .p02
 @is6502:
 
     print   str_6502
-	RETURN_LINE
+	crlf
 @next:
     print   str_ch376
     jsr     _ch376_ic_get_ver
     BRK_KERNEL XWR0
-    BRK_KERNEL XCRLF
+    crlf
 
 
     print   str_ch376_check_exist
     jsr     _ch376_check_exist
     jsr     _print_hexa
 
-	BRK_KERNEL XCRLF
+	crlf
 
     jsr     mount_sdcard
-    BRK_KERNEL XCRLF
+    crlf
 
     jsr     mount_key
-    BRK_KERNEL XCRLF
+    crlf
 
     lda     #$09
     ldy     #$02

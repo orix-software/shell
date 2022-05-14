@@ -1,6 +1,5 @@
 .export _watch
 
-
 .proc _watch
     save_mainargs_ptr       := userzp
     watch_ptr1              := userzp+2
@@ -9,7 +8,7 @@
     watch_mainargs_argc     := userzp+8
     watch_mainargs_arg1_ptr := userzp+10
 
-    MALLOC_AND_TEST_OOM_EXIT 100
+    malloc 100
     sta     save_mainargs_ptr
     sty     save_mainargs_ptr+1
 
@@ -66,9 +65,18 @@
     lda     save_mainargs_ptr
     ldy     save_mainargs_ptr+1
 
-    BRK_KERNEL XEXEC
-    cmp     #ENOENT
-    beq     @notfound
+    jsr     _bash
+
+
+    cmp     #EOK
+    beq     @isok
+
+    jsr     external_cmd
+
+    rts
+
+
+@isok:
     jsr     @wait
     jmp     @L1
 

@@ -1,9 +1,9 @@
 .proc _sh
- 
+
     ptr_file_sh_interactive_ptr_save  := userzp+2
     ptr_file_sh_interactive_size_file := userzp+4  ; 16 bits
     ptr_file_sh_interactive_ptr       := userzp+6
-    sh_interactive_line_number        := userzp+8  
+    sh_interactive_line_number        := userzp+8
     sh_interactive_save_ptr           := userzp+10    ; one byte
     fp_ptr_file_sh_interactive        := userzp+12
 
@@ -29,7 +29,7 @@
     BRK_KERNEL XGETARGV
     sta     sh_mainargs_arg1_ptr
     sty     sh_mainargs_arg1_ptr+1
-    
+
     ldy     #$00
     lda     (sh_mainargs_arg1_ptr),y
     bne     thereis_a_script_to_execute
@@ -39,12 +39,12 @@
     jmp     start_sh_interactive
 
 
-thereis_a_script_to_execute: 
+thereis_a_script_to_execute:
 
     fopen (sh_mainargs_arg1_ptr),O_RDONLY
-    
 
- 
+
+
     ; A register contains FP id
     sta     fp_ptr_file_sh_interactive
     sty     fp_ptr_file_sh_interactive+1
@@ -67,9 +67,9 @@ thereis_a_script_to_execute:
     ; and drop others (max 64KB of file)
     lda     CH376_DATA
     lda     CH376_DATA
-    
+
     txa     ; get low byte of the size
-    
+
     BRK_KERNEL XMALLOC
     sta      ptr_file_sh_interactive_ptr
     sta      ptr_file_sh_interactive_ptr_save
@@ -80,35 +80,34 @@ thereis_a_script_to_execute:
   ; define target address
     lda     ptr_file_sh_interactive_ptr
     sta     PTR_READ_DEST
-    
+
     lda     ptr_file_sh_interactive_ptr+1
     sta     PTR_READ_DEST+1
 
   ; We read the file with the correct
     lda     ptr_file_sh_interactive_size_file
     ldy     ptr_file_sh_interactive_size_file+1
-  ; reads byte 
+  ; reads byte
     BRK_KERNEL XFREAD
     fclose (fp_ptr_file_sh_interactive)
 
-    
 
 
 @restart:
 
 @L1:
     ldy    #$00
-@L4:    
+@L4:
     lda    (ptr_file_sh_interactive_ptr),y
     pha
     BRK_KERNEL XWR0
-    pla  
+    pla
     cmp    #$0D
     beq    @compute
     inc    ptr_file_sh_interactive_ptr
     bne    @do_not_inc
     inc    ptr_file_sh_interactive_ptr+1
-@do_not_inc:    
+@do_not_inc:
     ;iny
     bne    @L4
 @compute:
@@ -126,7 +125,7 @@ thereis_a_script_to_execute:
    ; lda     ptr_file_sh_interactive_ptr_save
 
    ; ldy     ptr_file_sh_interactive_ptr_save+1
- 
+
    ; jsr    _bash
    ; cmp    #EOK
   ;  bne    @call_xexec
@@ -145,22 +144,22 @@ thereis_a_script_to_execute:
 
     ldy     ptr_file_sh_interactive_ptr_save+1
     BRK_KERNEL XEXEC
- 
+
     cmp    #EOK
     beq    @nextline
-    PRINT str_error
+    print str_error
     lda    sh_interactive_line_number
     ldy    #$00
     ldx    #$10 ;
     stx    DEFAFF
     ldx    #$00
     BRK_KERNEL XDECIM
-    RETURN_LINE
+    crlf
     lda     ptr_file_sh_interactive_ptr_save
 
     ldy     ptr_file_sh_interactive_ptr_save+1
     BRK_KERNEL XWSTR0
-    RETURN_LINE
+    crlf
     rts
 @nextline:
     lda ptr_file_sh_interactive_ptr
@@ -191,15 +190,14 @@ thereis_a_script_to_execute:
     bne    @notFinished
     ; Reached the end
     lda    #$01
-    rts 
+    rts
 
 @notFinished:
     lda    #$01
 
 
 @S20:
-    rts    
+    rts
 str_error:
-  .asciiz "Syntax error line : "    
+  .asciiz "Syntax error line : "
 .endproc
-

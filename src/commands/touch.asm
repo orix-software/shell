@@ -133,7 +133,7 @@
   lda     touch_ptr1
   ldx     touch_ptr1+1
 
-  ldy     #O_WRONLY
+  ldy     #O_WRONLY|O_CREAT
   BRK_KERNEL XOPEN
 
 
@@ -141,7 +141,7 @@
   lda     touch_ptr1
   ldx     touch_ptr1+1
 
-  ldy     #O_WRONLY
+  ldy     #O_WRONLY|O_CREAT
   BRK_KERNEL XOPEN
 
   rts

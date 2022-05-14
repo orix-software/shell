@@ -1,6 +1,8 @@
 # pwd
 
-### Display the current path
+## Introduction
+
+ Display the current path
 
 ## SYNOPSYS
 

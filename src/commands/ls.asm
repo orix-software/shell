@@ -289,7 +289,7 @@ go:
   ZZ0004:
     ;FREE RESB
 
-    BRK_KERNEL XCRLF
+    crlf
 
     ; Erreur si aucun fichier trouvé
     lda     ls_file_found
@@ -321,7 +321,7 @@ Error:
 
 
 error_oom:
-    BRK_KERNEL XCRLF
+    crlf
 
 .ifdef ls_use_malloc
     ;FREE RESB
@@ -432,7 +432,7 @@ display_catalog:
     ; [HCL]
     ; Pas de saut de ligne, on est déjà au dernier caractère
     ; (UNIQUEMENT POUR LA VERSION LONGUE AVEC AFFICHAGE DE L'ATTRIBUT)
-    BRK_KERNEL XCRLF
+    crlf
 
     lda     ls_column_max
     sta     ls_column

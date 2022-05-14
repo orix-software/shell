@@ -11,17 +11,17 @@ language_type
         .byt $00	            ; reserved in the future, it will define if it's a Hyperbasic file, teleass file, forth file 
         .byt $00                ; reserved
         .byt $00		        ; reserved
-        .byt $00	            
+        .byt $00
         .byt $00	            ; reserved
         .byt $00                ; reserved
 type_of_file
-        .byt $00                 
+        .byt $00
         .byt <start_adress,>start_adress ; loading adress
         .byt <EndOfMemory,>EndOfMemory   ; end of loading adress
         .byt <start_adress,>start_adress ; starting adress
- 
-start_adress
- 
+
+start_adress:
+
 	*=$1000
 	lda #$41
 	sta $bb80

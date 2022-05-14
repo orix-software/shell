@@ -124,7 +124,7 @@
 .proc usage
     print msg_usage
 
-    BRK_ORIX     XCRLF
+    crlf
 
     ; Code de retour
     lda     #$ff
@@ -137,15 +137,14 @@
 ;
 ;----------------------------------------------------------------------
 .proc error
-    BRK_ORIX XCRLF
+    crlf
 
     print txt_file_not_found
-
 
     print (userzp)
 
 
-    BRK_ORIX XCRLF
+    crlf
     mfree (userzp)
 
     ; Code de retour

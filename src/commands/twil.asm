@@ -45,21 +45,21 @@ twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     clc
     adc     #48
     BRK_KERNEL XWR0
-    RETURN_LINE
+    crlf
     rts
 error:
     print   str_unknown
-    RETURN_LINE
+    crlf
     rts
 
 usage:
     print   str_usage
-    RETURN_LINE
+    crlf
     rts
 
 error_overflowbanking:
     print   str_usage
-    RETURN_LINE
+    crlf
     rts
 
 check_next_parameter_u:
@@ -76,7 +76,7 @@ check_next_parameter_u:
     sta     (twil_ptr1),y
     jsr     savemount
     print str_swap_root_to_usbkey
-    RETURN_LINE
+    crlf
     rts
 
 
@@ -95,7 +95,7 @@ check_next_parameter_d:
     ; and save
     jsr     savemount
     print str_swap_root_to_sdcard
-    RETURN_LINE
+    crlf
     rts
 savemount:
     sta     RES

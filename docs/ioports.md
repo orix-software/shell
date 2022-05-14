@@ -1,6 +1,8 @@
 # ioports
 
-### Display I/O Ports
+## Introduction
+
+Display I/O Ports
 
 ## SYNOPSYS
 

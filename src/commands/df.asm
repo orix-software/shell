@@ -97,28 +97,28 @@ df_suite:
 
 	; Conversion en blocs de 1k de l'espace total
 	lsr     TR3
-	ror TR2
-	ror TR1
-	ror TR0
+	ror     TR2
+	ror     TR1
+	ror     TR0
 
-	lda TR0
-	sta RES
-	lda TR1
-	sta RES+1
-	lda TR2
-	sta RESB
-	lda TR3
-	sta RESB+1
+	lda     TR0
+	sta     RES
+	lda     TR1
+	sta     RES+1
+	lda     TR2
+	sta     RESB
+	lda     TR3
+	sta     RESB+1
 
-	jsr convd
+	jsr     convd
 
 ;	clc
-	lda userzp
+	lda     userzp
 ;	adc #$04
-	ldy userzp+1
+	ldy     userzp+1
 ;	bcc *+3
 ;	iny
-	jsr bcd2str
+	jsr     bcd2str
 	; Remplace le caractère nul par un ' '
 	lda #' '
 	sta (RES),y
@@ -188,7 +188,7 @@ print_device:
 
 	;ZZ0001:
 df_end:
-	BRK_ORIX XCRLF
+	crlf
 	rts
 
 

@@ -1,6 +1,8 @@
 # bank
 
-### Displays bank or switch a bank
+## Introduction
+
+Displays bank or switch a bank
 
 ## SYNOPSYS
 

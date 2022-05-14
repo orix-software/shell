@@ -3,7 +3,7 @@
 .proc _pstree
     jmp newpstree
     print str_init
-    RETURN_LINE
+    crlf
     rts
 str_init:
     .asciiz "init---bash---pstree"

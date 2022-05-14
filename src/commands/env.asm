@@ -2,11 +2,11 @@
 
 .proc _env
     print str_PATH
-    BRK_KERNEL XCRLF
+    crlf
     print str_PWD
     BRK_KERNEL XGETCWD ; XGETCWD
     BRK_KERNEL XWSTR0
-    BRK_KERNEL XCRLF
+    crlf
     rts
 str_PWD:
     .asciiz "PWD="

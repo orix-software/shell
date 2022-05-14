@@ -1,6 +1,8 @@
 # touch
 
-### Create an empty file
+## Introduction
+
+Create an empty file
 
 ## SYNOPSYS
 

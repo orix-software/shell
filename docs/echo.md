@@ -1,6 +1,8 @@
 # echo
 
-### Display a message
+## Introduction
+
+Display a message
 
 ## SYNOPSYS
 

@@ -1,12 +1,14 @@
 # twil
 
-## Manage twilighte board options
+## Introduction
+
+Manage twilighte board options
 
 ## SYNOPSYS
 
-+ #twil -f  : displays firmware
-+ #twil -u  : switch default device : usbdrive
-+ #twil -s  : swap default device to : sdcard
++ /#twil -f  : displays firmware
++ /#twil -u  : switch default device : usbdrive
++ /#twil -s  : swap default device to : sdcard
 
 ## DESCRIPTION
 

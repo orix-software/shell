@@ -39,7 +39,7 @@
 
    print   str_column
 
-   BRK_KERNEL XCRLF
+   crlf
 
 ; Displays all free chunk
 
@@ -129,7 +129,7 @@
 
     jsr    _print_hexa_no_sharp
 
-    BRK_KERNEL XCRLF
+    crlf
 
 @S5:
     ldx     lsmem_savex
@@ -222,7 +222,7 @@ kernel_malloc_busy_begin := $2BA
 
 @S1:
 
-    BRK_KERNEL XCRLF
+    crlf
     ; save X
     ldx     lsmem_savex
     ldy     lsmem_savey_kernel_malloc_busy_pid_list

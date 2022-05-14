@@ -89,7 +89,7 @@ CH376_ERR_FILE_CLOSE 	= $B4
     lda     CH376_DATA
     sta     TR2
     lda     CH376_DATA
-    sta     TR3    
+    sta     TR3
     rts
 .endproc
 
@@ -97,24 +97,24 @@ CH376_ERR_FILE_CLOSE 	= $B4
     lda     #CH376_DISK_CAPACITY
     sta     CH376_COMMAND
     jsr     _ch376_wait_response
-    
+
     lda     #CH376_RD_USB_DATA0
     sta     CH376_COMMAND
-    
+
     lda     CH376_DATA
 
     lda     CH376_DATA ; total sector0
     sta     TR0 ; $5F
- 
+
     lda     CH376_DATA ; total sector1
     sta     TR1  ; $ED
- 
+
     lda     CH376_DATA ; total sector2
     sta     TR2 ; $92
-    
+
     lda     CH376_DATA ; total sector3
-    sta     TR3 ; $d8    
-    
+    sta     TR3 ; $d8
+
     rts
 .endproc
 
@@ -132,11 +132,11 @@ CH376_ERR_FILE_CLOSE 	= $B4
 .IFPC02
 .pc02
     stz     CH376_DATA
-.p02    
+.p02
 .else
     lda     #$00
     sta     CH376_DATA
-.endif    
+.endif
     jsr     _ch376_wait_response
     rts
 .endproc
@@ -151,12 +151,12 @@ CH376_ERR_FILE_CLOSE 	= $B4
 .pc02
     stz     CH376_DATA
     stz     CH376_DATA
-.p02    
-.else	
+.p02
+.else
     lda     #$00
     sta     CH376_DATA
     sta     CH376_DATA
-.endif	
+.endif
     jsr     _ch376_wait_response
     rts
 .endproc
@@ -168,9 +168,9 @@ CH376_ERR_FILE_CLOSE 	= $B4
     lda     #CH376_SET_FILE_NAME        ;$2f
     sta     CH376_COMMAND
     ldx     #$00
-loop:	
+loop:
     lda     BUFNOM,x
-    
+
     beq     end                         ; we reached 0 value
     cmp     #'a'                        ; 'a'
     bcc     skip
@@ -188,7 +188,7 @@ end:
     sta     CH376_DATA
 
     rts
-.endproc 
+.endproc
 
 .proc _ch376_file_open
 
@@ -212,11 +212,11 @@ end:
     sta     TR2
     lda     CH376_DATA
     sta     TR3
-    rts	
+    rts
 .endproc
-	
+
 .proc _ch376_reset_all
-    lda     #CH376_RESET_ALL ; 5 
+    lda     #CH376_RESET_ALL ; 5
     sta     CH376_COMMAND
 	; waiting
     ldy     #$00
@@ -229,16 +229,16 @@ loop:
     bne     loop
 
     rts
-.endproc 
+.endproc
 
 .proc _ch376_check_exist
-    lda     #CH376_CHECK_EXIST ; 
+    lda     #CH376_CHECK_EXIST ;
     sta     CH376_COMMAND
     lda     #$55
     sta     CH376_DATA
     lda     CH376_DATA
     rts
-.endproc    
+.endproc
 
 .proc _ch376_ic_get_ver
     lda     #CH376_GET_IC_VER
@@ -249,46 +249,46 @@ loop:
     adc     #$30 ; return ascii version
     rts
 .endproc
-	
+
 .proc _ch376_set_usb_mode
     lda     #CH376_SET_USB_MODE ; $15
     sta     CH376_COMMAND
-.ifdef WITH_SDCARD_FOR_ROOT	
+.ifdef WITH_SDCARD_FOR_ROOT
 	lda     #CH376_SET_USB_MODE_CODE_SDCARD
-.else	    
+.else
     lda     #CH376_SET_USB_MODE_CODE_USB_HOST_SOF_PACKAGE_AUTOMATICALLY
-.endif    
-    sta     CH376_DATA	
+.endif
+    sta     CH376_DATA
     rts
-.endproc    
+.endproc
 
 _ch376_set_bytes_read:
     ; A and Y contains number of bytes to read
     ldx     #CH376_BYTE_READ
     .byt     $2C                ; jump 2 bytes with the hack bit $xxxx
-_ch376_set_bytes_write:	
+_ch376_set_bytes_write:
     ldx     #CH376_BYTE_WRITE
     stx     CH376_COMMAND
     sta     CH376_DATA
     sty     CH376_DATA
-.IFPC02	
+.IFPC02
     stz     CH376_DATA
     stz     CH376_DATA
 .else
     lda     #$00
     sta     CH376_DATA
     sta     CH376_DATA
-.endif	
+.endif
     jsr     _ch376_wait_response
     rts
-	
+
 .proc _ch376_disk_mount
     lda     #CH376_DISK_MOUNT
     sta     CH376_COMMAND
     jsr     _ch376_wait_response
     ; if we read data value, we have then length of the volume name
     rts
-.endproc    
+.endproc
 
 
 
@@ -309,7 +309,7 @@ loop3:
     dey
     bne     loop3
 	; error is here
-    lda     #$01 
+    lda     #$01
     rts
 
 no_error:
@@ -320,7 +320,7 @@ no_error:
     rts
 good_message:
     rts
-.endproc    
+.endproc
+
 str_usbdrive_controller_not_found:
 	.byte "Usb drive controller not found !",$0D,$0A,0
-

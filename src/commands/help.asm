@@ -123,7 +123,7 @@ loopme:
     cpx     #BASH_NUMBER_OF_COMMANDS_BUILTIN  ; loop until we have display all commands
     bne     loop
 
-    RETURN_LINE
+    crlf
     rts
 usage:
     print str_usage
@@ -250,7 +250,7 @@ list_command_in_bank:
     sta     ID_BANK_TO_READ_FOR_READ_BYTE
 
     cli
-    RETURN_LINE
+    crlf
     rts
 @no_commands:
     cli

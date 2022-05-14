@@ -84,7 +84,7 @@ start_man:
     BRK_KERNEL XGETARGV
     BRK_KERNEL XWSTR0
 
-    RETURN_LINE
+    crlf
 
     rts
 error:

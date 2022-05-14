@@ -10,7 +10,7 @@ loop:
 .IFPC02
 .pc02
     bra loop
-.p02    
+.p02
 .else
     jmp loop
 .endif
@@ -22,9 +22,9 @@ end_string_found:
     inc RES+1
 skip:
     sta RES
-    
+
     ldy #$00
-loopcopy:    
+loopcopy:
     lda (RESB),y
     beq end
     sta (RES),y
@@ -33,14 +33,13 @@ loopcopy:
 .IFPC02
 .pc02
     bra loopcopy
-.p02    
+.p02
 .else
     jmp loopcopy
-.endif   
+.endif
 end:
     lda #$00
     sta (RES),y
     ; y return the length
     rts
 .endproc
-

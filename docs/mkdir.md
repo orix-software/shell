@@ -1,10 +1,12 @@
 # mkdir
 
-### Create a folder
+## Introduction
+
+Create a folder
 
 ## SYNOPSYS
 
-+ #mkdir PATH
++ /#mkdir PATH
 
 ## DESCRIPTION
 

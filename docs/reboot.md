@@ -1,6 +1,8 @@
 # reboot
 
-### reboot machine
+## Introduction
+
+ reboot machine
 
 ## SYNOPSYS
 

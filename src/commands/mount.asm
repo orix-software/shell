@@ -16,9 +16,6 @@
     sty     mount_mainargs_ptr+1
     stx     mount_mainargs_argc
 
-
-
-
     ; mount /dev/sda1 /
     ldx   #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS

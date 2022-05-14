@@ -35,11 +35,11 @@
     lda     #' '                ; FIXME CGETC
     BRK_KERNEL XWR0
     print   str_compile_time
-    BRK_KERNEL XCRLF
+    crlf
     rts
 no_param:
     print   str_os
-    BRK_KERNEL XCRLF
+    crlf
 error:
     rts
 

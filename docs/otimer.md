@@ -1,6 +1,8 @@
 # otimer
 
-### Display timer since the Oric is power on
+## Introduction
+
+Display timer since the Oric is power on
 
 ## SYNOPSYS
 

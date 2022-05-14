@@ -42,14 +42,16 @@ not_found:
     print   txt_file_not_found
 
     print   (viewhrs_mainargs_arg1)
-    RETURN_LINE
+    crlf
     rts
 next:
     sta     VIEWHRS_SAVE_FP
     sty     VIEWHRS_SAVE_FP+1
     SWITCH_OFF_CURSOR
     HIRES
-    FREAD   $A000,8000,1,VIEWHRS_SAVE_FP
+
+    fread $A000, 8000, 1, VIEWHRS_SAVE_FP
+
     fclose (VIEWHRS_SAVE_FP)
 
 cget_loop:

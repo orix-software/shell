@@ -15,7 +15,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda    #NETWORK_ROM
     jmp    _twilbank
 @out:
-    BRK_KERNEL XCRLF
+    crlf
     rts
 .endproc
 
@@ -63,11 +63,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     ptr2 := userzp+9 ; FIXME erase shell commands
     fd_systemd := userzp+13 ; FIXME erase shell commands
 
-
-
-
     sta     save_mode
-    ;PRINT str_starting
 
     malloc   100,ptr1,str_oom ; [,fail_value]
 
@@ -89,8 +85,6 @@ save_mode := userzp+11 ; FIXME erase shell commands
     sta     ptr2
     lda     #>str_path_rom
     sta     ptr2+1
-
-
 
 @copy:
     ldy     #$00

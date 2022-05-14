@@ -8,7 +8,7 @@
 
 .proc _lsof
     print   lsof_header
-    RETURN_LINE
+    crlf
     ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
     BRK_KERNEL XVARS
     sta     ptr_kernel_process_lsof
@@ -24,7 +24,7 @@
     stx     DEFAFF
     ldx     #$00
     BRK_KERNEL XDECIM
-    RETURN_LINE
+    crlf
 
     ldy     #(kernel_process_struct::kernel_one_process_struct_ptr_low)
     lda     (ptr_kernel_process_lsof),y

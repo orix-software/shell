@@ -1,4 +1,4 @@
-# Command: clear
+# clear
 
 ## Introduction
 

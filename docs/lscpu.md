@@ -1,6 +1,8 @@
 # lscpu
 
-### Displays cpu info
+## Introduction
+
+Displays cpu info
 
 ## SYNOPSYS
 

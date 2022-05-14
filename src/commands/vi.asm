@@ -86,31 +86,30 @@ VI_SIZE_OF_BUFFER                         =  1000
 ;* Limits : Max 64 Kbytes for a file, but it's not possible because we have not enough memory, and file pointer are 16 bits        */
 
 ;* labels prefixed with _ are populated from C*/
-   
-   
+
+
 
 .proc _vi
 	SWITCH_OFF_CURSOR
     CLS
-    MALLOC .sizeof(vi_struct_data)
+    malloc .sizeof(vi_struct_data)
 
     cmp     #NULL
     bne     @not_oom2
     cpy     #NULL
     bne     @not_oom2
-    PRINT   str_OOM
+    print   str_OOM
     ; oom
-    rts    
-@not_oom2:   
+    rts
+@not_oom2:
 
     sta     vi_struct
     sty     vi_struct+1
 
-    
     ldy     #$00
     lda     #$00
     sta     (vi_struct),y  ; FIXME 65C02
-    
+
     lda     #$00
     ldx     #$00
     jsr     vi_set_length_current_file
@@ -126,7 +125,7 @@ VI_SIZE_OF_BUFFER                         =  1000
     stz     vi_current_position_in_edition_buffer+1
 
 
-.else    
+.else
     lda     #$00
     sta     vi_screen_x_position_edition
     sta     vi_screen_y_position_edition
@@ -135,19 +134,19 @@ VI_SIZE_OF_BUFFER                         =  1000
     sta     vi_current_position_ptr_edition_buffer+1
     sta     vi_current_position_in_edition_buffer
     sta     vi_current_position_in_edition_buffer+1
-	
+
 .endif
-   
+
     lda     #$01
     sta     vi_screen_y_position_edition_real
     sta     vi_is_a_new_file ; If 1 then it's a new file
-    
-    MALLOC  VI_SIZE_OF_BUFFER
+
+    malloc  VI_SIZE_OF_BUFFER
     cmp     #NULL
     bne     not_oom
     cpy     #NULL
     bne     not_oom
-    PRINT str_OOM
+    print str_OOM
     ; oom
     rts
 str_OOM:
@@ -156,51 +155,51 @@ not_oom:
     sta     vi_ptr_edition_buffer
     sta     vi_current_position_ptr_edition_buffer
     sta     vi_current_position_ptr_edition_buffer_end
-    
+
     sty     vi_ptr_edition_buffer+1
     sty     vi_current_position_ptr_edition_buffer+1
     sty     vi_current_position_ptr_edition_buffer_end+1
 
-    
+
     jsr     update_position_screen
     jsr     fill_screen_with_empty_line
     jsr     vi_editor_switch_on_cursor
-	
+
 
 
     ; fopen command line
-        
+
     cpx     #$FF
     bne     load_file
     cmp     #$FF
     bne     load_file
     beq     not_found
-	
-load_file:                       ; Valid file		
+
+load_file:                       ; Valid file
 	; Load the file
     sta     vi_save_fp          ; save fp
     sty     vi_save_fp+1
-	
-    ldy     #$00             
+
+    ldy     #$00
 
 @loop:
    ; FIXME arg
     sta     (vi_struct),y
     beq     @out
-	
+
     ; store filename in the struct
-    
+
     iny
 .IFPC02
 .pc02
     bra     @loop
 .else
     jmp     @loop
-.endif	
+.endif
 @out:
 
-    
-    ; 
+
+    ;
 
     lda     vi_ptr_edition_buffer
     sta     PTR_READ_DEST
@@ -211,20 +210,19 @@ load_file:                       ; Valid file
     ldy     #>VI_SIZE_OF_BUFFER-1
     BRK_ORIX XFREAD
     lda     #$00
-    ; And of file 
+    ; And of file
 .IFPC02
 .pc02
     sta     (PTR_READ_DEST)
-.else    
+.else
     ldy     #$00  ; fix 65c02
     sta     (PTR_READ_DEST),y
-.endif    
+.endif
 
-    
     lda     PTR_READ_DEST+1
     sec
     sbc     vi_ptr_edition_buffer+1
-    tax			
+    tax
     lda     PTR_READ_DEST
     sec
     sbc     vi_ptr_edition_buffer
@@ -236,25 +234,25 @@ load_file:                       ; Valid file
     pla
     ; set the end of the buffer end
 	txa
-	clc 
+	clc
 	adc     vi_current_position_ptr_edition_buffer_end+1
 	sta     vi_current_position_ptr_edition_buffer_end+1
-	
+
     txa
 	clc
 	adc     vi_current_position_ptr_edition_buffer_end
 	bcc     skipadd
 	inc     vi_current_position_ptr_edition_buffer_end+1
-skipadd:	
+skipadd:
 	sta     vi_current_position_ptr_edition_buffer_end
-    
+
     lda     vi_ptr_edition_buffer
     sta     tmp0_16
-    
+
     lda     vi_ptr_edition_buffer+1
     sta     tmp0_16+1
 	; and displays
-restart_load:    
+restart_load:
     ldy     #$00
 @loop:
     lda     (tmp0_16),y
@@ -262,7 +260,7 @@ restart_load:
     cmp     #$0A ; return line ?
 	bne     @next2
     jsr     add40_to_vi_screen_address_position_edition
-    jmp     @loop    
+    jmp     @loop
 
 @next:
     cmp     #$0D
@@ -280,24 +278,24 @@ restart_load:
 .pc02
     stz     vi_screen_x_position_edition
     stz     vi_screen_y_position_edition
-    stz     vi_is_a_new_file ; If 1 then it's an new file   
-.p02    
+    stz     vi_is_a_new_file ; If 1 then it's an new file
+.p02
 .else
     lda     #$00
     sta     vi_screen_x_position_edition
     sta     vi_screen_y_position_edition
-    sta     vi_is_a_new_file ; If 1 then it's an new file   
-.endif    
+    sta     vi_is_a_new_file ; If 1 then it's an new file
+.endif
     lda     #$01
-    
+
     sta     vi_screen_y_position_edition_real
-    
-   
+
+
 
 
 	jsr     vi_editor_fill_screen_with_text
 	jmp     start
-not_found:  
+not_found:
 ;********************************
 ;* Displays "argv[1]" [new file]*
 ;********************************
@@ -309,16 +307,16 @@ not_found:
 .else
     ldy     #$00
     sta     (vi_struct),y
-.endif    
+.endif
     ; FIXME command line
     beq     start ; not args
     ; at this step we have a filename passed in first arg
     ; let's displays "new file ..."
 
     lda     #34                             ; Displays "
-    sta     VI_COMMANDLINE_VIDEO_ADRESS     ; on command line 
-    ldx     #$01                
-    
+    sta     VI_COMMANDLINE_VIDEO_ADRESS     ; on command line
+    ldx     #$01
+
     ldy     #$00
 
 @loop:
@@ -327,13 +325,13 @@ not_found:
     beq     @out3
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x   ; and displays in command line
     ; store filename in the struct
-    
+
     inx
     iny
     jmp     @loop
-    
+
 @out3:
-    
+
 
     lda     #34
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x
@@ -341,7 +339,7 @@ not_found:
     lda     #' '
     sta     VI_COMMANDLINE_VIDEO_ADRESS,x
     inx
-    
+
     ldy     #$00
 @loop2:
     lda     msg_nofile,y
@@ -356,7 +354,7 @@ not_found:
 ;***************************************/
 
 
-; Clear screen  
+; Clear screen
 start:
     jsr     update_position_screen
 	jsr     command_edition
@@ -381,9 +379,9 @@ inc_tmp0_16_with_y:
     inc     vi_screen_y_position_edition
     lda     #$00
     sta     vi_screen_x_position_edition
-    jsr     update_position_screen    
+    jsr     update_position_screen
     jmp     restart_load ; fix 650c02
-  
+
 
 syntax_highlight_display:
 
@@ -402,17 +400,17 @@ syntax_highlight_display:
     sta (vi_screen_address_position_edition),y
     iny
     jmp @finish  ; fixme 65C02
-    
+
 @out2:
 @finish:
 
     pla
-   
+
     rts
 
-vi_detect_syntax_highlight:  
+vi_detect_syntax_highlight:
     ; is it asm ?
-   
+
     ldx     #$00
 @loop:
     ; FIXME read arg1 from command line
@@ -427,11 +425,11 @@ vi_detect_syntax_highlight:
        ; FIXME read arg1 from command line
     cmp     #'a'
     bne     @out
-    inx 
+    inx
         ; FIXME read arg1 from command line
-    
+
     cmp     #'s'
-    bne     @out    
+    bne     @out
         ; FIXME read arg1 from command line
     cmp     #'m'
     bne     @out
@@ -440,7 +438,7 @@ vi_detect_syntax_highlight:
 @out:
    rts
 
- 
+
 add40_to_vi_screen_address_position_edition:
 
     ; update pointer
@@ -462,7 +460,6 @@ add40_to_vi_screen_address_position_edition:
 
     rts
 
-    
 print_new_file:
 
 .include "vi/lib.asm"
@@ -480,13 +477,13 @@ msg_insert:
     .asciiz "-- INSERT --"
 msg_nofile:
     .asciiz "[New File]"
-    
+
 msg_nofilename:
-    .byte 17,"E32: No file name",16,0    
-	
+    .byte 17,"E32: No file name",16,0
+
 msg_impossibletowrite:
     .byte 17,"E99: Impossible to write",16,0
-    
+
 msg_written:
     .asciiz "written"
 .endproc

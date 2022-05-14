@@ -1,6 +1,8 @@
 # ps
 
-### Displays process list
+## Introduction
+
+Displays process list
 
 ## SYNOPSYS
 

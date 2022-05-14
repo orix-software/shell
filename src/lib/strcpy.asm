@@ -9,7 +9,7 @@ loop:
 .IFPC02
 .pc02
 	bra loop
-.p02  
+.p02
 .else
 	jmp loop
 .endif

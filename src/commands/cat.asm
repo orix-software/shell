@@ -68,7 +68,7 @@
     cmp     #$0A
     bne     @autre
 
-    BRK_TELEMON XCRLF
+    crlf
     bne     @next    ; ACC n'est pas modifié par XCRLF, donc saut inconditionnel
 
   @autre:
@@ -92,7 +92,7 @@
     ; Tester si ACC==1 pour détecter une éventuelle erreur?
 
   @finished:
-    BRK_TELEMON XCRLF
+    crlf
     rts
 
 txt_usage:

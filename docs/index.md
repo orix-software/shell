@@ -1,8 +1,9 @@
 
 [orix]
 
-#commands
+# commands
 
+* [bank](bank)
 * [basic10](basic10)
 * [basic11](basic11)
 * [cat](cat)
@@ -29,5 +30,3 @@
 * [touch]
 * [uname]
 * [viewhrs]
-
-

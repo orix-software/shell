@@ -2,8 +2,6 @@
 
 CP_SIZE_OF_BUFFER=40000
 
-
-
 cp_mv_rm_argv_ptr       := userzp ; 16 bits
 cp_mv_rm_argc           := userzp+2 ; 8 bits
 cp_tmp                  := userzp+4

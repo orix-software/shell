@@ -1,6 +1,8 @@
-#  cp
+# cp
 
-### Copy a file to another file
+## Introduction
+
+ Copy a file to another file
 
 ## SYNOPSYS
 

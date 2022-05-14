@@ -29,13 +29,12 @@ str_error_ch376
 	.byte "Error for CH376",$0d,$0a,0
 #endif
 
-	
-str_function_debug	
-.asc "Function used to debug some features",0	
+str_function_debug
+.asc "Function used to debug some features",0
 
 
 #ifdef DEBUG
-print_hex	
+print_hex
 	jsr binhex
 	stx userzp
 	;txa
@@ -43,8 +42,8 @@ print_hex
 	lda userzp
 	;txa
 	BRK_TELEMON(XWR0)
-	rts                   ;done	
-		
+	rts                   ;done
+
 
 binhex
 	pha                   ;save byte
@@ -69,9 +68,9 @@ lsn
     bcc decimal          ;in decimal range
 ;
     adc #$66              ;hex compensate
-;         
-decimal	
-	eor #%00110000        ;finalize nybble		
+;
+decimal
+	eor #%00110000        ;finalize nybble
 	rts
-		
+
 #endif

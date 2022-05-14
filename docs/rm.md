@@ -1,10 +1,12 @@
 # rm
 
-### remove file
+## Introduction
+
+remove file
 
 ## SYNOPSYS
 
-+ #rm /myfile
++ /# rm /myfile
 
 ## DESCRIPTION
 

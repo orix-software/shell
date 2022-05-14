@@ -1,6 +1,8 @@
 # uname
 
-### Display kernel info
+## Introduction
+
+Display kernel info
 
 ## SYNOPSYS
 
