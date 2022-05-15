@@ -21,14 +21,12 @@ jobs:
         id: cache-sdk
         uses: actions/cache@v2
         with:
-          env:
-            CACHEID: ${{ secrets.CACHE_ID }}
           path: |
              cc65/**/*
              orix-sdk/**/*
              md2hlp/**/*
              orix-software/**/*
-          key: $CACHEID-orix-sdk_
+          key: ${{ secrets.CACHE_ID }}-orix-sdk_
 
       - name: Checkout cc65
         if: steps.cache-sdk.outputs.cache-hit != 'true'
@@ -105,14 +103,12 @@ jobs:
       - name: Install sdk
         uses: actions/cache@v2
         with:
-          env:
-            CACHEID: ${{ secrets.CACHE_ID }}
           path: |
              cc65/**/*
              orix-sdk/**/*
              md2hlp/**/*
              orix-software/**/*
-          key: $CACHEID-orix-sdk_
+          key: ${{ secrets.CACHE_ID }}-orix-sdk_
 
       - name: Prepare environment for project
         run: mv cc65 ../ && mv orix-software ../ && mv orix-sdk ../ && mv md2hlp ../
