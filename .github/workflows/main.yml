@@ -26,7 +26,7 @@ jobs:
              orix-sdk/**/*
              md2hlp/**/*
              orix-software/**/*
-          key: ${{ runner.os }}-orix-sdk_
+          key: ${CACHE_ID}-orix-sdk_
 
       - name: Checkout cc65
         if: steps.cache-sdk.outputs.cache-hit != 'true'
