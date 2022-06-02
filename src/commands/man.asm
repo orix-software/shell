@@ -18,7 +18,7 @@
     sty     man_xmainargs_ptr+1
     cpx     #$01 ; No args ?
     bne     start_man
-    jmp     error
+    jmp     error_arg
 start_man:
     ;
     MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+4)             ; length of /usr/share/man/ + 8 + .hlp + \0
@@ -92,7 +92,8 @@ error:
     lda     MAN_SAVE_MALLOC_PTR
     ldy     MAN_SAVE_MALLOC_PTR+1
     BRK_KERNEL XFREE
-    print   str_man_error, SAVE
+error_arg:
+    print   str_man_error
     rts
 
 next:
