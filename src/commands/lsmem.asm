@@ -22,7 +22,7 @@
    BRK_KERNEL XVARS
    sta     lsmem_ptr_pid_table
    sty     lsmem_ptr_pid_table+1
- 
+
 
    ldx     #MALLOC_TABLE_COPY
    BRK_KERNEL XVALUES
@@ -37,14 +37,14 @@
    sty     lsmem_ptr_malloc+1
 
 
-   print   str_column,NOSAVE
+   print   str_column
 
-   BRK_KERNEL XCRLF
+   crlf
 
-; Displays all free chunk 
+; Displays all free chunk
 
     ldx     #$00
-    
+
 @L1:
     stx     lsmem_savex
    ; stx $5002
@@ -64,13 +64,13 @@
     lda     lsmem_ptr_malloc+1
 
     lda     (lsmem_ptr_malloc),y
-    
-    
+
+
     bne     @S4
     beq     @S5
 
 @S4:
-    print   str_FREE,NOSAVE
+    print   str_FREE
 
     ldx     lsmem_savex
     txa
@@ -78,7 +78,7 @@
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_begin_high
     tay
     lda     (lsmem_ptr_malloc),y
-  
+
     jsr     _print_hexa
 
     ldx     lsmem_savex
@@ -89,7 +89,7 @@
     lda     (lsmem_ptr_malloc),y
 
     jsr     _print_hexa_no_sharp
-        
+
     CPUTC   ':'
 
     txa
@@ -97,7 +97,7 @@
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_end_high
     tay
     lda     (lsmem_ptr_malloc),y
-    
+
 
     jsr     _print_hexa
 
@@ -106,11 +106,11 @@
     adc     #kernel_malloc_struct::kernel_malloc_free_chunk_end_low
     tay
     lda     (lsmem_ptr_malloc),y
-       
+
     jsr     _print_hexa_no_sharp
-    
+
     stx     lsmem_savexbis
-        
+
     CPUTC   ' '
   ; Affichage de la size free
     lda     lsmem_savexbis
@@ -128,41 +128,41 @@
     lda     (lsmem_ptr_malloc),y
 
     jsr    _print_hexa_no_sharp
-    
-    BRK_KERNEL XCRLF
-        
+
+    crlf
+
 @S5:
     ldx     lsmem_savex
-    inx 
+    inx
     cpx     #KERNEL_MALLOC_FREE_FRAGMENT_MAX
     bne     @L1
 
-; Displays all busy chunk 
+; Displays all busy chunk
 ; ******************************************************************************************
 ; ******************************************************************************************
     ldx     #$00
 
     ldy     #kernel_malloc_struct::kernel_malloc_busy_pid_list
 myloop2:
-    
+
     lda     (lsmem_ptr_malloc),y
 
     beq     busy_chunk_is_empty             ; If malloc pid table is equal to 0 at position X, then there is nothing allocated
-    
-    ; at this step X contains the first busy chunck    
+
+    ; at this step X contains the first busy chunck
     stx     lsmem_savex
     sty     lsmem_savey_kernel_malloc_busy_pid_list
- 
-        
 
-    print   str_BUSY,NOSAVE
+
+
+    print   str_BUSY
 
     ; Get start adress of busy chunk
 kernel_malloc_busy_begin := $2BA
     ; Displays the beginning of the Offset (busy)
     ldx     lsmem_savex
     lda     kernel_malloc_busy_begin,x
-    
+
     jsr     _print_hexa
 
    ; Displays the low Offset (busy)
@@ -172,7 +172,7 @@ kernel_malloc_busy_begin := $2BA
     tay
     lda     (lsmem_ptr_malloc),y
     jsr     _print_hexa_no_sharp
-        
+
     CPUTC ':'
 
     ldx     lsmem_savex
@@ -189,8 +189,8 @@ kernel_malloc_busy_begin := $2BA
     tay
     lda     (lsmem_ptr_malloc),y
     jsr     _print_hexa_no_sharp
-        
-        
+
+
     CPUTC ' '
 
     ldx     lsmem_savex
@@ -201,12 +201,12 @@ kernel_malloc_busy_begin := $2BA
     lda     (lsmem_ptr_malloc),y
 
     jsr     _print_hexa
-    
+
     txa
     clc
     adc     #kernel_malloc_struct::kernel_malloc_busy_chunk_size_low
     tay
-   
+
     lda     (lsmem_ptr_malloc),y
 
 
@@ -214,15 +214,15 @@ kernel_malloc_busy_begin := $2BA
 
     CPUTC ' '
     sty     lsmem_savey
-    
+
     ldy     lsmem_savey_kernel_malloc_busy_pid_list
-    
+
     ldy     lsmem_savey
 
 
 @S1:
 
-    BRK_KERNEL XCRLF
+    crlf
     ; save X
     ldx     lsmem_savex
     ldy     lsmem_savey_kernel_malloc_busy_pid_list
@@ -248,11 +248,11 @@ display_pid:
     rts
 
 
- display_process2: 
+ display_process2:
     sty     lsmem_current_process_read
 
     lda     #kernel_process_struct::kernel_one_process_struct_ptr_low
-    clc     
+    clc
     adc     lsmem_current_process_read
     tay
 
@@ -261,7 +261,7 @@ display_pid:
 
 
     lda     #kernel_process_struct::kernel_one_process_struct_ptr_high
-    clc     
+    clc
     adc     lsmem_current_process_read
     tay
 
@@ -270,14 +270,14 @@ display_pid:
 
 
     ldy     #kernel_one_process_struct::process_name
-@L1:    
+@L1:
     lda     (lsmem_ptr_one_process),y
 
     beq     @S1
     BRK_KERNEL XWR0
     iny
     bne     @L1
-@S1:    
+@S1:
     rts
 
 display_process:
@@ -285,12 +285,12 @@ display_process:
     tay
     lda     (lsmem_ptr_pid_table),y
     cmp     #$01 ; init ?
-    beq     @is_init_process     
+    beq     @is_init_process
 
 
 
-    txa     
-    clc     
+    txa
+    clc
     adc     #kernel_process_struct::kernel_one_process_struct_ptr_low
     tay
 
@@ -299,7 +299,7 @@ display_process:
 
 
     txa
-    clc     
+    clc
     adc     #kernel_process_struct::kernel_one_process_struct_ptr_high
     tay
 
@@ -311,7 +311,7 @@ display_process:
     sta     lsmem_ptr_command_name_tmp
 
     ldy     #kernel_one_process_struct::process_name
-@L1_string:    
+@L1_string:
     lda     (lsmem_ptr_command_name),y
     beq     @out
     BRK_KERNEL XWR0
@@ -329,29 +329,29 @@ display_process:
     jmp     @out
 @finish_align:
     rts
-  
+
 @is_init_process:
     lda     #'i'
     BRK_KERNEL XWR0
     lda     #'n'
     BRK_KERNEL XWR0
     lda     #'i'
-    BRK_KERNEL XWR0    
+    BRK_KERNEL XWR0
     lda     #'t'
     BRK_KERNEL XWR0
     lda     #' '
-    BRK_KERNEL XWR0    
+    BRK_KERNEL XWR0
     lda     #' '
-    BRK_KERNEL XWR0    
+    BRK_KERNEL XWR0
     lda     #' '
-    BRK_KERNEL XWR0    
+    BRK_KERNEL XWR0
     lda     #' '
-    BRK_KERNEL XWR0    
+    BRK_KERNEL XWR0
     rts
 
 str_column:
     .asciiz "TYPE START END   SIZE"
-    ;  PROGRAM  PID FUNC",0    
+    ;  PROGRAM  PID FUNC",0
 
 str_empty_program:
     .asciiz "       "
@@ -364,4 +364,3 @@ str_INIT:
 str_SPACE:
     .asciiz "unkn "
 .endproc
-

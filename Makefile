@@ -7,10 +7,9 @@ ROM=shell
 ORIX_ROM=shell
 
 all : init build after_success
-.PHONY : all 
+.PHONY : all
 
 HOMEDIR=/home/travis/bin/
-HOMEDIR_ORIX=/home/travis/build/orix-software/$(ROM)/
 ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
@@ -82,7 +81,4 @@ after_success:
 	cp README.md build/usr/src/shell/
 	cp src/* build/usr/src/shell/src/ -adpR
 
-
-
-  
 

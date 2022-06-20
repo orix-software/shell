@@ -32,23 +32,23 @@
 
     lda     bash_struct_ptr
     sta     help_argv1_ptr
-    
+
     lda     bash_struct_ptr+1
     sta     help_argv1_ptr+1
 
     ldy     #shell_bash_struct::command_line
-@get_first_arg:    
+@get_first_arg:
     lda     (bash_struct_ptr),y
     beq     @noparam
     cmp     #' ' ; Read command line until we reach a space.
-    beq     @found_space  
+    beq     @found_space
     inc     help_argv1_ptr
     bne     @skip30
     inc     help_argv1_ptr+1
 @skip30:
     iny
     bne     @get_first_arg
-@found_eos:    
+@found_eos:
    ; mfree(cd_path)
     rts
 
@@ -69,7 +69,7 @@
     beq     usage
     cmp     #'b'
     bne     usage
-@read_next_byte:    
+@read_next_byte:
     iny
     lda     (help_argv1_ptr),y ; get arg
     beq     usage
@@ -81,7 +81,7 @@
 
     lda    #<internal_commands_str
     sta    help_ptr3
-    
+
     lda    #>internal_commands_str
     sta    help_ptr3+1
 
@@ -98,7 +98,7 @@ loop:
 
     ; Next lines are build to put in columns commands
     lda     internal_commands_length,x           ; get the length of the command
-    
+
 
     sec      ; Add \0 to the compute of the string
     adc     help_ptr3
@@ -111,22 +111,22 @@ loop:
     lda     internal_commands_length,x           ; get the length of the command
     tax
 
-loopme:                     
+loopme:
     stx     current_column              ; Save0 X in TR6
-    CPUTC   ' '                         ; Displays a char 
-    ldx     current_column              ; Get again X 
+    CPUTC   ' '                         ; Displays a char
+    ldx     current_column              ; Get again X
     inx                                 ; inx
     cpx     #$08                        ; Do we reached 8 columns ?
     bne     loopme                      ; no, let's display again a space
-    ldx     current_command             ; do we reached 
-    inx 
+    ldx     current_command             ; do we reached
+    inx
     cpx     #BASH_NUMBER_OF_COMMANDS_BUILTIN  ; loop until we have display all commands
     bne     loop
-  
-    RETURN_LINE
+
+    crlf
     rts
 usage:
-    print str_usage,NOSAVE
+    print str_usage
     rts
 list_command_in_bank:
 
@@ -139,10 +139,10 @@ list_command_in_bank:
     iny
     lda     (help_argv1_ptr),y
     beq     @only_one_digit
-    ; convert to decimal 
+    ; convert to decimal
 
 
-    sec 
+    sec
     sbc     #$30
     sta     bank_save_argc
     ldx     current_bank ; 2 chars, get the first digit
@@ -156,7 +156,7 @@ list_command_in_bank:
     bne     @compute_again
     clc
     adc     bank_save_argc
-    sta     bank_save_argc  
+    sta     bank_save_argc
     ; is it greater than 32 ?
     cmp     #32
     bcc     @do_not_switch_to_ram_bank
@@ -165,14 +165,14 @@ list_command_in_bank:
     ora     #%00100000
     sta     $342
     pla
-@do_not_switch_to_ram_bank:    
-    jsr     _twil_get_registers_from_id_bank   
+@do_not_switch_to_ram_bank:
+    jsr     _twil_get_registers_from_id_bank
     ; A bank
 
     sta     current_bank
-    stx     $343   
+    stx     $343
 
-@only_one_digit: 
+@only_one_digit:
 
 ; Get number of commands
     sei
@@ -221,7 +221,7 @@ list_command_in_bank:
     ldy     help_ptr2
     ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM
-    
+
     beq     @S1
     cli
     BRK_KERNEL XWR0
@@ -237,7 +237,7 @@ list_command_in_bank:
     sty     help_length
     cpy     #$08
     bne     @add_spaces
-@continue:    
+@continue:
     CPUTC ' '
     sei
     jsr     @update_ptr
@@ -245,20 +245,20 @@ list_command_in_bank:
     sty     help_ptr2
     dec     help_number_command
     bne     @loopme
-@out:    
+@out:
     lda     help_ID_BANK_TO_READ_FOR_READ_BYTE_save
     sta     ID_BANK_TO_READ_FOR_READ_BYTE
-    
+
     cli
-    RETURN_LINE
+    crlf
     rts
-@no_commands:    
+@no_commands:
     cli
-    print str_nocommands_found,NOSAVE
+    print str_nocommands_found
     rts
 @add_spaces:
     sty     help_ptr2
-    CPUTC ' ' 
+    CPUTC ' '
     ldy     help_ptr2
     iny
     cpy     #$08
@@ -281,4 +281,4 @@ str_nocommands_found:
     .byte "No commands found in this bank",$0A,$0D,0
 str_usage:
     .byte "Usage: help [-bBANKID]",$0A,$0D,0
-.endproc 
+.endproc

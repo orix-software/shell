@@ -36,7 +36,7 @@
 	; le périphérique avant de faire df)
 
     BRK_KERNEL XGETCWD ; Return A and Y the string
-  
+
 
     sty     TR6
     ldy     #O_RDONLY
@@ -44,7 +44,7 @@
     BRK_KERNEL XOPEN
     cmp     #$FF
     bne     @free
-    
+
     cpx     #$FF
     bne     @free
     rts
@@ -73,52 +73,52 @@ df_suite:
 ;	sty RES+1
 ;	jsr _strcpy
 
-	print df_header
-	jsr   _ch376_disk_query
+	print df_header, SAVE
+	jsr     _ch376_disk_query
 
 	; Sauvegarde l'espace dispo pour plus tard
 	; (XWSTR0 utilise TRx)
 	;Conversion en blocs de 1k de l'espace libre
-	lsr TR7
-	ror TR6
-	ror TR5
-	ror TR4
+	lsr     TR7
+	ror     TR6
+	ror     TR5
+	ror     TR4
 
 	; Sauvegarde l'espace dispo pour plus tard
 	; (XWSTR0 utilise TRx)
-	lda TR4
-	sta userzp+2
-	lda TR5
-	sta userzp+3
-	lda TR6
-	sta userzp+4
-	lda TR7
-	sta userzp+5
+	lda     TR4
+	sta     userzp+2
+	lda     TR5
+	sta     userzp+3
+	lda     TR6
+	sta     userzp+4
+	lda     TR7
+	sta     userzp+5
 
 	; Conversion en blocs de 1k de l'espace total
-	lsr TR3
-	ror TR2
-	ror TR1
-	ror TR0
+	lsr     TR3
+	ror     TR2
+	ror     TR1
+	ror     TR0
 
-	lda TR0
-	sta RES
-	lda TR1
-	sta RES+1
-	lda TR2
-	sta RESB
-	lda TR3
-	sta RESB+1
+	lda     TR0
+	sta     RES
+	lda     TR1
+	sta     RES+1
+	lda     TR2
+	sta     RESB
+	lda     TR3
+	sta     RESB+1
 
-	jsr convd
+	jsr     convd
 
 ;	clc
-	lda userzp
+	lda     userzp
 ;	adc #$04
-	ldy userzp+1
+	ldy     userzp+1
 ;	bcc *+3
 ;	iny
-	jsr bcd2str
+	jsr     bcd2str
 	; Remplace le caractère nul par un ' '
 	lda #' '
 	sta (RES),y
@@ -149,7 +149,7 @@ df_suite:
 
 	jsr display_size
 
-	print (userzp)
+	print (userzp), SAVE
 
 
 	mfree (userzp)
@@ -188,7 +188,7 @@ print_device:
 
 	;ZZ0001:
 df_end:
-	BRK_ORIX XCRLF
+	crlf
 	rts
 
 

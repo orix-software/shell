@@ -11,9 +11,9 @@
 @basic11:
 
     lda     basic_str_fullline_title,y
-@continue:    
+@continue:
     beq     @outline
-    
+
     sta     $bb80,y
 
     lda     basic_str_fullline,y

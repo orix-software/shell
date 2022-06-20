@@ -12,7 +12,7 @@ XORIX_BEGIN_BACKGROUND_GRID       :=$A000+40*8+(3)*40
 XORIX_BEGIN_BACKGROUND_GRID_EVEN  :=XORIX_BEGIN_BACKGROUND_GRID
 XORIX_BEGIN_BACKGROUND_GRID_ODD   :=XORIX_BEGIN_BACKGROUND_GRID+40
 
-XORIX_STRUCT_ptr:=userzp 
+XORIX_STRUCT_ptr:=userzp
 ;XORIX struct
 ;unsigned char posx;
 ;unsigned char posy;
@@ -49,19 +49,18 @@ posx_byte_cur       := userzp+13
   lda     #$00
   sta     (XORIX_STRUCT_ptr),y
   iny
-  sta (XORIX_STRUCT_ptr),y
- 
+  sta     (XORIX_STRUCT_ptr),y
+
  ; lda #$17
   ;sta $A000   ; empty
-  
   ;sta $A000+40
-  ;sta $A000+80  
+  ;sta $A000+80
   ;sta $A000+120
   ;sta $A000+160
 
 ;  sta $A000+200
   ;sta $A000+240
-  ;sta $A000+280  
+  ;sta $A000+280
   ;sta $A000+320
 
   ;sta $A000+360 ; empty
@@ -69,7 +68,7 @@ posx_byte_cur       := userzp+13
   ;jsr _blit_menu
   ;jsr _blit_background
 loopme:
-  jsr _get_joystick_mouse
+  jsr     _get_joystick_mouse
   jsr put_cursor
   jsr wait
   jmp  loopme
@@ -77,7 +76,7 @@ loopme:
   rts
  ; rts
 
- 
+
   _blit_background:
 
     lda #<XORIX_BEGIN_BACKGROUND_GRID_EVEN
@@ -131,32 +130,31 @@ blit_bg_line_odd:
     rts
 
 
-  
   _blit_menu:
-   
+
     lda   #$01
     sta   HRSFB
     lda   #100
     sta   HRS1
     lda   #100
     sta   HRS2
-        
-      
+
+
     lda   #<str_file
     sta   RES
     lda   #>str_file
     sta   RES+1
     jsr   _outtext
-  
+
     rts
 str_file:
     .asciiz "File"
 
 wait:
   ldy #$FA
-@L2:  
+@L2:
   ldx #$00
-@L1:  
+@L1:
   inx
   bne @L1
   iny
@@ -700,14 +698,11 @@ SDL_HiresTableLow:
 .byt <($a000+7920+40)
 
 
-
- 
-  
   _outtext:
 
           ; count the length of the string
           ldy   #$00
-  @loop:        
+  @loop:
           lda   (RES),y
           beq   @out
           iny
@@ -715,11 +710,11 @@ SDL_HiresTableLow:
   @out:
           ; XSCHAR routine from telemon needs to have the length of the string in X register
           ; copy Y register to X register. It could be optimized in 65C02 with TYX
-          tya 
+          tya
           tax
-      
-          lda   RES     ; XSCHAR needs in A and Y the adress of the string        
-          ldy   RES+1    
+
+          lda   RES     ; XSCHAR needs in A and Y the adress of the string
+          ldy   RES+1
           BRK_ORIX XSCHAR
           rts
 filename_menu:
@@ -745,8 +740,8 @@ put_cursor:
   ldx   #$00
 @L2:
   ldy   posx_byte_cur
-@L1:  
-  
+@L1:
+
   lda   #%01000000
   sta   (pos_cursor),y
 
@@ -801,11 +796,11 @@ flush:
 @L1:
   ldy   cursor_read_sprite
   lda   (cursor),y
-  
+
   ldy   posx_byte_cur
   ora   (pos_cursor),y
   sta   (pos_cursor),y
-  
+
   inc   cursor_read_sprite
 
 
@@ -815,7 +810,7 @@ flush:
   lda   (cursor),y
 
   inc   cursor_read_sprite
-  
+
   ldy   posx_byte_cur
   iny
   ora   (pos_cursor),y
@@ -835,10 +830,10 @@ flush:
 
 
   lda  posx
-  sta  posx_old 
+  sta  posx_old
 
   lda  posy
-  sta  posy_old 
+  sta  posy_old
 
   rts
 
@@ -949,16 +944,16 @@ posx_6:
   .byte 0,1,2,3,4,5
 
   .byte 0,1,2,3,4,5
-  .byte 0,1,2,3,4,5  
+  .byte 0,1,2,3,4,5
 
   .byte 0,1,2,3,4,5
-  .byte 0,1,2,3,4,5  
+  .byte 0,1,2,3,4,5
 
   .byte 0,1,2,3,4,5
-  .byte 0,1,2,3,4,5  
+  .byte 0,1,2,3,4,5
 
   .byte 0,1,2,3,4,5
-  .byte 0,1,2,3,4,5  
+  .byte 0,1,2,3,4,5
 
 mouse_cursor_0:
 .byte  %01100000,%00000000 ; 0
@@ -967,8 +962,8 @@ mouse_cursor_0:
 .byte  %01111100,%00000000 ; 3
 .byte  %01111110,%00000000 ; 4
 .byte  %01111111,%00000000 ; 5
-.byte  %01111100,%00000000 ; 
-.byte  %01011100,%00000000 
+.byte  %01111100,%00000000 ;
+.byte  %01011100,%00000000
 .byte  %01000110,%00000000
 .byte  %01000110,%00000000
 
@@ -979,8 +974,8 @@ mouse_cursor_1:
 .byte  %01011110,%00000000 ; 3
 .byte  %01011111,%00000000 ; 4
 .byte  %01011111,%01100000 ; 5
-.byte  %01011110,%00000000 ; 
-.byte  %01001110,%00000000 
+.byte  %01011110,%00000000 ;
+.byte  %01001110,%00000000
 .byte  %01000011,%00000000
 .byte  %01000011,%00000000
 
@@ -992,8 +987,8 @@ mouse_cursor_2:
 .byte  %01001111,%00000000 ; 3
 .byte  %01001111,%01100000 ; 4
 .byte  %01001111,%01110000 ; 5
-.byte  %01001111,%00000000 ; 
-.byte  %01000111,%00000000 
+.byte  %01001111,%00000000 ;
+.byte  %01000111,%00000000
 .byte  %01000001,%01100000
 .byte  %01000001,%01100000
 
@@ -1005,8 +1000,8 @@ mouse_cursor_3:
 .byte  %01000111,%01100000 ; 3
 .byte  %01000111,%01110000 ; 4
 .byte  %01000111,%01111000 ; 5
-.byte  %01000111,%01100000 ; 
-.byte  %01000011,%01100000 
+.byte  %01000111,%01100000 ;
+.byte  %01000011,%01100000
 .byte  %01000000,%01110000
 .byte  %01000000,%01110000
 
@@ -1018,8 +1013,8 @@ mouse_cursor_4:
 .byte  %01000011,%01110000 ; 3
 .byte  %01000011,%01111000 ; 4
 .byte  %01000011,%01111100 ; 5
-.byte  %01000011,%01110000 ; 
-.byte  %01000001,%01110000 
+.byte  %01000011,%01110000 ;
+.byte  %01000001,%01110000
 .byte  %01000000,%01011000
 .byte  %01000000,%01011000
 
@@ -1030,8 +1025,8 @@ mouse_cursor_5:
 .byte  %01000001,%01111000 ; 3
 .byte  %01000001,%01111100 ; 4
 .byte  %01000001,%01111110 ; 5
-.byte  %01000001,%01111000 ; 
-.byte  %01000000,%01111000 
+.byte  %01000001,%01111000 ;
+.byte  %01000000,%01111000
 .byte  %01000000,%01001100
 .byte  %01000000,%01001100
 
@@ -1060,26 +1055,25 @@ mouse_cursor_5:
 
     lda #$15
     sta CH376_COMMAND
-    
+
     lda #$06
     sta CH376_DATA
 
     lda #$0B
     sta CH376_COMMAND
-    
+
     lda #$17
     sta CH376_DATA
-    
+
     lda #$D8
     sta CH376_DATA
 
-
     lda #$45
     sta CH376_COMMAND
-    
+
     lda #$01
     sta CH376_DATA
-    
+
     lda CH376_DATA
     jsr wait_response
 
@@ -1092,7 +1086,7 @@ mouse_cursor_5:
 ;170 OUT CMD,&49:OUT DAT,&1 :' Select configuration 1
 ;180 GOSUB 510
    rts
-   
+
 wait_response:
 @L1:
    lda CH376_COMMAND

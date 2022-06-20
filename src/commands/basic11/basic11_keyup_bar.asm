@@ -4,8 +4,7 @@
     ldy    #basic11_gui_struct::current_entry_id
     lda    (basic11_ptr4),y
     beq    @out3
-    
-    
+
     ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
     lda    (basic11_ptr4),y
     beq    @continue
@@ -15,8 +14,7 @@
     jmp    @manage_position
 
 
-    
-@continue:   
+@continue:
     ; erase bar
     lda     #$10
     sta     $bb80+40+1
@@ -40,9 +38,6 @@
     sta     (basic11_ptr4),y
 
 
-
-
-
     jsr     _basic11_find_next_software_up_key
 
     ldx     #$00
@@ -53,8 +48,7 @@
     lda     (basic11_ptr3),y
     cmp     #';'
     beq     @out501
-   
-    
+
     iny
     jmp     @L2001
 

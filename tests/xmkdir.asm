@@ -1,17 +1,17 @@
 .include "telestrat.inc"
 
-     PRINT creating
-     PRINT file1
-     RETURN_LINE
+     print creating
+     print file1
+     crlf
 
      lda   #<file1
      ldx   #>file1
      BRK_TELEMON XMKDIR
      rts
 creating
-    .ASCIIZ "Creating ... "  
+    .asciiz "Creating ... "
 file1
-    .ASCIIZ "/jede/toulou/pouet"
-  
+    .asciiz "/jede/toulou/pouet"
+
 
 

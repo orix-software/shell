@@ -1,12 +1,12 @@
 .export _env
 
 .proc _env
-    print str_PATH,NOSAVE
-    BRK_KERNEL XCRLF
-    print str_PWD,NOSAVE
+    print str_PATH
+    crlf
+    print str_PWD
     BRK_KERNEL XGETCWD ; XGETCWD
     BRK_KERNEL XWSTR0
-    BRK_KERNEL XCRLF
+    crlf
     rts
 str_PWD:
     .asciiz "PWD="
@@ -22,4 +22,4 @@ str_SHELL:
     .asciiz "SHELL="
 str_HOSTTYPE:
     .asciiz "HOSTTYPE="
-.endproc 
+.endproc

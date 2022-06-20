@@ -2,6 +2,6 @@
 
 .proc _clear
 	; Use FILLM instead or CLS FIXME
-	jsr		_clrscr
+	jsr     _clrscr
 	rts
 .endproc

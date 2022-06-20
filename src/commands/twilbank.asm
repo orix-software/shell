@@ -5,7 +5,7 @@
 
 save_mode := userzp+11 ; FIXME erase shell commands
 
-.proc network_start 
+.proc network_start
     ; Test version
     lda     $342
     and     #%00000011
@@ -15,7 +15,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda    #NETWORK_ROM
     jmp    _twilbank
 @out:
-    BRK_KERNEL XCRLF    
+    crlf
     rts
 .endproc
 
@@ -63,11 +63,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     ptr2 := userzp+9 ; FIXME erase shell commands
     fd_systemd := userzp+13 ; FIXME erase shell commands
 
-    
-    
-    
     sta     save_mode
-    ;PRINT str_starting
 
     malloc   100,ptr1,str_oom ; [,fail_value]
 
@@ -84,28 +80,26 @@ save_mode := userzp+11 ; FIXME erase shell commands
     jmp     @copy
 
 
-@systemd_rom:    
-    lda     #<str_path_rom    
+@systemd_rom:
+    lda     #<str_path_rom
     sta     ptr2
-    lda     #>str_path_rom    
+    lda     #>str_path_rom
     sta     ptr2+1
-
-
 
 @copy:
     ldy     #$00
-@loop4:    
+@loop4:
 
     lda     (ptr2),y
     beq     @out
     sta     (ptr1),y
     iny
     bne     @loop4
-    
+
 
 @out:
     sta     (ptr1),y
-    
+
     ldy     #O_RDONLY
     lda     ptr1
     ldx     ptr1+1
@@ -116,16 +110,16 @@ save_mode := userzp+11 ; FIXME erase shell commands
     bne     @read ; not null then  start because we did not found a conf
     cmp     #$FF
     bne     @read ; not null then  start because we did not found a conf
-    print   str_failed,NOSAVE
+    print   str_failed
     mfree(ptr1)
-    print str_path_rom,NOSAVE
-    print str_not_found,NOSAVE
+    print str_path_rom
+    print str_not_found
 
     rts
 @read:
     sta     fd_systemd
     stx     fd_systemd+1
-    mfree(ptr1)
+    mfree(ptr1)     ; Free path string
 
     ;lda     #<userzp
     ;ldy     #>usze
@@ -140,7 +134,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     bne      @not_oom
     fclose(fd_systemd)
     rts
- 
+
 @not_oom:
 
     malloc   16384,buffer,str_oom ; [,fail_value]
@@ -154,7 +148,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     rts
 @not_oom2:
 
-    
+
     lda     buffer ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
 
@@ -165,13 +159,14 @@ save_mode := userzp+11 ; FIXME erase shell commands
   ; We read the file with the correct
     lda     #<16384
     ldy     #>16384
+    ldx     fd_systemd
 
-  ; reads byte 
+  ; reads byte
     BRK_KERNEL XFREAD
 
     fclose(fd_systemd)
 
-    
+
 
 ; X contains the bankid
 ; AY contains the the adress of the buffer
@@ -179,13 +174,13 @@ save_mode := userzp+11 ; FIXME erase shell commands
 ; RESB contains the ptr address to write
 
     ldy     #$00
-@loop:    
+@loop:
     lda     twil_copy_buffer_to_ram_bank,y
     sta     (routine_to_load),y
     iny
     bne     @loop
 
-@loop2:    
+@loop2:
     lda     twil_copy_buffer_to_ram_bank,y
     sta     (routine_to_load),y
     iny
@@ -209,18 +204,18 @@ save_mode := userzp+11 ; FIXME erase shell commands
 @systemd_bank:
     ldx     #33 ; bank33
     ; Send buffer address
-@loading_rom:    
+@loading_rom:
     lda     buffer
     ldy     buffer+1
 
     jsr     run
 
-    
+
 
     mfree   (routine_to_load)
-    
+
     rts
-    
+
     ;jsr     twil_copy_buffer_to_ram_bank
     ; XMAINARGS
 
@@ -231,13 +226,13 @@ save_mode := userzp+11 ; FIXME erase shell commands
 run:
 
     jmp (routine_to_load)
-    rts  
+    rts
 str_failed:
     .byte "..............",$81,"[FAILED]",$0D,$00
 str_path_rom:
-    .asciiz "/usr/share/systemd/systemd.rom"    
+    .asciiz "/usr/share/systemd/systemd.rom"
 str_path_network:
-    .asciiz "/usr/share/network/network.rom"        
+    .asciiz "/usr/share/network/network.rom"
 .endproc
 
 .proc twil_copy_buffer_to_ram_bank
@@ -249,7 +244,7 @@ str_path_network:
     tmp3               := TR4
     ptr1               := TR5 ; 2 bytes adress of the buffer
     save_bank          := TR7
-    
+
     sta     ptr1
     sty     ptr1+1
 
@@ -257,6 +252,7 @@ str_path_network:
     jsr     _twil_get_registers_from_id_bank
     stx     sector_to_update
     sta     current_bank
+
 
 @start:
 	sei
@@ -287,7 +283,7 @@ str_path_network:
 
     ldx     #$00
     ldy     #$00
-@loop:    
+@loop:
     lda     (ptr1),y
     sta     (RESB),y
     iny
@@ -295,7 +291,7 @@ str_path_network:
     inc     RESB+1
     inc     ptr1+1
     inx
-    cpx     RES 
+    cpx     RES
     bne     @loop
     ; then execute
 
@@ -305,11 +301,10 @@ str_path_network:
     beq     @firmware
 
 
-
     jsr     $c006       ; Twil firm buffer
     lda     #$00
     beq     @out
-@firmware:    
+@firmware:
 
     jsr     $c003
 

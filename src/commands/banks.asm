@@ -11,13 +11,13 @@
     bank_decimal_current_bank       := userzp+4                       ; One byte
     ptr2                            := userzp+5                       ; 2 bytes : Used when we type "bank ID"
     ptr3                            := userzp+7                       ; 2 bytes
-    bank_stop_listing               := userzp+9                    
+    bank_stop_listing               := userzp+9
     bank_save_argvlow               := userzp+11
     bank_save_argvhigh              := userzp+12
     bank_all_banks_display          := userzp+13                      ; used when bank has no option
     bank_save_argc                  := userzp+14
     first_char_id_bank              := userzp+15
-   
+
 
     XMAINARGS = $2C
     XGETARGV =  $2E
@@ -28,7 +28,7 @@
 
     BRK_KERNEL XMAINARGS
 
-    
+
     sta     bank_save_argvlow
     sty     bank_save_argvhigh
     stx     bank_save_argc
@@ -50,7 +50,7 @@
     lda     (ptr3),y
     cmp     #'-' ; is an option ?
     bne     @not_an_option
-   
+
     iny
     lda     (ptr3),y
     cmp     #'a'  ; displays all banks option ?
@@ -67,14 +67,14 @@
     sec
     sbc     #$30
     sta     first_char_id_bank
-    ; Do we have another char 
+    ; Do we have another char
     iny
     lda     (ptr3),y ; FIXME
     beq     @only_one_digit
-    ; convert to decimal 
+    ; convert to decimal
 
 
-    sec 
+    sec
     sbc     #$30
     sta     bank_save_argc
     ldx     first_char_id_bank ; 2 chars, get the first digit
@@ -88,7 +88,7 @@
     bne     @compute_again
     clc
     adc     bank_save_argc
-    sta     bank_save_argc  
+    sta     bank_save_argc
     ; is it greater than 32 ?
     cmp     #32
     bcc     @do_not_switch_to_ram_bank
@@ -97,19 +97,19 @@
     ora     #%00100000
     sta     $342
     pla
-@do_not_switch_to_ram_bank:    
+@do_not_switch_to_ram_bank:
     ;jmp     @do_not_switch_to_ram_bank
-    jsr     _twil_get_registers_from_id_bank   
+    jsr     _twil_get_registers_from_id_bank
     ; A bank
     ;jmp @not_an_option
     sta     first_char_id_bank
-    stx     $343   
-    
+    stx     $343
 
 
-@only_one_digit: 
 
-    
+@only_one_digit:
+
+
     lda     first_char_id_bank
     sta     VAPLIC
     sta     current_bank
@@ -132,8 +132,8 @@
     ldx     #$00 ; Read mode
 
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
-      
-    tay 
+
+    tay
     cli
     ; NMI
     lda     tmp2
@@ -154,18 +154,18 @@
     sta     STORE_CURRENT_DEVICE
 
     jmp     EXBNK
-	
-; displays all bank	
-displays_all_banks:   
+
+; displays all bank
+displays_all_banks:
     lda     #$00
     sta     bank_stop_listing
-	
+
     lda     #64
     sta     bank_decimal_current_bank
 
     lda     $343
     sta     save_twilighte_banking_register
-    
+
     ; switch to ram
     lda     $342
     sta     save_twilighte_register
@@ -206,7 +206,7 @@ parse_next_banking_set:
 loop2:
     jsr     check_if_bank_7_6_5
     lda     bank_all_banks_display
-      
+
     beq     @display_all
 
     jsr     get_rom_type
@@ -229,8 +229,8 @@ loop2:
 
 .IFPC02
 .pc02
-    stz     ptr2	
-.p02    
+    stz     ptr2
+.p02
 .else
     lda     #$00
     sta     ptr2
@@ -246,13 +246,13 @@ loop2:
     bcc     @none_char
     cmp     #$7F                        ; '7f'
     bcs     @none_char
-@skip:  
+@skip:
 
      jsr     display_char
 
 @none_char:
 
-@wait_key:    
+@wait_key:
     BRK_KERNEL XRD0
     bcs     @check_ctrl
     cmp     #' '
@@ -265,10 +265,10 @@ loop2:
 @S10:
     inc     bank_stop_listing
     jmp     @wait_key
-    ; space here 
-    
+    ; space here
 
-@no_ctrl:    
+
+@no_ctrl:
     iny
     cpy     #36    ; Exit if signature is longer than 37 bytes
     beq     @exit
@@ -279,11 +279,11 @@ loop2:
 @exit:
 
     cli
-    RETURN_LINE
+    crlf
 
-@next_bank:    
+@next_bank:
     dec     bank_decimal_current_bank
-    beq     @end_of_bank    
+    beq     @end_of_bank
     dec     current_bank
     bne     loop2
     lda     bank_decimal_current_bank
@@ -291,7 +291,7 @@ loop2:
     bne     @skip12
     lda     #03
     sta     $343
- 
+
 @skip12:
 
     dec     $343
@@ -303,13 +303,13 @@ loop2:
     lda     bank_stop_listing
     bne     @wait_key
     asl     KBDCTC
-    bcc     @no_ctrl    
+    bcc     @no_ctrl
     rts
 @check_kernel_ram_overlay:
     lda     bank_decimal_current_bank
     cmp     #52
     bne     @not_ram_overlay_kernel
-    PRINT   str_kernel_reserved
+    print   str_kernel_reserved, SAVE
     jmp     @next_bank
 
 
@@ -325,7 +325,7 @@ check_if_bank_7_6_5:
 @check_bank4:
     cmp     #$04
     bne     @others
-@set0:    
+@set0:
     lda     #$00
     sta     $343
     rts
@@ -338,10 +338,10 @@ check_if_bank_7_6_5:
     rts
 @exit:
     ;cmp     #61
-    ;beq     @set4    
+    ;beq     @set4
     rts
 display_char:
-    BRK_ORIX XWR0    
+    BRK_ORIX XWR0
     rts
 
 display_bank_id:
@@ -352,7 +352,7 @@ display_bank_id:
     lda     #'0'
     BRK_ORIX XWR0
     pla
-    clc 
+    clc
     adc     #44+4                     ; Displays the number of the bank
 
     BRK_ORIX XWR0
@@ -368,9 +368,9 @@ greater_than_10:
     clc
     adc     #38
     BRK_ORIX XWR0
-    CPUTC ':'      
-    rts    
-greater_than_20:  
+    CPUTC ':'
+    rts
+greater_than_20:
     cmp     #30
     bcs     greater_than_30
     pha
@@ -380,8 +380,8 @@ greater_than_20:
     clc
     adc     #28
     BRK_ORIX XWR0
-    CPUTC ':'      
-    rts    
+    CPUTC ':'
+    rts
 greater_than_30:
     cmp     #40
     bcs     greater_than_40
@@ -392,7 +392,7 @@ greater_than_30:
     clc
     adc     #18
     BRK_ORIX XWR0
-    CPUTC ':'      
+    CPUTC ':'
     rts
 greater_than_40:
     cmp     #50
@@ -404,8 +404,8 @@ greater_than_40:
     clc
     adc     #8
     BRK_ORIX XWR0
-    CPUTC ':'      
-    rts    
+    CPUTC ':'
+    rts
 greater_than_50:
     cmp     #60
     bcs     greater_than_60
@@ -417,8 +417,8 @@ greater_than_50:
     sbc     #2
 
     BRK_ORIX XWR0
-    CPUTC ':'      
-    rts    
+    CPUTC ':'
+    rts
 greater_than_60:
 
     pha
@@ -430,9 +430,9 @@ greater_than_60:
     sbc     #12
     ;sed
     BRK_ORIX XWR0
-    CPUTC ':'      
+    CPUTC ':'
     rts
-        
+
 upd_ptr:
     lda     #<$FFF8
     sta     ptr1
@@ -443,10 +443,10 @@ upd_ptr:
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     RES
     iny
-    ldx     #$00 ; Read mode 
+    ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
     sta     RES+1
-   
+
     lda     RES
     sta     ptr1
     lda     RES+1
@@ -469,7 +469,7 @@ usage:
 
 str_kernel_reserved:
     .byte "Kernel reserved",$0D,$0A,$00
-.endproc 
+.endproc
 
 
 ;unsigned char twil_get_registers_from_id_bank(unsigned char bank);
@@ -483,7 +483,7 @@ str_kernel_reserved:
     rts
 @bank0:
     ; Impossible to have bank 0
-    tax    
+    tax
     rts
 set:
     .byte 0,0,0,0,1,1,1,1
@@ -494,7 +494,7 @@ set:
     .byte 0,0,0,0,0,1,1,1
     .byte 1,2,2,2,2,3,3,3
     .byte 3,4,4,4,4,5,5,5
-    .byte 5,6,6,6,6,7,7,7,7    
+    .byte 5,6,6,6,6,7,7,7,7
 
 bank:
     .byte 1,2,3,4,1,1,1,1

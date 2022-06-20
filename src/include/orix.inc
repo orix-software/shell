@@ -28,13 +28,11 @@ READ_BYTE_FROM_OVERLAY_RAM:
 .macro  BRK_ORIX   value
 	.byte $00,value
 .endmacro
- 
+
 .macro RETURNVAL value
   lda #value
   sta KERNEL_ERRNO
 .endmacro
-  
-
 
 .macro PRINT_BINARY_TO_DECIMAL_16BITS justif
     LDX #$20
@@ -54,60 +52,19 @@ READ_BYTE_FROM_OVERLAY_RAM:
   lda     #' '
   BRK_KERNEL XFILLM
 .endmacro
-   
+
 .macro SWITCH_ON_CURSOR
   ldx #$00
   BRK_KERNEL XCSSCR
-.endmacro  
+.endmacro
 
 .macro SWITCH_OFF_CURSOR
 	ldx #$00
 	BRK_KERNEL XCOSCR
-.endmacro    
+.endmacro
 
 .macro HIRES
 	BRK_KERNEL XHIRES
-.endmacro    
-
-.macro MKDIR PATH 
-  lda   #<PATH
-  ldx   #>PATH
-  .byte $00,XMKDIR
-.endmacro  
-  
-; size_t fread ( void * ptr, size_t size, FILE * stream);  
-.macro FREAD ptr, size, count, fp
-    lda #<fp
-    lda #>fp
-    lda #<ptr
-    sta PTR_READ_DEST
-    lda #>ptr
-    sta PTR_READ_DEST+1
-    lda #<size
-    ldy #>size
-    BRK_KERNEL XFREAD
-.endmacro
-
-; This macro must be placed after MALLOC call
-.macro TEST_OOM_AND_MAX_MALLOC
-    ; Test if we reached the max number of malloc chunk
-    cpx     #KERNEL_MAX_NUMBER_OF_MALLOC
-    bne     @check_for_oom_TEST_OOM_AND_MAX_MALLOC
-    ; We reachead max malloc available
-    PRINT   str_max_malloc_reached
-    RETURN_LINE
-    rts
-    ; check if malloc is null, if it's equal, displays Out of Memory
-@check_for_oom_TEST_OOM_AND_MAX_MALLOC:
-    cmp     #NULL
-    bne     @TEST_OOM_AND_MAX_MALLOC
-    cpy     #NULL
-    bne     @TEST_OOM_AND_MAX_MALLOC
-    PRINT   str_oom
-    RETURN_LINE
-    ; We reached OOM
-    rts
-@TEST_OOM_AND_MAX_MALLOC: 
 .endmacro
 
 ; This macro must be placed after MALLOC call
@@ -126,130 +83,21 @@ READ_BYTE_FROM_OVERLAY_RAM:
 
 .endmacro
 
-
 .macro  CGETC
-    BRK_KERNEL XRDW0 
-.endmacro    
-    
-.macro MALLOC size 
-  lda #<size
-  ldy #>size
-  BRK_KERNEL XMALLOC
+    BRK_KERNEL XRDW0
 .endmacro
 
-
-.macro MALLOC_AND_TEST_OOM_EXIT size 
+.macro MALLOC size
   lda #<size
   ldy #>size
   BRK_KERNEL XMALLOC
-  TEST_OOM
 .endmacro
 
 .macro CPUTC char
   lda #char
   BRK_KERNEL XWR0
 .endmacro
-  
-.macro  PRINT_CHAR str
-  pha
-  sta TR6
-  txa
-  pha
-  tya
-  pha
-  lda TR6
-  BRK_TELEMON XWR0
-  pla
-  tay
-  pla
-  txa
-  pla
-.endmacro	
 
-.macro PRINT str
-	pha
-	txa
-	pha
-	tya
-	pha
-	lda #<str
-	ldy #>str
-	BRK_TELEMON XWSTR0
-    pla
-	tay
-	pla
-	txa
-    pla
-.endmacro
-
-.macro PRINT_NOSAVE_REGISTER str
-	lda #<str
-	ldy #>str
-	BRK_KERNEL XWSTR0
-.endmacro
-
-.macro RETURN_LINE_INTO_TELEMON
-	pha
-	txa
-	pha
-	tya
-	pha
-	lda RES
-	pha
-	lda RES+1
-	pha
-	jsr XCRLF_ROUTINE 
-	pla
-	sta RES+1
-	pla
-	sta RES
-	pla
-	tay
-	pla
-	txa
-	pla
-.endmacro    
-
-.macro RETURN_LINE
-  BRK_KERNEL XCRLF
-.endmacro  
-	
-.macro STRCPY str1, str2
-	lda #<str1
-	sta RES
-	lda #>str1
-	sta RES+1
-	lda #<str2
-	sta RESB
-	lda #>str2
-	sta RESB+1
-	jsr _strcpy
-.endmacro    
-
-.macro STRCAT str1, str2
-	lda #<str1
-	sta RES
-	lda #>str1
-	sta RES+1
-	lda #<str2
-	sta RESB
-	lda #>str2
-	sta RESB+1
-	jsr _strcat 
-.endmacro     
-	
-; This macro copy AY address to str
-.macro STRCPY_BY_AY_SRC str
-	sta RES
-	sty RES+1
-	lda #<str
-	sta RESB
-	lda #>str
-	sta RESB+1
-	jsr _strcpy
-.endmacro    
-
-BASIC11_IRQ_VECTOR_ROM=$EE22
 
 .ifdef WITH_BANK
     BANK=1

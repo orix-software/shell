@@ -7,14 +7,14 @@
     lsof_ptr_struct_tmp_fp            :=userzp+6 ; 16 bits
 
 .proc _lsof
-    print   lsof_header,NOSAVE
-    RETURN_LINE
+    print   lsof_header
+    crlf
     ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
     BRK_KERNEL XVARS
     sta     ptr_kernel_process_lsof
     sty     ptr_kernel_process_lsof+1
     ldy     #(kernel_process_struct::kernel_pid_list)
-@L1:    
+@L1:
     lda     (ptr_kernel_process_lsof),y
     beq     @S1 ; Skip because PID=0 : process does not exist
     ;       displays PID
@@ -24,7 +24,7 @@
     stx     DEFAFF
     ldx     #$00
     BRK_KERNEL XDECIM
-    RETURN_LINE
+    crlf
 
     ldy     #(kernel_process_struct::kernel_one_process_struct_ptr_low)
     lda     (ptr_kernel_process_lsof),y
@@ -67,11 +67,8 @@
     sta     lsof_ptr_struct_tmp_fp
 
     ldy     lsof_ptr_struct_tmp_fp+1
-    BRK_KERNEL XWSTR0    
-   ; inc
+    BRK_KERNEL XWSTR0
 
-
-   ; sta     
 @not_fp:
     ldy     lsof_saveY
     iny
@@ -79,7 +76,7 @@
     bne     @L1
 
 
-@S1:  
+@S1:
   rts
 lsof_header:
   .asciiz "PID PATH          MODE PROCESS"

@@ -1,15 +1,21 @@
-# Command: meminfo
+# meminfo
 
-### Displays memory info
+## Introduction
+
+Displays memory info
 
 ## SYNOPSYS
-+ #meminfo
+
++ /#meminfo
 
 ## DESCRIPTION
+
 Displays memory info
 
 ## EXAMPLES
+
 + meminfo
 
 ## SOURCE
+
 https://github.com/orix-software/shell/blob/master/src/commands/meminfo.asm

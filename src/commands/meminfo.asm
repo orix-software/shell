@@ -10,7 +10,7 @@
 
 .proc _meminfo
 
-    PRINT strMemTotal 
+    print strMemTotal
 
     ldx     #XVARS_KERNEL_MALLOC ; Get adress struct of malloc from kernel
     BRK_ORIX(XVARS)
@@ -19,17 +19,17 @@
     ldy     #(kernel_malloc_struct::kernel_malloc_max_memory_main)
 
     lda     (meminfo_ptr_malloc),y
-    sta     meminfo_tmp1 
+    sta     meminfo_tmp1
 
     ldy     #$00
     LDX     #$20 ;
     STX     DEFAFF
     LDX     #$03
     BRK_ORIX XDECIM
-    PRINT   strKB 
-    
-    PRINT   strMemFree
-    
+    print   strKB
+
+    print   strMemFree
+
 
     ldy     #kernel_malloc_struct::kernel_malloc_free_chunk_size_low
     lda     (meminfo_ptr_malloc),y
@@ -38,21 +38,21 @@
     sta     RES
     ldy     #kernel_malloc_struct::kernel_malloc_free_chunk_size_high
     lda     (meminfo_ptr_malloc),y
-    
+
     sta     RES+1
     lda     #$00
-    sta     RESB  
+    sta     RESB
     sta     RESB+1
     BRK_ORIX XDIVIDE_INTEGER32_BY_1024
-    
+
     lda     RES
     ldy     RES+1
     ldx     #$20 ;
     stx     DEFAFF
     ldx     #$04
     BRK_ORIX XDECIM
-    
-    PRINT strKB
+
+    print strKB
     rts
 strMemTotal:
     .asciiz "MemTotal:"
@@ -61,4 +61,3 @@ strMemFree:
 strKB:
     .byte " KB",$0A,$0D,0
 .endproc
-

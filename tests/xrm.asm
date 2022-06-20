@@ -16,30 +16,30 @@ language_type
         .byt $00	            ; reserved
         .byt $00                ; reserved
 type_of_file
-        .byt $00                 
+        .byt $00
         .byt <start_adress,>start_adress ; loading adress
         .byt <EndOfMemory,>EndOfMemory   ; end of loading adress
         .byt <start_adress,>start_adress ; starting adress
- 
+
 start_adress
- 
+
     *=$1000
-      
+
     lda   #<str
     ldy   #>str
-    BRK_TELEMON(XWSTR0)  
+    BRK_TELEMON(XWSTR0)
 
     lda   #<file
     ldy   #>file
-    BRK_TELEMON(XWSTR0)      
-    
+    BRK_TELEMON(XWSTR0)
+
     lda   #<file
     ldx   #>file
     BRK_TELEMON(XRM)
     rts
-file
-    .asc "/tests/xrm",0  
-str  
-    .asc "Removing myself :) ",0  
+file:
+    .asc "/tests/xrm",0
+str:
+    .asc "Removing myself :) ",0
 EndOfMemory
 

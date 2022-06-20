@@ -5,9 +5,9 @@
 
 
 .struct basic11_gui_struct
-  current_index_letter                .res 1 
+  current_index_letter                .res 1
   index                               .res BASIC11_SIZE_INDEX ; 26 letters 10 chars * 2
-  
+
   basic11_posy_screen                 .res 1
   number_of_lines_displayed           .res 1
   key_found                           .res 1
@@ -33,14 +33,14 @@
     cpy     #$00
     bne     @no_oom
 
-    print str_enomem,NOSAVE
+    print str_enomem
     rts
-    
+
 @no_oom:
     ; init index
     ldy     #basic11_gui_struct::index
     lda     #$00
-@L200:    
+@L200:
     sta     (basic11_ptr4),y
     iny
     cpy     #(basic11_gui_struct::index+46)
@@ -59,7 +59,7 @@
 
     ldy     #basic11_gui_struct::index
     lda     #$00
-@init_index:    
+@init_index:
     sta     (basic11_ptr4),y
     iny
     cpy     #basic11_gui_struct::index+BASIC11_SIZE_INDEX
@@ -75,7 +75,7 @@
     sta     (basic11_ptr4),y
 
     ; Displays only '1'
-    
+
     lda     #'1'
     sta     basic11_first_letter_gui
 
@@ -89,7 +89,7 @@
     adc     #$00
     bcc     @add_to_ptr
     inc     basic11_ptr2+1
-@add_to_ptr:    
+@add_to_ptr:
     sta     basic11_ptr2
 
     ; this block must be after the skip version DB
@@ -102,7 +102,7 @@
     ; end of block
 
 
-  
+
     jsr     basic11_displays_frame
 
     ;jsr     basic11_menu_letter_management_right
@@ -137,7 +137,7 @@
 @loopinformations:
 .ifdef basic11_debug
     jsr     basic11_display_current_key
-.endif    
+.endif
 @read_input:
   ;  BRK_KERNEL XWR0
     jsr     basic11_read_joystick
@@ -148,14 +148,13 @@
 @joystick_pressed:
 
 
-   ; BRK_KERNEL XRDW0            ; read keyboard
     cmp     #KEY_RIGHT
     beq     @change_letter_right    ; right key not managed
 
     cmp     #KEY_LEFT
     beq     @change_letter_left
     ;beq     start_commandline    ; left key not managed
-    
+
     cmp     #KEY_UP
     beq     @keyup
     cmp     #KEY_RETURN
@@ -172,7 +171,7 @@
     ; get
     lda     basic11_ptr1
     ldy     basic11_ptr1+1
-    BRK_KERNEL XFREE    
+    BRK_KERNEL XFREE
     jmp     basic11_launch
     ;jmp     @exitgui
 
@@ -183,7 +182,7 @@
     cmp     #34
     beq     @loopinformations
 
-    
+
     ldy     #basic11_gui_struct::max_current_entries
     lda     #$00
     sta     (basic11_ptr4),y
@@ -192,20 +191,20 @@
     lda     #$01
     sta     basic11_skip_dec
     jsr     basic11_update_ptr_fp
-    
+
     jsr     basic11_menu_letter_management_right
     ; init posy_screen
-  
+
     jmp     @manage_display
 
 @change_letter_left:
     ldy     #basic11_gui_struct::current_index_letter ; Are we on the first letter '1' ?)
     lda     (basic11_ptr4),y
-    
+
     beq     @loopinformations     ; Yes we do nothing
 
 
-    
+
     jsr     basic11_menu_letter_management_left
 
     lda     #$00
@@ -223,11 +222,11 @@
 
 @manage_display:
     jsr     basic11_clear_menu
-    
+
     jsr     displays_gui_list
     ldy     #basic11_gui_struct::current_entry_id ; ???
     lda     #$00
-    sta     (basic11_ptr4),y 
+    sta     (basic11_ptr4),y
 
     jmp     @loopinformations
 
@@ -237,9 +236,9 @@
 .ifdef basic11_debug
 .proc basic11_display_current_key
     ldy     #basic11_gui_struct::software_key_to_launch_low
-    lda     (basic11_ptr4),y   
+    lda     (basic11_ptr4),y
     sta     basic11_ptr3
-    
+
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
@@ -247,23 +246,23 @@
 
     ldy     #$00
     lda     #' '
-@L2:    
+@L2:
 
     sta     $bb80+25,y
-    iny     
+    iny
     cpy     #$08
     bne     @L2
 
     ldy     #$00
-@L1:    
+@L1:
     lda     (basic11_ptr3),y
     beq     @out
     cmp     #';'
     beq     @out
-   
+
     sta     $bb80+25,y
-  
-    iny     
+
+    iny
     bne     @L1
 
 @out:
@@ -287,8 +286,8 @@
     lda     #$00
     sta     (basic11_ptr4),y
 
-   
-    ; no rts 
+
+    ; no rts
 .endproc
 
 ; Don't put any routine here, because previous proc needs to go to compute_position_bar
@@ -316,12 +315,12 @@
     inc     basic11_ptr3+1
 @S2:
     dex
-    bne     @L1    
+    bne     @L1
     sta     basic11_saveA
 @S1:
     lda     basic11_saveA
     sta     basic11_ptr3
-    
+
     jsr     displays_bar
     pla
     rts
@@ -332,7 +331,7 @@
 
 .proc  displays_gui_list
 
-    jsr     basic11_init_bar  
+    jsr     basic11_init_bar
     ldy     #basic11_gui_struct::number_of_lines_displayed
     lda     #$00
     sta     (basic11_ptr4),y
@@ -343,12 +342,12 @@
 
     lda     #<($bb80+42)
     sta     basic11_ptr3
-    
+
     lda     #>($bb80+42)
     sta     basic11_ptr3+1
 
     ldy     #$00
-    sty     basic11_tmp 
+    sty     basic11_tmp
 
     lda     basic11_ptr2
     ldy     #basic11_gui_struct::software_key_to_launch_low
@@ -356,16 +355,16 @@
 
     lda     basic11_ptr2+1
     ldy     #basic11_gui_struct::software_key_to_launch_high
-    sta     (basic11_ptr4),y   
-    
+    sta     (basic11_ptr4),y
+
 
 
     lda     #$00
     sta     basic11_gui_key_reached
     sta     basic11_do_not_display
-    
+
     ;       index first software
-   
+
 
     ldy     #basic11_gui_struct::current_entry_id
     lda     #$00
@@ -381,16 +380,16 @@
     beq     @end_name_software_reached
     cmp     #$FF            ; End of file found
     beq     @read_end_of_file
-    
+
     cmp     #';'  ; We reached the end of key
     beq     @end_key_reached ; Now displays string ?
     ; Yes save A (with the char to displays)
     sta     basic11_saveA
-    
+
     lda     basic11_gui_key_reached
     beq     @skip_displays ; skip because we are still looking to key
-    
-    lda     basic11_do_not_display 
+
+    lda     basic11_do_not_display
     bne     @skip_displays ; skip because we reached 24 software on screen
     sty     basic11_saveY ; Save position
 
@@ -405,8 +404,8 @@
 
 @reload_y:
     ldy     basic11_saveY
-    
-@skip_displays:    
+
+@skip_displays:
     iny
     bne     @L1
     inc     basic11_ptr2+1
@@ -424,22 +423,22 @@
     sty     basic11_saveY
     ; Test if the next software char is equal to the current. 223D
 
-    ; Exit    
+    ; Exit
     iny
 ;   $ce11
     lda     (basic11_ptr2),y                    ; Get next entry
     cmp     basic11_first_letter_gui
     beq     @it_s_the_same_letter_to_parse      ; if the next software name begins with the current letter then we jump
     ; Not the same letter, we jump
-.ifdef basic11_debug    
+.ifdef basic11_debug
     sta     $bb80+18
-.endif    
+.endif
     tya
     clc
     adc     basic11_ptr2
     bcc     @skip200
     inc     basic11_ptr2+1
-@skip200:    
+@skip200:
 
 
 
@@ -447,7 +446,7 @@
 
     ;rts
 @it_s_the_same_letter_to_parse:
-    lda     basic11_do_not_display 
+    lda     basic11_do_not_display
     bne     @skip_compute_max_current_entries ; skip because we reached 24 software on screen
 
 
@@ -461,15 +460,15 @@
 
     iny     ; skip $00 of the software
     sty     basic11_saveY
-@L301:    
+@L301:
     lda     (basic11_ptr2),y
-    cmp     #';'     ; Trying to find name software 
+    cmp     #';'     ; Trying to find name software
     beq     @compare_letter
     iny
     jmp     @L301
 @compare_letter:
     iny
-    lda     (basic11_ptr2),y    
+    lda     (basic11_ptr2),y
     cmp     basic11_first_letter_gui
     beq     @same_firt_letter
     ; test if the next letters is basic11_first_letter_gui+1
@@ -480,7 +479,7 @@
     beq     @compute_next_letter
     ; The next letter is not the current + 1, will fill the next index with 0
 @compute_next_letter:
-    tya    
+    tya
     clc
     adc     basic11_ptr2
     ; build next index
@@ -490,12 +489,12 @@
     sta     basic11_ptr2
 
     ldy     #basic11_gui_struct::current_entry_id ; ???
-    
+
     jsr     update_index
- 
+
     rts
 @same_firt_letter:
-    ldy     basic11_saveY    
+    ldy     basic11_saveY
     dey
 
 
@@ -512,14 +511,14 @@
     tya
     tax ; Save Y
 
-    
+
     ;        inc #basic11_gui_struct::current_entry_id
     ldy     #basic11_gui_struct::current_entry_id
     lda     (basic11_ptr4),y
     clc
     adc     #$01
     sta     (basic11_ptr4),y
-    
+
     ldy     #basic11_gui_struct::max_current_entries
     lda     (basic11_ptr4),y
     clc
@@ -557,11 +556,11 @@
     ldy     #$00
 
     sty     basic11_tmp
-    
+
 
     dec     basic11_gui_key_reached
     jmp     @skip_displays
-    
+
 
 .endproc
 
@@ -579,7 +578,7 @@
     eor     #%11100001
     cmp     #$01
     bne     @S2
-@S2:        
+@S2:
     lda     #$00
     rts
 .endproc
@@ -594,7 +593,7 @@
 .proc displays_bar
     ldy     #$00
     lda     #$11
-  
+
     sta     (basic11_ptr3),y
     ldy     #37
     lda     #$10
@@ -620,7 +619,7 @@
     iny
     lda     basic11_ptr2+1
     sta     (basic11_ptr4),y
-@out2:    
+@out2:
     rts
 .endproc
 
@@ -632,7 +631,7 @@
 
 @not_the_first_letter:
     ldx     basic11_skip_dec
-    beq     @100    
+    beq     @100
     clc
     adc     #$01
 @100:
@@ -651,13 +650,13 @@
 
 
     rts
-.endproc    
+.endproc
 
 basic_str_fullline_title:
-    .asciiz  "+-Basic 11 Menu------------------------+"        
+    .asciiz  "+-Basic 11 Menu------------------------+"
 basic10_str_fullline_title:
-    .asciiz  "+-Basic 10 Menu------------------------+"    
+    .asciiz  "+-Basic 10 Menu------------------------+"
 basic_str_fullline:
-    .asciiz  "+--------------------------------------+"    
+    .asciiz  "+--------------------------------------+"
 basic_str_emptyline:
     .asciiz  "|                                      |"

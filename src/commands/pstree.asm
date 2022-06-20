@@ -2,24 +2,24 @@
 
 .proc _pstree
     jmp newpstree
-    print str_init,NOSAVE
-    RETURN_LINE
+    print str_init
+    crlf
     rts
 str_init:
-    .asciiz "init---bash---pstree"    
+    .asciiz "init---bash---pstree"
 .endproc
 
 .proc newpstree
     ptr_kernel_process          :=userzp
     ptr_kernel_process_current  :=userzp+2
-    ldx #$00 ; Get Kernel adress
+    ldx     #$00 ; Get Kernel adress
     BRK_KERNEL XVARS
     sta     ptr_kernel_process
     sty     ptr_kernel_process+1
 
 
     ldy     #kernel_process_struct::kernel_init_string
-@L1:    
+@L1:
     lda     (ptr_kernel_process),y
     beq     @S1
     BRK_KERNEL XWR0
@@ -41,7 +41,7 @@ str_init:
     BRK_KERNEL XWR0
     iny
     bne     @L2
-@S2:    
+@S2:
 
 
     rts

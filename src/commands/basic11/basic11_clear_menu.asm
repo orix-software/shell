@@ -2,9 +2,9 @@
 .proc basic11_clear_menu
     ; displays line
     ldy     #$00
-@display_line:    
+@display_line:
 
-    lda     basic_str_emptyline,y    
+    lda     basic_str_emptyline,y
     beq     @outline
     sta     $bb80+40,y
     sta     $bb80+80,y

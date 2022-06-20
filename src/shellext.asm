@@ -11,7 +11,7 @@ userzp := $80 ; FIXME
 .code
 history_data:
    .res 1
-history_data_strings:    
+history_data_strings:
    .ASCIIZ "Hello"
    .res 1000
 rom_start:
@@ -39,7 +39,7 @@ commands_version:
         .ASCIIZ "0.0.1"
 
 
-	
+
 ; ----------------------------------------------------------------------------
 ; Copyrights address
 
@@ -50,8 +50,8 @@ parse_vector:
         .byt $00,$00
 ; fff3
 adress_commands:
-        .addr commands_address   
-; fff5        
+        .addr commands_address
+; fff5
 list_commands:
         .addr command1_str
 ; $fff7
@@ -62,7 +62,7 @@ signature_address:
 
 ; ----------------------------------------------------------------------------
 ; Version + ROM Type
-ROMDEF: 
+ROMDEF:
         .addr rom_start
 
 ; ----------------------------------------------------------------------------

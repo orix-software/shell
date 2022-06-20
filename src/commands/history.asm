@@ -2,4 +2,4 @@
 
 .proc _history
     rts
-.endproc    
+.endproc

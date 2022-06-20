@@ -13,13 +13,13 @@ SET UNITTEST="NO"
 SET ORIGIN_PATH=%CD%
 
 SET ROM=shell
-rem -DWITH_SDCARD_FOR_ROOT=1 
-rem 
-%CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -DTWILIGHTE_BOARD_LINEAR_BANK=1 -ttelestrat --include-dir %CC65%\asminc\ src/%ROM%.asm -o %ROM%.ld65  
+rem -DWITH_SDCARD_FOR_ROOT=1
+rem
+%CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -DTWILIGHTE_BOARD_LINEAR_BANK=1 -ttelestrat --include-dir %CC65%\asminc\ src/%ROM%.asm -o %ROM%.ld65
 %CC65%\ld65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -tnone  %ROM%.ld65 -o %ROM%.rom  -Ln shell.sym libs/lib8/twil.lib libs/lib8/ch376.lib
 
-%CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1  -ttelestrat --include-dir %CC65%\asminc\ src/shellext.asm -o shellext.ld65  
-%CC65%\ld65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -tnone  shellext.ld65 -o shellext.rom  -Ln shellext.sym 
+%CC65%\ca65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1  -ttelestrat --include-dir %CC65%\asminc\ src/shellext.asm -o shellext.ld65
+%CC65%\ld65.exe -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -tnone  shellext.ld65 -o shellext.rom  -Ln shellext.sym
 
 
 

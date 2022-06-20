@@ -1,11 +1,15 @@
-# Command: Monitor
+# Monitor
 
-### Start monitor
+## Introduction
+
+Start monitor
 
 ## SYNOPSYS
+
 + monitor
 
 ## DESCRIPTION
+
 Start monitor.
 
 + BYTES adrdeb, val1 (,val2,...) : set val1, val2 at adrdeb adress (val1, val2, adrden can be labels or expressions)
@@ -15,4 +19,5 @@ Start monitor.
 - MODIF adrdeb (,B val) : modification pleine page de la mémoire à partir de l'adresse adrdeb de la banque indiquée ou celle par défaut
 
 ## SOURCE
+
 https://github.com/orix-software/monitor/

@@ -31,19 +31,19 @@ ls_argc                  := userzp+17
     BRK_KERNEL XOPEN
     cmp     #$FF
     bne     @free
-    
+
     cpx     #$FF
     bne     @free
 
 .define     KERNEL_ERRNO $200 ; FIXME tmp
-    
+
     lda	    KERNEL_ERRNO
     cmp     #EIO
     bne     @failed_path
-    print  str_i_o_error
+    print  str_i_o_error, SAVE
     rts
 
-@failed_path:    
+@failed_path:
 
     lda     #<@str
     ldy     #>@str
@@ -51,16 +51,20 @@ ls_argc                  := userzp+17
     rts
 @str:
     .byte  "Unable to open current path",$0D,$0A,$00
-   
+
     ; get A&Y
 @free:
+
     BRK_KERNEL XMAINARGS
+
     sta     ls_mainargs
     sty     ls_mainargs+1
     stx     ls_argc
-    
+
     cpx     #$01
     beq     @set_bufnom_empty
+
+
     ; Get arg 2
     ldx     #$01
     BRK_KERNEL XGETARGV
@@ -100,7 +104,7 @@ ls_argc                  := userzp+17
     lda     ls_mainargs
     ldy     ls_mainargs+1
     ldx     ls_argc
- 
+
 
     ; Get arg 2
     ldx     #$02
@@ -128,7 +132,7 @@ list:
     ; /!\ ATTENTION les paramètrtes sont inversés par rapport à STRCPY
 
     ldy     #$00
-@loop_cpy:    
+@loop_cpy:
     lda     (ls_arg),y
     beq     @EOS
     sta     BUFNOM,y
@@ -157,20 +161,20 @@ no_arg_for_dash_l_option:
     ;sta RESB
     ;sty RESB+1
 .else
-    lda bash_struct_command_line_ptr
-    sta RESB
-    lda bash_struct_command_line_ptr+1
-    sta RESB+1
+    lda     bash_struct_command_line_ptr
+    sta     RESB
+    lda     bash_struct_command_line_ptr+1
+    sta     RESB+1
 .endif
 
 copy_mask:
     ; Copie BUFNOM -> (RESB)
     ; Potentiel buffer overflow ici
     ; Il faudrait un STRNCPY
-    lda #<BUFNOM
-    ldy #>BUFNOM
-    sta ls_save_line_command_ptr         ; ls_save_line_command_ptr: Cf Match
-    sty ls_save_line_command_ptr+1
+    lda     #<BUFNOM
+    ldy     #>BUFNOM
+    sta     ls_save_line_command_ptr         ; ls_save_line_command_ptr: Cf Match
+    sty     ls_save_line_command_ptr+1
     ; Utilisation de la macro strcpy pour remplacer le code suivant
     ; sta RES
     ; sty RES+1
@@ -179,25 +183,25 @@ copy_mask:
     strcpy , AY
 
     ; RESB pointe toujours sur BUFEDT
-    jsr WildCard
+    jsr     WildCard
 .ifndef ls_use_malloc
-    
+
     bne Error       ; Il faut une autre erreur, ici c'est parce qu'il y a des caractères incorrects
     ;bcc @ZZ0002     ; Pas de '?' ni de '*'
 .else
-    beq *+5
-    jmp Error
+    beq     *+5
+    jmp     Error
 .endif
-    bcs all
+    bcs     all
 
-    lda BUFNOM
+    lda     BUFNOM
     bne ZZ0002
 
   all:
-    lda #'*'
-    sta BUFNOM
-    lda #$00
-    sta BUFNOM+1
+    lda     #'*'
+    sta     BUFNOM
+    lda     #$00
+    sta     BUFNOM+1
 
 
   ZZ0002:
@@ -212,24 +216,24 @@ copy_mask:
 
     cmp     #CH376_ERR_MISS_FILE
 
-    beq Error
+    beq     Error
 
 
 nextme:
     ; Indique pas de fichier trouvé pour le moment
-    ldx #$00
-    stx ls_file_found
+    ldx     #$00
+    stx     ls_file_found
 
     ; Mets à jour le nombre de colonnes
-    ldx ls_column_max
+    ldx     ls_column_max
     inx
-    stx ls_column
+    stx     ls_column
 
     ; Ajuste le pointeur vers BUFNOM pour plus tard
     ; (le 1er caractère contient la couleur)
-    inc ls_save_line_command_ptr
-    bne *+4
-    inc ls_save_line_command_ptr+1
+    inc     ls_save_line_command_ptr
+    bne     *+4
+    inc     ls_save_line_command_ptr+1
 
 ZZ1001:
     cmp     #CH376_USB_INT_SUCCESS
@@ -285,7 +289,7 @@ go:
   ZZ0004:
     ;FREE RESB
 
-    BRK_KERNEL XCRLF
+    crlf
 
     ; Erreur si aucun fichier trouvé
     lda     ls_file_found
@@ -298,10 +302,10 @@ go:
 
     ldx     ls_argc
     inx
-    stx ls_argc
-    jsr _orix_get_opt
-    bcc ZZ0001
-    jmp list
+    stx     s_argc
+    jsr     _orix_get_opt
+    bcc     ZZ0001
+    jmp     list
 .endif
 
   ZZ0001:
@@ -311,13 +315,13 @@ go:
 
 ; ------------------------------------------------------------------------------
 Error:
-    print txt_file_not_found, NOSAVE
+    print txt_file_not_found
     ;FREE RESB
-    print BUFNOM, NOSAVE
+    print BUFNOM
 
 
 error_oom:
-    BRK_KERNEL XCRLF
+    crlf
 
 .ifdef ls_use_malloc
     ;FREE RESB
@@ -363,94 +367,94 @@ error_oom:
 ; ls_file_found: $ff si on a trouvé un fichier correspondant au masque
 ; ------------------------------------------------------------------------------
 display_catalog:
-    lda #COLOR_FOR_FILES
-    sta BUFNOM
-    ldy #$01
+    lda     #COLOR_FOR_FILES
+    sta     BUFNOM
+    ldy     #$01
 
   ZZ0007:
-    lda CH376_DATA
-    sta BUFNOM,y
+    lda     CH376_DATA
+    sta     BUFNOM,y
     iny
-    cpy #12
-    bne ZZ0007
+    cpy     #12
+    bne     ZZ0007
 
-    lda CH376_DATA
-    sta TR0         ; Sauvegarde l'attribut pour plus tard
+    lda     CH376_DATA
+    sta     TR0         ; Sauvegarde l'attribut pour plus tard
 ;    cmp #$10
 ;    bne @ZZ0012
 
-    and #$10
-    beq ZZ0012
+    and     #$10
+    beq     ZZ0012
 
-    lda #COLOR_FOR_DIRECTORY
+    lda     #COLOR_FOR_DIRECTORY
 ;    clc
 ;    adc #$40
-    sta BUFNOM
+    sta     BUFNOM
 
   ZZ0012:
-    lda #$00
-    sta BUFNOM,Y
+    lda     #$00
+    sta     BUFNOM,Y
 
 
-    ldx #$14
+    ldx     #$14
 
   ZZ0013:
-    lda CH376_DATA
+    lda     CH376_DATA
     sta BUFEDT+1,y
     iny
     dex
-    bpl ZZ0013
+    bpl     ZZ0013
 
-    jsr Match
-    bne ZZ0014
+    jsr     Match
+    bne     ZZ0014
 
-    lda BUFNOM
-    cmp #'.'
+    lda     BUFNOM
+    cmp     #'.'
     beq ZZ0014
 
-    lda BUFNOM+1
-    cmp #'.'
-    beq ZZ0015
+    lda     BUFNOM+1
+    cmp     #'.'
+    beq     ZZ0015
 
     ; Indique qu'on a trouvé un fichier
-    lda #$ff
-    sta ls_file_found
+    lda     #$FF
+    sta     ls_file_found
 
     ; Mode verbose?
-    lda ls_column_max
-    bmi _verbose
+    lda     ls_column_max
+    bmi     _verbose
 
     ; Mode normal, on décrémente le nombre de colonnes restantes pour l'affichage
-    dec ls_column
-    bne ZZ0016
+    dec     ls_column
+    bne     ZZ0016
 
     ; Attention XCRLF modifie RES
     ; [HCL]
     ; Pas de saut de ligne, on est déjà au dernier caractère
     ; (UNIQUEMENT POUR LA VERSION LONGUE AVEC AFFICHAGE DE L'ATTRIBUT)
-    BRK_KERNEL XCRLF
+    crlf
 
-    lda ls_column_max
-    sta ls_column
+    lda     ls_column_max
+    sta     ls_column
     bne ZZ0016
 
 _verbose:
     ; Affiche l'attribut
-    lda TR0
+    lda     TR0
     ; jsr PrintHexByte
-    jsr PrintFileAttr
+    jsr     PrintFileAttr
 
   ZZ0016:
 
     ; PRINT BUFNOM
 ;    ldy #$ff
-    ldy #$00
-    ldx #$00
+    ldy     #$00
+    ldx     #$00
 
     ; Affiche directement la couleur
     ; Ne doit pas être 0
-    lda BUFNOM,y
-    bne  skip
+    lda     BUFNOM,y
+    bne     skip
 
   loop:
     iny
@@ -465,7 +469,7 @@ _verbose:
 
     pha
 ;    CPUTC '.'
-    print #'.', NOSAVE
+    print #'.'
     pla
     inx
 
@@ -479,9 +483,9 @@ _verbose:
 
   skip:
     BRK_KERNEL XWR0
-    
+
     ;bcs     @no_char_action
-    
+
     asl     KBDCTC
     bcc     @no_ctrl
 
@@ -490,9 +494,9 @@ _verbose:
 
 @no_ctrl:
 
-@no_char_action:    
+@no_char_action:
     inx
-    bne loop
+    bne     loop
   end:
 
 
@@ -502,7 +506,7 @@ _verbose:
 
     inx
 ;    CPUTC ' '
-    print #' ', NOSAVE
+    print #' '
     jmp ZZ0017
 
   ZZ0018:
@@ -566,8 +570,8 @@ loop:
 
     ; X: Pointeur dans le buffer résultat
     ; Y: Pointeur dans le buffer source
-    ldx #$00
-    ldy #$00
+    ldx     #$00
+    ldy     #$00
 
     ; Si masque vide <-> *.*
     lda (RES),y
@@ -936,7 +940,7 @@ error:
     jsr Bin2BCD
 
 ;    CPUTC '-'
-    print #'-', NOSAVE
+    print #'-'
 
 ;    lda #$00
 ;    sta TR1
@@ -953,7 +957,7 @@ error:
     jsr Bin2BCD
 
 ;    CPUTC '-'
-    print #'-', NOSAVE
+    print #'-'
 
 ;    ldy #$0c
     lda BUFEDT+13,y
@@ -963,7 +967,7 @@ error:
 ;    CPUTC ' '
 ;    CPUTC ' '
 ;    print #' ', NOSAVE
-    print #' ', NOSAVE
+    print #' '
 
     lda BUFEDT+12,y
     lsr
@@ -972,7 +976,7 @@ error:
     jsr Bin2BCD
 
 ;    CPUTC ':'
-    print #':', NOSAVE
+    print #':'
     lda BUFEDT+12,y
     and #$07
     sta TR1
@@ -1155,7 +1159,7 @@ Hex2Asc:
     bcc *+4
     inc RES+1
 
-    print (RES)
+    print (RES), SAVE
     rts
 .endproc
 
