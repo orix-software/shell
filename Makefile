@@ -10,7 +10,6 @@ all : init build after_success
 .PHONY : all
 
 HOMEDIR=/home/travis/bin/
-HOMEDIR_ORIX=/home/travis/build/orix-software/$(ROM)/
 ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
