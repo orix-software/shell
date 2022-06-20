@@ -1,8 +1,9 @@
-# 2022.2
+# 2022.3
 
 * Add readline
-
 * update man pages
+* man removed shell ptr and no others command was working.
+* add sedoric font (with accent)
 
 # 2020.3
 
