@@ -1284,7 +1284,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.X"
+    .asciiz  "Shell v2022.3"
 
 str_compile_time:
     .byt    __DATE__
