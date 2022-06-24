@@ -6,9 +6,6 @@
 ;----------------------------------------------------------------------
 ;                       cc65 includes
 ;----------------------------------------------------------------------
-.ifdef STANDALONE
-	.include "telestrat.inc"
-.endif
 .macpack longbranch
 
 ;----------------------------------------------------------------------
@@ -19,14 +16,7 @@
 ;----------------------------------------------------------------------
 ;			Orix SDK includes
 ;----------------------------------------------------------------------
-.ifdef STANDALONE
-	.include "macros/SDK.mac"
-	.include "include/SDK.inc"
-	.include "macros/types.mac"
-	.include "macros/case.mac"
-.else
-	.include "dependencies/orix-sdk/macros/case.mac"
-.endif
+.include "dependencies/orix-sdk/macros/case.mac"
 
 ;----------------------------------------------------------------------
 ;				Imports
@@ -35,13 +25,6 @@
 ;----------------------------------------------------------------------
 ;				Exports
 ;----------------------------------------------------------------------
-.ifdef RAM
-	.export readline
-
-	.export buffer_ptr
-	.export buffer_pos
-	.export buffer_end
-.endif
 
 ;----------------------------------------------------------------------
 ; Defines / Constants
@@ -141,20 +124,8 @@
 	;----------------------------------------------------------------------
 	; Display prompt
 	;----------------------------------------------------------------------
-	.ifdef RAM
-		sta	prompt_ptr
-		sty	prompt_ptr+1
-		stx	buffer_max
-
-		; Affiche le prompt
-		;.byte	$00, XECRPR
-		eor	prompt_ptr+1
-		beq	init_vars
-		print	(prompt_ptr)
-	.else
-		; Displays current path
-		disp_prompt           ; display prompt (# char)
-	.endif
+	; Displays current path
+	disp_prompt           ; display prompt (# char)
 
 	;----------------------------------------------------------------------
 	; Init vars
@@ -178,11 +149,7 @@
 		sta	buffer_pos
 		sta	buffer_end
 		tay
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 
 		; Vide le buffer
 		ldx	#$00
@@ -197,9 +164,6 @@
 	loop:
 		cgetc	key
 
-.if 1
-		; 17 octets (11 cycles pour une touche normale)
-		; Conserve A
 		cmp	#KEY_ESC		; [2]
 		bne	suite			; [2/3]
 		lda	esc_flag		; [3]
@@ -208,28 +172,9 @@
 		jmp	loop			; [3]
 
 	suite:
-		bit	esc_flag			; [3]
+		bit	esc_flag		; [3]
 		bpl	normal			; [2/3]
-
-.else
-		; 22 octets (14 cycles pour une touche normale +2 avec tax)
-		; Permet d'économiser 1 octet en page 0 (réutilisation de FLGSCR)
-		; Détruit A
-		cmp	#KEY_ESC		; [2]
-		bne	suite			; [2/3]
-
-		lda	FLGSCR			; [4]
-		eor	#%00001000		; [2]
-		sta	FLGSCR			; [4]
-		jmp	loop			; [3]
-
-	suite:
-		;tax				; [2]
-		lda	FLGSCR			; [4]
-		and	#%00001000		; [2]
-		beq	normal			; [2/3]
-
-.endif
+		asl	esc_flag		; [5]
 
 	;----------------------------------------------------------------------
 	; [Esc]+...
@@ -460,13 +405,11 @@
 		pla
 		pla
 
-	.ifndef RAM
 		; Compatibilité version originale de shell
 		; A supprimer?
 		lda	buffer_pos
 		ldy	#shell_bash_struct::pos_command_line
 		sta	(buffer_ptr),y
-	.endif
 
 		; buffer length
 		lda	buffer_end
@@ -497,12 +440,8 @@
 		sta	buffer_pos
 		sta	buffer_end
 
-	.ifdef RAM
-		sta	buffer_ptr
-	.else
 		tay
 		sta	(buffer_ptr),y
-	.endif
 
 		asl	KBDCTC
 
@@ -519,7 +458,6 @@
 		; lda	buffer_end	; [4]
 		lda	#$00		; [2]
 
-	.ifndef RAM
 		; Compatibilité version originale de shell
 		; A supprimer?
 		ldy	#shell_bash_struct::pos_command_line
@@ -527,7 +465,6 @@
 
 		; Pour le flag Z
 		lda	#$00
-	.endif
 
 		rts
 .endproc
@@ -550,20 +487,20 @@
 ;----------------------------------------------------------------------
 .proc key_funct
 		; Utilisable uniquement si la ligne de commande est vide
-		ldy	buffer_end
-		bne	end_oups
+;		ldy	buffer_end
+;		bne	end_oups
 
 		; Retour au shell uniquement si _manage_shortcut
 		; s'est bien passé
-		jsr	_manage_shortcut
-		bne	end_oups
-
-		; Retour au shell
-		pla
-		pla
-		lda	#$00
-	end_oups:
-		rts
+;		jsr	_manage_shortcut
+;		bne	end_oups
+;
+;		; Retour au shell
+;		pla
+;		pla
+;		lda	#$00
+;	end_oups:
+;		rts
 ;	end_oups:
 ;		oups
 ;		rts
@@ -579,11 +516,11 @@
 ;		rts
 
 	; Retour systématique au shell en forçant un code Ok
-;		jsr	_manage_shortcut
-;		pla
-;		pla
-;		lda	#$00
-;		rts
+		jsr	_manage_shortcut
+		pla
+		pla
+		lda	#$00
+		rts
 .endproc
 
 
@@ -611,11 +548,7 @@
 		ldy	buffer_pos
 
 	loop:
-	.ifdef RAM
-		lda	buffer_ptr, y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		beq	end_oups
 
 		jsr	is_alnum
@@ -680,11 +613,7 @@
 .proc forward_char
 		ldy	buffer_pos
 
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		beq	end_oups
 
 		inc	buffer_pos
@@ -724,14 +653,6 @@
 
 		sty	buffer_pos
 
-		; Change le caractère sous le curseur
-;	.ifdef RAM
-;		lda	buffer_ptr
-;	.else
-;		lda	(buffer_ptr),y
-;	.endif
-;		sta	CURSCR
-
 	end:
 		rts
 .endproc
@@ -767,9 +688,6 @@
 		lda	buffer_end
 		sta	buffer_pos
 
-		; Change le caractère sous le curseur
-;		lda	#' '
-;		sta	CURSCR
 	end:
 		rts
 .endproc
@@ -797,11 +715,7 @@
 
 	loop:
 		dey
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		jsr	is_alnum
 		bcc	move
 
@@ -817,11 +731,7 @@
 
 	backward:
 		beq	end
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		jsr	is_alnum
 		bcc	move
 		iny
@@ -851,11 +761,7 @@
 		jsr	_word_begin
 		bcs	end
 	move:
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		beq	end
 
 		jsr	is_alnum
@@ -889,15 +795,10 @@
 .proc clear_screen
 		cputc
 
-	.ifdef RAM
-		print	(prompt_ptr)
-		print	buffer_ptr
-	.else
 		; Displays current path
 		disp_prompt           ; display prompt (# char)
 
 		print	(buffer_ptr)
-	.endif
 
 		sec
 		lda	buffer_end
@@ -909,16 +810,6 @@
 		cputc	$08
 		dex
 		bne	loop
-
-	ok:
-		; Change le caractère sous le curseur
-;		ldy	buffer_pos
-;	.ifdef RAM
-;		lda	buffer_ptr,y
-;	.else
-;		lda	(buffer_ptr),y
-;	.endif
-;		sta	CURSCR
 
 	end:
 		rts
@@ -995,27 +886,18 @@
 		; décaler le buffer de buffer+buffer_pos à buffer+buffer_end vers buffer-1+buffer_pos
 		ldy	buffer_pos
 	loop:
-	.ifdef RAM
-		lda	buffer_ptr,y
-		sta	buffer_ptr-1,y
-	.else
 		lda	(buffer_ptr),y
 		dey
 		sta	(buffer_ptr),y
 		iny
-	.endif
 		iny
 		cpy	buffer_end
 		bcc	loop
 
 		lda	#$00
-	.ifdef RAM
-		sta	buffer_ptr-1,y
-	.else
 		dey
 		sta	(buffer_ptr),y
 		iny
-	.endif
 		dec	buffer_pos
 		dec	buffer_end
 
@@ -1043,17 +925,10 @@
 
 		; Affiche la fin du tampon + un espace
 		clc
-	.ifdef RAM
-		lda	#<buffer_ptr
-		adc	buffer_pos
-		sta	work
-		lda	#>buffer_ptr
-	.else
 		lda	buffer_ptr
 		adc	buffer_pos
 		sta	work
 		lda	buffer_ptr+1
-	.endif
 		adc	#$00
 		sta	work+1
 		print	(work)
@@ -1073,15 +948,6 @@
 		cputc	$08
 		dex
 		bpl	backward
-
-		; Change le caractère sous le curseur
-;		ldy	buffer_pos
-;	.ifdef RAM
-;		lda	buffer_ptr,y
-;	.else
-;		lda	(buffer_ptr),y
-;	.endif
-;		sta	CURSCR
 
 	end:
 		rts
@@ -1158,15 +1024,6 @@
 		cputc	$09
 		inc	buffer_pos
 
-		; Change le caractère sous le curseur
-;		ldy	buffer_pos
-;	.ifdef RAM
-;		lda	buffer_ptr,y
-;	.else
-;		lda	(buffer_ptr),y
-;	.endif
-;		sta	CURSCR
-
 	end:
 		rts
 
@@ -1208,11 +1065,8 @@
 
 	overwrite:
 		; Buffer plein?
-	.ifdef RAM
-		ldy	buffer_max
-	.else
 		ldy	#buffer_max
-	.endif
+
 		; dey pour tenir compte du fait que buffer_max indique un nombre
 		; de caractères (l'index commence à 0 et non 1)
 		dey
@@ -1224,11 +1078,7 @@
 		pla
 
 		ldy	buffer_pos
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 		iny
 		sty	buffer_pos
 
@@ -1238,11 +1088,7 @@
 		sty	buffer_end
 		lda	#$00
 
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 
 	end:
 		rts
@@ -1278,11 +1124,8 @@
 ;----------------------------------------------------------------------
 .proc insert
 		; Buffer plein?
-	.ifdef RAM
-		ldy	buffer_max
-	.else
 		ldy	#buffer_max
-	.endif
+
 		; dey pour tenir compte du fait que buffer_max indique un nombre
 		; de caractères (l'index commence à 0 et non 1)
 		dey
@@ -1297,8 +1140,6 @@
 		pha
 		cputc
 
-	.ifdef RAM
-	.else
 		; Affiche la fin de la ligne
 		lda	buffer_ptr
 		pha
@@ -1343,7 +1184,6 @@
 		pla
 		iny
 		sta	(buffer_ptr),y
-	.endif
 
 		inc	buffer_pos
 
@@ -1352,11 +1192,7 @@
 		ldy	buffer_end
 		lda	#$00
 
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 
 	end:
 		rts
@@ -1408,35 +1244,22 @@
 	swap:
 		; [<-]
 		cputc	$08
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 
 		pha
 		cputc
 
-	.ifdef RAM
-		lda	buffer_ptr-1,y
-		sta	buffer_ptr,y
-	.else
 		dey
 		lda	(buffer_ptr),y
 		iny
 		sta	(buffer_ptr),y
-	.endif
 
 		cputc
 		pla
 
-	.ifdef RAM
-		sta	buffer_ptr-1,y
-	.else
 		dey
 		sta	(buffer_ptr),y
 		iny
-	.endif
 
 		; iny				; [2]
 		; sty	buffer_pos		; [4]
@@ -1465,11 +1288,8 @@
 		bcs	end
 
 	convert:
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
+
 		; On peut supprimer le 'beq end' si on veut gagner 2 octets
 		beq	end
 		jsr	is_alnum
@@ -1481,11 +1301,7 @@
 		bcs	next
 		eor	#'a'-'A'
 
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 
 	next:
 		cputc
@@ -1517,11 +1333,8 @@
 		bcs	end
 
 	convert:
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
+
 		; On peut supprimer le 'beq end' si on veut gagner 2 octets
 		beq	end
 		jsr	is_alnum
@@ -1533,11 +1346,7 @@
 		bcs	next
 		eor	#'a'-'A'
 
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 
 	next:
 		cputc
@@ -1573,11 +1382,7 @@
 		bcs	forward
 		eor	#'a'-'A'
 
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 		cputc
 		iny
 
@@ -1679,11 +1484,7 @@
 		ldy	buffer_pos
 		sty	buffer_end
 
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
 
 		; Change le caractère sous le curseur
 ;		lda	#' '
@@ -1757,15 +1558,7 @@
 		sta	buffer_end
 		tay
 
-	.ifdef RAM
-		sta	buffer_ptr,y
-	.else
 		sta	(buffer_ptr),y
-	.endif
-
-		; Change le caractère sous le curseur
-;		lda	#' '
-;		sta	CURSCR
 
 		rts
 .endproc
@@ -1789,11 +1582,7 @@
 	loop:
 		ldy	buffer_pos
 
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		beq	end
 
 		jsr	is_alnum
@@ -1807,11 +1596,7 @@
 		jsr	delete_char
 		ldy	buffer_pos
 
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		; beq	end
 		jsr	is_alnum
 		bcc	loop2
@@ -1841,11 +1626,7 @@
 		beq	end
 		dey
 
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		; unix-word-rubout
 		; cmp	#' '
 		; bne	loop2
@@ -1863,11 +1644,7 @@
 		beq	end
 		dey
 
-	.ifdef RAM
-		lda	buffer_ptr,y
-	.else
 		lda	(buffer_ptr),y
-	.endif
 		; beq	end
 
 		; unix-word-rubout
