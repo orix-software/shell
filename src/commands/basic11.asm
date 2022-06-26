@@ -540,10 +540,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     BRK_KERNEL XDECIM
     crlf
 
-    ;lda     #$13
-    ;sta     $bb80
-    ;@me:
-        ;jmp @me
+
     rts
 
 @no_oom:
@@ -997,9 +994,9 @@ tapes_path_basic10:
 str_basic11_missing_rom:
     .asciiz "Missing ROM file : "
 rom_path:
-    .asciiz "/usr/share/basic11/basic"
+    .asciiz "/usr/share/atmos/basic"
 rom_path_basic10:
-    .asciiz "/usr/share/basic10/basic"
+    .asciiz "/usr/share/oric1/basic"
 str_can_not:
     .asciiz "Can not open"
 str_enomem:
