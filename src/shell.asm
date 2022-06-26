@@ -30,16 +30,16 @@
 ;----------------------------------------------------------------------
 ;                           Zero Page
 ;----------------------------------------------------------------------
-userzp                      :=	VARLNG ; $8C
+userzp                       :=	VARLNG ; $8C
 
 
-bash_struct_ptr              :=userzp   ; Struct for shell, when shell start, it malloc a struct 16bits
-sh_esc_pressed               :=userzp+2
+bash_struct_ptr              := userzp   ; Struct for shell, when shell start, it malloc a struct 16bits
+sh_esc_pressed               := userzp+2
 
-sh_length_of_command_line    :=userzp+3 ; Only useful when we are un prompt mode
+sh_length_of_command_line    := userzp+3 ; Only useful when we are un prompt mode
 ;tmp1_for_internal_command    :=userzp+3
 
-exec_address                 :=userzp+4
+exec_address                 := userzp+4
 ptr1_for_internal_command    :=userzp+4
 
 bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed (echo, ls)
@@ -47,7 +47,8 @@ bash_tmp1                    :=userzp+8
 sh_ptr_for_internal_command  :=userzp+10 ; cd
 
 sh_ptr1                      :=userzp+12
-;ptr2_for_internal_command    :=userzp+12
+
+
 
 STORE_CURRENT_DEVICE :=$99
 
@@ -55,11 +56,14 @@ STORE_CURRENT_DEVICE :=$99
 ;                       Defines / Constants
 ;----------------------------------------------------------------------
 ;XEXEC = $63
-XMAINARGS = $2C
-XMAINARGS_GETV = $2E
-XGETARGV = $2E
+XMAINARGS       = $2C
+XMAINARGS_GETV  = $2E
+XGETARGV        = $2E
+XGETCWD_ROUTINE = $48
+XPUTCWD_ROUTINE = $49
 
-BASH_NUMBER_OF_USERZP = 8
+RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
+
 
 .include   "build.inc"
 .include   "include/bash.inc"
@@ -72,10 +76,6 @@ BASH_NUMBER_OF_USERZP = 8
 
 .include   "include/orix.inc"
 
-XGETCWD_ROUTINE=$48
-XPUTCWD_ROUTINE=$49
-
-RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 ;----------------------------------------------------------------------
 ;                               Shell
@@ -90,15 +90,25 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         malloc  .sizeof(shell_bash_struct)
 
         ; FIXME test NULL pointer
-        sta    bash_struct_ptr
-        sty    bash_struct_ptr+1
+        sta     bash_struct_ptr
+        sty     bash_struct_ptr+1
 
-        lda    #$00
-        ldy    #shell_bash_struct::command_line
-        sta    (bash_struct_ptr),y
+        lda     #$00
+        ldy     #shell_bash_struct::command_line
+        sta     (bash_struct_ptr),y
+        ; set shell_extension_loaded not loaded
+        ldy     #shell_bash_struct::shell_extension_loaded
+        sta     (bash_struct_ptr),y
 
+        jsr     shellext_start
+        cpy     #$01
+        beq     @error_loading_shell_extensions
 
+        lda     #$01 ; Shell_extensions loaded
+        ldy     #shell_bash_struct::shell_extension_loaded
+        sta     (bash_struct_ptr),y
 
+@error_loading_shell_extensions:
         ; set lowercase keyboard should be move in telemon bank
         lda     FLGKBD
         and     #%00111111 ; b7 : lowercase, b6 : no sound
@@ -144,7 +154,33 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
     skip:
         ; A contient déjà la bonne valeur
-        ; lda bash_struct_command_line_ptr
+        ldy     #shell_bash_struct::shell_extension_loaded
+        lda     (bash_struct_ptr),y
+        beq     @shell_extension_not_loaded
+
+
+        jsr     register_command_line
+
+        lda     $342
+        and     #%11011111  ; Switch to eeprom again
+        sta     $342
+
+        lda     $321
+        and     #%11111000
+        ora     #$05
+        sta     $321
+
+        ldx     #$05
+        stx     BNKCIB
+        stx     VAPLIC
+        stx     ID_BANK_TO_READ_FOR_READ_BYTE
+        lda     #$00
+        sta     $343
+
+@shell_extension_not_loaded:
+
+
+        lda     bash_struct_command_line_ptr
         ldy     bash_struct_command_line_ptr+1
         jsr     _bash
 
@@ -159,6 +195,30 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         jmp     loop
 .endproc
 
+.proc register_command_line
+    lda     #$00
+    sta     $343
+
+    lda     #<$c003
+    sta     VAPLIC+1
+    sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
+    lda     #>$c003
+    sta     VAPLIC+2
+    sta     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
+
+    ldx     #$03
+    stx     BNKCIB
+
+    lda     $342
+    ora     #%00100000
+    sta     $342
+
+    lda     bash_struct_command_line_ptr
+    ldy     bash_struct_command_line_ptr+1
+
+    jmp     EXBNK
+
+.endproc
 
 ;----------------------------------------------------------------------
 ; Pour sh.asm
@@ -1284,7 +1344,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.3.1"
+    .asciiz  "Shell v2022.4"
 
 str_compile_time:
     .byt    __DATE__

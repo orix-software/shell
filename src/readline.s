@@ -265,6 +265,7 @@
 		do_case	key
 			case_of KEY_LEFT, backward_char
 			case_of KEY_RIGHT, forward_char
+			case_of KEY_UP, get_history_up
 			case_of KEY_RETURN, accept_line
 			case_of KEY_DEL, backward_delete_char
 ;			case_of {' ', '}'}, self_insert
@@ -312,6 +313,8 @@
 
 			case_of CTRL_C, key_break
 			case_of CTRL_L, clear_screen
+
+			case_of CTRL_R, launch_history_search
 
 			; Compatibilité Telestrat
 			case_of	CTRL_X, kill_line
@@ -1826,6 +1829,100 @@
 		bpl	out
 		bit	out			; SEV
 		rts
+.endproc
+
+.proc launch_history_search
+	; On checke si la banque shellext est chargée
+	ldy     #shell_bash_struct::shell_extension_loaded
+    lda     (bash_struct_ptr),y
+    beq     @shell_extension_not_loaded ; on quitte car non présente
+
+    lda     #<$c006
+    ldy     #>$c006
+	jsr		launch_history_bank_vector
+
+	jsr		restore_states_for_shell
+
+@shell_extension_not_loaded:
+	pla
+	pla
+	rts
+.endproc
+
+.proc launch_history_bank_vector
+
+    ldx     #$00
+    stx     $343
+
+
+    sta     VAPLIC+1
+    sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
+
+    sty     VAPLIC+2
+    sty     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
+
+    ldx     #$03
+    stx     BNKCIB
+
+    lda     $342
+    ora     #%00100000
+    sta     $342
+	; On envoie le ptr de ligne de commande pour que la banque shellext remplisse la ligne de commande
+    lda     bash_struct_command_line_ptr
+    ldy     bash_struct_command_line_ptr+1
+
+    jmp     EXBNK
+.endproc
+
+.proc	restore_states_for_shell
+
+    lda     $342
+    and     #%11011111  ; Switch to eeprom again
+    sta     $342
+
+    lda     $321
+    and     #%11111000
+    ora     #$05
+    sta     $321
+
+    ldx     #$05
+    stx     BNKCIB
+    stx     VAPLIC
+    stx     ID_BANK_TO_READ_FOR_READ_BYTE
+    lda     #$00
+    sta     $343
+
+	rts
+.endproc
+
+.proc	get_history_up
+	; On checke si la banque shellext est chargée
+	ldy     #shell_bash_struct::shell_extension_loaded
+    lda     (bash_struct_ptr),y
+    beq     @shell_extension_not_loaded ; on quitte car non présente
+
+    lda     #<$c009
+    ldy     #>$c009
+	jsr		launch_history_bank_vector
+
+	pha
+	jsr		restore_states_for_shell
+	pla
+
+	cmp		#$00
+	beq		@exit
+	; X contains the pos
+
+
+@shell_extension_not_loaded:
+	pla
+	pla
+	crlf
+	lda		#$01
+@exit:
+	rts
+
+	rts
 .endproc
 
 ;======================================================================

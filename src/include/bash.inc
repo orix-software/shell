@@ -12,5 +12,5 @@ BASH_MAX_BUFEDT_LENGTH         = 110
 .struct shell_bash_struct
     command_line              .res BASH_MAX_LENGTH_COMMAND_LINE
     pos_command_line          .res 1
-   ; shell_extension_loaded    .res 1
+    shell_extension_loaded    .res 1
 .endstruct
