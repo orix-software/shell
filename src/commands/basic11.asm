@@ -78,8 +78,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     cpx     #$01
     beq     @no_arg
 
-
-
     ldx     #$01
     lda     basic11_argv_ptr
     ldy     basic11_argv_ptr+1
@@ -88,8 +86,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     sta     basic11_argv1_ptr
     sty     basic11_argv1_ptr+1
-
-
 
     ldy     #$00
 
@@ -104,9 +100,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     cmp     #BASIC11_ROM
     beq     @start_rom_in_eeprom
 
-
-    ;lda     #$01
-    ;sta     basic11_no_arg_provided
 
     jmp     @load_ROM_in_memory_and_start
 
@@ -246,18 +239,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     jsr     basic11_stop_via
 
-    ; erase memory with 0
-    ;ldx     #$00
-    ;lda     #$00
-;@nloop:
-    ;sta     $00,x
-    ;sta     $200,x
-    ;sta     $400,x
-    ;sta     $500,x
-    ;inx
-    ;bne     @nloop
-
-
     ldx     #$00
 @loop:
     lda     #$00                                    ; FIXME 65C02
@@ -270,8 +251,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sta     $2DF ; Flush keyboard for atmos rom
 
     jsr     prepare_rom_rnd
-
-
 
     ldx     #$00
 @L1000:
@@ -305,25 +284,14 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ora     #ATMOS_ID_BANK
     sta     VIA2::PRA
 
-
-    ;lda     basic11_mode
-    ;cmp     #BASIC10_ROM
-    ;beq     @jmp_basic10_vector
-
-
-
     jmp     $F88F ; NMI vector of ATMOS rom
+
 @jmp_basic10_vector:
     jmp     $F42D
     ; Check if it's a .tap
 @noparam_free:
 
-
-
     mfree (basic11_ptr1)
-
-
-
 
     jmp     @start
 
