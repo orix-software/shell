@@ -29,7 +29,6 @@ basic11_fp                      := userzp+9
 
 basic11_ptr3                    := userzp+11
 basic11_mainargs_ptr            := userzp+11
-  ;basic11_ptr3  := userzp+12
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui        := userzp+14
 
@@ -210,9 +209,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     mfree (basic11_argv_ptr)
 
-    ;fopen src, O_RDONLY, TELEMON, ptr1, msg, $EC
-    ;fopen file, mode [,TELEMON] [,ptr] [,oom_msg_ptr] [,fail_value]
-    ;fopen basic11_ptr1, O_RDONLY, , ptr1, msg, $EC
 
     fopen  (basic11_ptr1), O_RDONLY
     cpx     #$FF
@@ -359,7 +355,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     jsr     basic11_read_main_dbfile
     cmp     #$FF
     bne     @continue_l_option
-    cpy     #$FF
+    cpx     #$FF
     bne     @continue_l_option
     print   str_can_not
     rts
