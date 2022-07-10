@@ -175,10 +175,7 @@ copy_mask:
     ldy     #>BUFNOM
     sta     ls_save_line_command_ptr         ; ls_save_line_command_ptr: Cf Match
     sty     ls_save_line_command_ptr+1
-    ; Utilisation de la macro strcpy pour remplacer le code suivant
-    ; sta RES
-    ; sty RES+1
-    ; jsr _strcpy
+
     ; la destination, RESB, est déjà renseignée et AY contient l'adresse de la source
     strcpy , AY
 
@@ -195,7 +192,7 @@ copy_mask:
     bcs     all
 
     lda     BUFNOM
-    bne ZZ0002
+    bne     ZZ0002
 
   all:
     lda     #'*'
@@ -309,15 +306,17 @@ go:
 .endif
 
   ZZ0001:
+
+
     rts
 
 
 
 ; ------------------------------------------------------------------------------
 Error:
-    print txt_file_not_found
+    print     txt_file_not_found
     ;FREE RESB
-    print BUFNOM
+    print     BUFNOM
 
 
 error_oom:
@@ -410,7 +409,7 @@ display_catalog:
 
     lda     BUFNOM
     cmp     #'.'
-    beq ZZ0014
+    beq     ZZ0014
 
     lda     BUFNOM+1
     cmp     #'.'

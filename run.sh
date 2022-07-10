@@ -1,8 +1,6 @@
 # export DISPLAY=172.17.160.1:0
 ORICUTRON_PATH="/mnt/c/Users/plifp/OneDrive/oric/oricutron_wsl/oricutron"
 
-
-
 LD65_LIB=/usr/share/cc65/lib/
 export LD65_LIB
 

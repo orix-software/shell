@@ -1,10 +1,9 @@
 .export _touch
 
 .proc _touch
- ; .byte $00,$2C ; XMAINARGS
 
-    touch_ptr1              :=userzp
-    touch_arg_length        :=userzp+2
+    touch_ptr1              := userzp
+    touch_arg_length        := userzp+2
     touch_mainargs_argv     := userzp+4
     touch_mainargs_argc     := userzp+8 ; 8 bits
     touch_mainargs_arg1_ptr := userzp+15

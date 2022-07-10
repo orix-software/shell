@@ -47,6 +47,7 @@ bash_tmp1                    :=userzp+8
 sh_ptr_for_internal_command  :=userzp+10 ; cd
 
 sh_ptr1                      :=userzp+12
+sh_history_flag              :=userzp+16 ; Used to store the position of the entry of  his history
 
 
 
@@ -55,7 +56,7 @@ STORE_CURRENT_DEVICE :=$99
 ;----------------------------------------------------------------------
 ;                       Defines / Constants
 ;----------------------------------------------------------------------
-;XEXEC = $63
+
 XMAINARGS       = $2C
 XMAINARGS_GETV  = $2E
 XGETARGV        = $2E
@@ -76,6 +77,8 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 .include   "include/orix.inc"
 
+.define MAGIC_TOKEN_ROM $FFED
+
 
 ;----------------------------------------------------------------------
 ;                               Shell
@@ -85,6 +88,10 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 .code
 
 .proc start_sh_interactive
+
+        ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK    ; 2 bytes
+        current_bank            :=  ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
+
         .out    .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
 
         malloc  .sizeof(shell_bash_struct)
@@ -93,20 +100,25 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         sta     bash_struct_ptr
         sty     bash_struct_ptr+1
 
+    ; ****************************************************************
+    ; *                Checking if systemd rom is loaded             *
+    ; ****************************************************************
+
+    ; Define that systemd rom is not presnet in order to detect it
+        ldy     #shell_bash_struct::systemd_rom_loaded
         lda     #$00
-        ldy     #shell_bash_struct::command_line
         sta     (bash_struct_ptr),y
-        ; set shell_extension_loaded not loaded
+
+        ; Don't remove this line for instance
         ldy     #shell_bash_struct::shell_extension_loaded
         sta     (bash_struct_ptr),y
 
-        jsr     shellext_start
-        cpy     #$01
-        beq     @error_loading_shell_extensions
 
-        lda     #$01 ; Shell_extensions loaded
-        ldy     #shell_bash_struct::shell_extension_loaded
-        sta     (bash_struct_ptr),y
+        lda     #ORIX_ID_BANK       ; Kernel bank
+        sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
+
+        jsr     detection_bank
+
 
 @error_loading_shell_extensions:
         ; set lowercase keyboard should be move in telemon bank
@@ -119,6 +131,9 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
     loop:
         cursor  on
+
+        lda     #$00
+        sta     sh_history_flag
 
         lda     #ORIX_ID_BANK       ; Kernel bank
         sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
@@ -161,9 +176,9 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         jsr     register_command_line
 
-        lda     $342
+        lda     TWILIGHTE_REGISTER
         and     #%11011111  ; Switch to eeprom again
-        sta     $342
+        sta     TWILIGHTE_REGISTER
 
         lda     $321
         and     #%11111000
@@ -175,7 +190,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         stx     VAPLIC
         stx     ID_BANK_TO_READ_FOR_READ_BYTE
         lda     #$00
-        sta     $343
+        sta     TWILIGHTE_BANKING_REGISTER
 
 @shell_extension_not_loaded:
 
@@ -187,8 +202,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         cmp     #EOK
         beq     loop
 
-        ;    lda bash_struct_ptr
-        ;    ldy bash_struct_ptr+1
+
         lda     bash_struct_command_line_ptr
         ldy     bash_struct_command_line_ptr+1
         jsr     external_cmd
@@ -196,27 +210,27 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 .endproc
 
 .proc register_command_line
-    lda     #$00
-    sta     $343
+        lda     #$00
+        sta     TWILIGHTE_BANKING_REGISTER
 
-    lda     #<$c003
-    sta     VAPLIC+1
-    sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
-    lda     #>$c003
-    sta     VAPLIC+2
-    sta     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
+        lda     #<$c003
+        sta     VAPLIC+1
+        sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
+        lda     #>$c003
+        sta     VAPLIC+2
+        sta     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
 
-    ldx     #$03
-    stx     BNKCIB
+        ldx     #$02
+        stx     BNKCIB
 
-    lda     $342
-    ora     #%00100000
-    sta     $342
+        lda     TWILIGHTE_REGISTER
+        ora     #%00100000
+        sta     TWILIGHTE_REGISTER
 
-    lda     bash_struct_command_line_ptr
-    ldy     bash_struct_command_line_ptr+1
+        lda     bash_struct_command_line_ptr
+        ldy     bash_struct_command_line_ptr+1
 
-    jmp     EXBNK
+        jmp     EXBNK
 
 .endproc
 
@@ -307,10 +321,11 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 ;----------------------------------------------------------------------
 .proc external_cmd
         BRK_KERNEL XEXEC
-        cmp    #EOK
+
+        cpy    #EOK
         beq    @S20
 
-        cmp    #ENOMEM
+        cpy    #ENOMEM
         bne    @check_too_many_open_files
 
         print  str_oom
@@ -319,7 +334,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         rts
 
     @check_too_many_open_files:
-        cmp    #EMFILE
+        cpy    #EMFILE
         bne    @check_i_o_error
 
         print  str_too_many_open_files
@@ -330,7 +345,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         rts
 
     @check_i_o_error:
-        cmp    #EIO
+        cpy    #EIO
         bne    @check_format_error
 
         print  str_i_o_error
@@ -339,7 +354,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         rts
 
     @check_format_error:
-        cmp    #ENOEXEC
+        cpy    #ENOEXEC
         bne    @check_other
 
         print  str_exec_format_error
@@ -393,6 +408,12 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 ;----------------------------------------------------------------------
 .include "shortcut.asm"
 
+;----------------------------------------------------------------------
+;
+;----------------------------------------------------------------------
+.include "detection_bank.s"
+
+
 
 ;----------------------------------------------------------------------
 ;
@@ -405,8 +426,7 @@ internal_commands_str:
 
 echo:
 .asciiz "echo"
-;exec:
-;.asciiz "exec"
+
 help:
 .asciiz "help"
 pwd:
@@ -450,9 +470,7 @@ internal_commands_length:
 .include "commands/exec.asm"
 .include "commands/help.asm"
 .include "commands/pwd.asm"
-
 .include "commands/twilbank.asm"
-
 
 ; Commands
 .ifdef WITH_BANK
@@ -489,9 +507,6 @@ internal_commands_length:
     .include "commands/env.asm"
 .endif
 
-.ifdef WITH_HISTORY
-    .include "commands/history.asm"
-.endif
 
 .ifdef WITH_IOPORT
     .include "commands/ioports.asm"
@@ -598,7 +613,7 @@ internal_commands_length:
 .endif
 
 ;.ifdef WITH_RESCUE
-;.include "commands/rescue.asm"
+.include "commands/systemd.asm"
 ;.endif
 
 .ifdef WITH_WATCH
@@ -756,10 +771,6 @@ addr_commands:
     .addr  _env
 .endif
 
-; 16
-.ifdef WITH_HISTORY
-    .addr  _history
-.endif
 ; 17
 .ifdef WITH_IOPORT
     .addr  _ioports ;
@@ -847,9 +858,9 @@ addr_commands:
     .addr  _sh
 .endif
 
-;.ifdef WITH_RESCUE
-    ;.addr  _rescue
-;.endif
+
+.addr  _systemd
+
 
 .ifdef WITH_TELNETD
     .addr  _telnetd
@@ -939,10 +950,6 @@ commands_length:
     .byt 2 ; _env
 .endif
 
-.ifdef WITH_HISTORY
-    .byt 7 ; history
-.endif
-
 .ifdef WITH_IOPORT
     .byt 7 ; _ioports
 .endif
@@ -1028,7 +1035,7 @@ commands_length:
 .endif
 
 ;.ifdef WITH_RESCUE
-    ;.byt 6 ; sh
+.byt 7 ; sh
 ;.endif
 
 .ifdef WITH_TELNETD
@@ -1128,10 +1135,6 @@ env:
 .endif
 ; 11
 
-.ifdef WITH_HISTORY
-history:
-    .asciiz "history"
-.endif
 ; 15
 .ifdef WITH_IOPORT
 ioports:
@@ -1246,9 +1249,9 @@ sh:
 .endif
 
 ;.ifdef WITH_RESCUE
-;rescue:
-    ;.asciiz "rescue"
-;.endif
+systemd:
+    .asciiz "systemd"
+
 
 .ifdef WITH_TELNETD
 telnetd:
@@ -1344,7 +1347,10 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.4"
+    .asciiz  "Shell v2022.4.X"
+
+shellext_found:
+    .byte "Shell extentions found",$0A,$0D,$00
 
 str_compile_time:
     .byt    __DATE__

@@ -8,6 +8,7 @@
 .include   "dependencies/orix-sdk/include/SDK.inc"
 
 .include   "dependencies/kernel/src/include/keyboard.inc"
+.include   "include/bash.inc"
 
 .define HISTORY_MAX_NUMBER_ENTRY 20
 
@@ -17,6 +18,8 @@ savex   := userzp
 savea   := userzp+1
 saveptr := userzp+3
 savepos := userzp+5
+
+
 
 .org $c000
 start_rom_entry:
@@ -30,32 +33,59 @@ ctrl_r_history:
 ;c009
 go_up_history:
         jmp     go_up_history_routine
-;c00d
+;c00c
 go_down_history:
         jmp     go_down_history_routine
 
 go_up_history_routine:
+        ;cli
         sta     saveptr
         sty     saveptr+1
+        cpx     #$00            ;
+        bne     @S1
+        lda     next_current_position
+        sta     history_entry_current_id
+        jmp     @begin_up
+@S1:
+
+        stx     history_entry_current_id
+
+@begin_up:
+       ;
         lda     next_current_position
         beq     @nothing_to_do
 
-        sta     savex
-
 @go_up_entry:
-        ldx     savex
+        ldx     history_entry_current_id
         beq     @nothing_to_do
 
 
         dex
-        stx     savex
-
-
+        stx     history_entry_current_id
 
         lda     history_buffer_ptr_low,x
         sta     RESB
         lda     history_buffer_ptr_high,x
         sta     RESB+1
+
+        ldy     #shell_bash_struct::pos_command_line
+        lda     (saveptr),y
+        tax
+        tay
+        beq     @skip_clear_line
+@clear_line:
+        cputc	$08
+        dey
+        bne     @clear_line
+
+        ; now fill with space
+@clear_line2:
+        cputc	' '
+        dex
+        bne     @clear_line2
+
+@skip_clear_line:
+
 
         ldy     #$00
 @L2:
@@ -81,26 +111,17 @@ go_up_history_routine:
 
         BRK_TELEMON XECRPR
 
-        ldx     savex
+        ldx     history_entry_current_id
         ldy     history_buffer_ptr_high,x
         lda     history_buffer_ptr_low,x
 
         BRK_TELEMON XWSTR0
 
+        ldx     savepos
 
-
-
-
-@read_up_key:
-        cgetc   key
-        cmp     #$03
-        beq     ctrl_c
-        cmp     #KEY_UP
-        beq     @go_up_entry
-        cmp     #KEY_RETURN
-        beq     execute_command
-
-
+        lda     #$00
+        ldy     history_entry_current_id
+        rts
 
 
 
@@ -148,8 +169,6 @@ search_history_key:
         lda     history_buffer_ptr_high,y
         sta     RES+1
 
-
-
         rts
 
 key:
@@ -160,7 +179,6 @@ reverse:
 
 start:
 
-        print str_shellext_loaded
 
         lda     #<history_buffer_command
         sta     history_buffer_ptr_low
@@ -168,12 +186,15 @@ start:
         sta     history_buffer_ptr_high
         lda     #$00
         sta     next_current_position
+        sta     history_entry_current_id
+        print str_shellext_loaded
+        print str_OK
+
         rts
 
 str_shellext_loaded:
-        .byte "Shell extensions loaded "
-        .byte VERSION
-        .byte $0A,$0D,$00
+        .asciiz "Shell extentions "
+
 
 register_command:
         sta     RES
@@ -209,6 +230,7 @@ register_command:
         sta     history_buffer_ptr_high,x
 
         inc     next_current_position
+        inc     history_entry_current_id
         iny
         tya
         clc
@@ -221,12 +243,16 @@ register_command:
 
         rts
 next_current_position:
-        .res 1
+        .byte 0
+history_entry_current_id:
+        .byte 0
 
 history_buffer_ptr_low:
-        .res HISTORY_MAX_NUMBER_ENTRY
+        .byte <history_buffer_command
+        .res HISTORY_MAX_NUMBER_ENTRY-1
 history_buffer_ptr_high:
-        .res HISTORY_MAX_NUMBER_ENTRY
+        .byte >history_buffer_command
+        .res HISTORY_MAX_NUMBER_ENTRY-1
 history_buffer_command:
         .res    HISTORY_MAX_NUMBER_ENTRY*60
 
@@ -256,6 +282,9 @@ _history:
         bne     @L1
         rts
 
+str_OK:
+   .byte $82,"[OK]",$0D,0
+
 
 command1_str:
         .asciiz "history"
@@ -271,9 +300,11 @@ commands_version:
 
 ; ----------------------------------------------------------------------------
 ; Copyrights address
+.res $FFED-*
+magic_token_systemd:
+        .byte "SET"
 
-        .res $FFF1-*
-        .org $FFF1
+.byte $01
 ; $fff1
 parse_vector:
         .byt $00,$00

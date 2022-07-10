@@ -25,10 +25,7 @@
 ;				Command
 ;----------------------------------------------------------------------
 .proc _df
-;	jsr _ch376_verify_SetUsbPort_Mount
-;	;bcc @ZZ0001
-;	bcs *+5
-;	jmp df_end
+
 
 	; Force le montage du périphérique, sinon un changement avec la
 	; commande twil directement suivie par df indique les valeurs du
@@ -50,28 +47,13 @@
     rts
 @free:
 
-	;lda #<( .strlen(df_msg))
-	;ldy #>(.strlen(df_msg))
-	;.byte $00, XMALLOC
-	malloc .strlen(df_msg)+1, userzp
-	; FIXME test OOM
-	;TEST_OOM_AND_MAX_MALLOC
-	;sta userzp
-	;sty userzp+1
 
-	;ora userzp+1
-	;bne df_suite
-	;jmp df_end
+	malloc .strlen(df_msg)+1, userzp
+
 
 df_suite:
 	strcpy AY, str_df_values
-;	sta RESB
-;	sty RESB+1
-;	lda #<str_sda1
-;	ldy #>str_sda1
-;	sta RES
-;	sty RES+1
-;	jsr _strcpy
+
 
 	print df_header, SAVE
 	jsr     _ch376_disk_query
@@ -112,19 +94,16 @@ df_suite:
 
 	jsr     convd
 
-;	clc
 	lda     userzp
-;	adc #$04
+
 	ldy     userzp+1
-;	bcc *+3
-;	iny
+
 	jsr     bcd2str
 	; Remplace le caractère nul par un ' '
 	lda #' '
 	sta (RES),y
 
 	jsr display_size
-	;print (RES)
 
 	lda userzp+2
 	sta RES
@@ -173,20 +152,7 @@ df_suite:
 print_device:
 	BRK_KERNEL XWSTR0
 
-	; SDCARD?
-;	cmp #$03
-;	bne usb
-;	lda #<str_sda1
-;	ldy #>str_sda1
-;	bne xxx
-;	lda #<str_usb1
-;	ldy #>str_usb1
-;print_device:
-;	BRK_KERNEL XWSTR0
 
-
-
-	;ZZ0001:
 df_end:
 	crlf
 	rts
@@ -212,21 +178,7 @@ display_size:
     bne @skip
 
   @display:
-    ; On saute les espaces du début
-;    clc
-;    tya
-;    adc RES
-;    sta RES
-;    bcc *+4
-;    inc RES+1
 
-; Résultat dans AY
-;    clc
-;    tya
-;    adc RES
-;    ldy RES+1
-;    bcc *+3
-;    iny
 
      ; La chaine fait 10 caractères
      ; Taille maximale: < 999 999
@@ -239,15 +191,9 @@ display_size:
     bcc *+4
     inc RES+1
 
-; Résultat dans AY
-;    clc
-;    lda #$04
-;    adc RES
-;    ldy RES+1
-;    bcc *+3
-;    iny
+
 .endif
-    ; print (RES),NOSAVE
+
 
     rts
 

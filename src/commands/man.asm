@@ -157,15 +157,12 @@ next:
     dex
     bne     @L1
 
-   ; FREAD   SCREEN, 1080, 1, 0
-   ; cmp   #<1080
 
 @readkeyboard:
 
     BRK_KERNEL XRDW0
     cmp     #27
     jmp     @readagain
-   ; bmi     cget_loop
     ; A bit crap to flush screen ...
     ; read again ?
 out:

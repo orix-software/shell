@@ -340,7 +340,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 @basic11_option_management:
 
-    ;mfree (basic11_argv_ptr)
 
     ldy     #$01
     lda     (basic11_argv1_ptr),y
