@@ -27,7 +27,7 @@
 
     ldx     #'1'
     ldy     #$00
-@L1_menu:    
+@L1_menu:
     txa
     sta     $bb80+27*40+3,y
     iny
@@ -37,12 +37,12 @@
 
     ldx     #'A'
     ldy     #$00
-@L2_menu:    
+@L2_menu:
     txa
     sta     $bb80+27*40+10+2,y
     iny
     inx
     cpx     #'Z'+1
-    bne     @L2_menu    
+    bne     @L2_menu
     rts
 .endproc

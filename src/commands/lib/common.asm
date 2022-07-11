@@ -3,9 +3,7 @@
 
   ldx #$01
 
-  rts  
-str_missing_operand_after:  
+  rts
+str_missing_operand_after:
   .asciiz "missing destination file operand after '"
 .endproc
-
-

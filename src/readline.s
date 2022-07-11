@@ -1940,12 +1940,11 @@ ctrl_keys_for_long_jump:
 	beq @exit
 	; X contains the pos
 
-
 @shell_extension_not_loaded:
-	pla
-	pla
-	crlf
+
 	lda	#$01
+
+	rts
 @exit:
 	sty	sh_history_flag
 	txa	; save pos

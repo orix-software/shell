@@ -33,9 +33,9 @@
     lda     #$00
 
     ldy     #basic11_gui_struct::current_entry_id ; ???
- 
+
     sta     (basic11_ptr4),y
- 
+
     ldy     #basic11_gui_struct::basic11_posy_screen ; ???
     sta     (basic11_ptr4),y
 

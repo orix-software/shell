@@ -220,7 +220,7 @@ READ_BYTE_FROM_OVERLAY_RAM:
 .endif
 
 .ifdef WITH_MONITOR
-    MONITOR=1   
+    MONITOR=1
 .else
     MONITOR=0
 .endif

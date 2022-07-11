@@ -123,10 +123,8 @@ go_up_history_routine:
         ldy     history_entry_current_id
         rts
 
-
-
 @nothing_to_do:
-        lda     #$00
+        lda     #$01
         rts
 go_down_history_routine:
         rts
