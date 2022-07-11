@@ -100,8 +100,6 @@ go_up_history_routine:
         sta     (saveptr),y
         sty     savepos
 
-
-
         lda     #$0D
         BRK_TELEMON XWR0
 
@@ -140,11 +138,8 @@ search_history:
 
 ctrl_c:
 	asl	KBDCTC
-
 	cputc	'^'
-
         cputc	'C'
-
         crlf
         lda     #$00
         rts

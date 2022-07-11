@@ -60,11 +60,8 @@ STORE_CURRENT_DEVICE :=$99
 XMAINARGS       = $2C
 XMAINARGS_GETV  = $2E
 XGETARGV        = $2E
-XGETCWD_ROUTINE = $48
-XPUTCWD_ROUTINE = $49
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
-
 
 .include   "build.inc"
 .include   "include/bash.inc"
@@ -96,9 +93,20 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         malloc  .sizeof(shell_bash_struct)
 
+        cpy     #$00
+        bne     @no_oom
+        cmp     #$00
+        bne     @no_oom
+        rts
+@no_oom:
         ; FIXME test NULL pointer
         sta     bash_struct_ptr
         sty     bash_struct_ptr+1
+
+        ; Init lenght of the comman line
+        ldy     #shell_bash_struct::pos_command_line
+        lda     #$00
+        sta     (bash_struct_ptr),y
 
     ; ****************************************************************
     ; *                Checking if systemd rom is loaded             *
@@ -172,7 +180,6 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         ldy     #shell_bash_struct::shell_extension_loaded
         lda     (bash_struct_ptr),y
         beq     @shell_extension_not_loaded
-
 
         jsr     register_command_line
 

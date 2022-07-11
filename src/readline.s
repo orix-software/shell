@@ -1872,8 +1872,8 @@ ctrl_keys_for_long_jump:
     ora #%00100000
     sta TWILIGHTE_REGISTER
 	; On envoie le ptr de ligne de commande pour que la banque shellext remplisse la ligne de commande
-    lda bash_struct_command_line_ptr
-    ldy bash_struct_command_line_ptr+1
+    lda bash_struct_ptr
+    ldy bash_struct_ptr+1
 	;sei
     jmp EXBNK
 .endproc
@@ -1948,6 +1948,8 @@ ctrl_keys_for_long_jump:
 @exit:
 	sty	sh_history_flag
 	txa	; save pos
+
+
 	ldy #shell_bash_struct::pos_command_line
     sta (bash_struct_ptr),y
 

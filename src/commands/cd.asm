@@ -146,14 +146,14 @@
 @launch_xput:
     lda     cd_path_2
     ldy     cd_path_2+1
-    BRK_KERNEL   XPUTCWD_ROUTINE
+    BRK_KERNEL   XPUTCWD
     ; and free
     jmp     free_cd_memory
 
 @launch_xput2:
     lda     cd_path
     ldy     cd_path+1
-    BRK_KERNEL   XPUTCWD_ROUTINE
+    BRK_KERNEL   XPUTCWD
     ; and free
     jmp     free_cd_memory
 
@@ -179,11 +179,9 @@ not_dot:
     stx     cd_fp+1
     fclose(cd_fp)
 
-
     lda     cd_path
     ldy     cd_path+1
-
-    BRK_KERNEL   XPUTCWD_ROUTINE
+    BRK_KERNEL   XPUTCWD
 
 free_cd_memory:
     mfree(cd_path)
@@ -202,7 +200,7 @@ try_to_recurse:
     lda     cd_path_2
     ldy     cd_path_2+1
 
-    BRK_KERNEL   XPUTCWD_ROUTINE
+    BRK_KERNEL   XPUTCWD
     jmp     free_cd_memory
 
 

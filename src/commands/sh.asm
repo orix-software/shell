@@ -154,13 +154,13 @@ thereis_a_script_to_execute:
     crlf
     rts
 @nextline:
-    lda ptr_file_sh_interactive_ptr
-    sta ptr_file_sh_interactive_ptr_save
-    lda ptr_file_sh_interactive_ptr+1
-    sta ptr_file_sh_interactive_ptr_save+1
+    lda     ptr_file_sh_interactive_ptr
+    sta     ptr_file_sh_interactive_ptr_save
+    lda     ptr_file_sh_interactive_ptr+1
+    sta     ptr_file_sh_interactive_ptr_save+1
 
 
-    inc    sh_interactive_line_number
+    inc     sh_interactive_line_number
 
 
 @not_finished:

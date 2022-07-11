@@ -1,18 +1,13 @@
 .define SHORTCUT_XEXEC  $01
 .define SHORTCUT_VECTOR $02
 
-; This code manage shortcur from shell
-
-
+; This code manage shortcuts from shell
 
 .proc _manage_shortcut
-
-
     cmp     #'B'+$40
     beq     @start_shortcut
     cmp     #'L'+$40
     beq     @start_shortcut
-
     cmp     #'C'+$40
     beq     @start_shortcut
     cmp     #'N'+$40
