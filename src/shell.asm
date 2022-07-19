@@ -1354,7 +1354,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.4.X"
+    .asciiz  "Shell v2022.4"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00
@@ -1371,7 +1371,6 @@ cpu_build_:
     .asciiz "6502"
 .endif
 
-; .include "tables/malloc_table.asm"
 end_rom:
 
 

@@ -29,3 +29,14 @@ When kernel has finished to initialize at boot time, sh command is started in in
 *Ctrl-t* : swap char under the cursor with the previous one, and shift the cursor to the right
 
 *Ctrl-o* : Switch into replacement or insertion mode
+
+## Shortcuts for tools
+
+*Funct+T* : Start Twilighte setup
+
+*Funct+L* : Start Loader
+
+*Funct+B* : Start Basic11
+
+*Funct+G* : Start basic11 gui
+

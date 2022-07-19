@@ -208,7 +208,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda     save_mode
     cmp     #SHELLEXT_ROM
     bne     @check_systemd_bank
-    ldx     #35
+    ldx     #34
     jmp     @loading_rom
 
 
@@ -216,7 +216,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda     save_mode
     cmp     #NETWORK_ROM
     bne     @systemd_bank
-    ldx     #34 ; bank33
+    ldx     #35 ; bank33
     jmp     @loading_rom
 
 @systemd_bank:

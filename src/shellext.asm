@@ -278,7 +278,6 @@ _history:
 str_OK:
    .byte $82,"[OK]",$0D,0
 
-
 command1_str:
         .asciiz "history"
 
@@ -288,8 +287,6 @@ commands_address:
         .addr _history
 commands_version:
         .ASCIIZ "0.0.1"
-
-
 
 ; ----------------------------------------------------------------------------
 ; Copyrights address
