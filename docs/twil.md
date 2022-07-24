@@ -2,11 +2,12 @@
 
 ## Introduction
 
-Manage twilighte board options
+Twil command can displays the current firmware of twilighte card, and
+can swap root folder to usbkey or sdcard.
 
 ## SYNOPSYS
 
-+ /#twil -f  : displays firmware
++ /#twil -f  : displays Twilighte board firmware
 + /#twil -u  : switch default device : usbdrive
 + /#twil -s  : swap default device to : sdcard
 

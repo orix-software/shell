@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Display I/O Ports
+Display I/O Ports of the board
 
 ## SYNOPSYS
 
