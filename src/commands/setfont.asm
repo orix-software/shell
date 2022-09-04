@@ -22,6 +22,7 @@
     setfont_mainargs_argc      := userzp+6
     setfont_mainargs_arg1_ptr  := userzp+8
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     setfont_mainargs_argv
     sty     setfont_mainargs_argv+1

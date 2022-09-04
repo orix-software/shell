@@ -1,11 +1,12 @@
 .export _touch
 
 .proc _touch
-    touch_ptr1              := userzp
-    touch_mainargs_argv     := userzp+4
-    touch_mainargs_argc     := userzp+8 ; 8 bits
-    touch_mainargs_arg1_ptr := userzp+15
+    touch_mainargs_argv     := userzp
+    touch_mainargs_argc     := userzp+2 ; 1 byte
+    touch_fp                := userzp+3 ; 2 bytes
+    touch_mainargs_arg1_ptr := userzp+5 ; 2 bytes
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     touch_mainargs_argv
     sty     touch_mainargs_argv+1
@@ -22,9 +23,9 @@
     sta     touch_mainargs_arg1_ptr
     sty     touch_mainargs_arg1_ptr+1
 
-    fopen (touch_mainargs_arg1_ptr), O_CREAT
+    fopen (touch_mainargs_arg1_ptr), O_CREAT,,touch_fp
 
-    BRK_KERNEL XCLOSE
+    fclose(touch_fp)
 
     rts
 @missing_operand:
@@ -33,5 +34,4 @@
     rts
 
 .endproc
-str_arg_not_managed_yet:
-    .asciiz "path with folders in arg not managed yet"
+

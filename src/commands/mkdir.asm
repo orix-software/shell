@@ -10,7 +10,7 @@
     mkdir_arg          := userzp+14
 
 .proc _mkdir
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
 
     sta     mkdir_mainargs_ptr
@@ -38,6 +38,7 @@
 @out20:
     lda     mkdir_arg
     ldy     mkdir_arg+1
+    ldx     #$00
     BRK_KERNEL XMKDIR
     BRK_KERNEL XCLOSE ; ???
     rts
@@ -49,3 +50,6 @@
     print str_missing_operand
     rts
 .endproc
+
+str_arg_not_managed_yet:
+    .asciiz "path with folders in arg not managed yet"

@@ -69,6 +69,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #$00
     sta     basic11_no_arg_provided
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
 
     sta     basic11_argv_ptr

@@ -26,6 +26,7 @@
     lda     #$01
     sta     bank_all_banks_display
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
 
 

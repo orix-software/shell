@@ -54,7 +54,7 @@ ls_argc                  := userzp+17
 
     ; get A&Y
 @free:
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
 
     sta     ls_mainargs

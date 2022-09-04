@@ -12,6 +12,7 @@
     sh_mainargs_arg1_ptr              := userzp+18
     sh_saveY                          := userzp+20
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     sh_mainargs_argv
     sty     sh_mainargs_argv+1

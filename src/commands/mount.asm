@@ -10,7 +10,7 @@
     mount_mainargs_argv := userzp+4
     mount_mainargs_argc := userzp+6 ; 8 bits
 
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     mount_mainargs_ptr
     sty     mount_mainargs_ptr+1

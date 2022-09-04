@@ -12,7 +12,7 @@
     man_buffer_bkp      :=userzp+12
 
 
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     man_xmainargs_ptr
     sty     man_xmainargs_ptr+1

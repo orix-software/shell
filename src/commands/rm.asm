@@ -5,7 +5,7 @@
     rm_mainargs_argc      := userzp+2
     rm_mainargs_arg1_ptr  := userzp+4
 
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     rm_mainargs_argv
     sty     rm_mainargs_argv+1

@@ -10,6 +10,7 @@
     XMAINARGS = $2C
     XGETARGV =  $2E
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
 
 

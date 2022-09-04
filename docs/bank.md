@@ -9,15 +9,23 @@ from command line. In the current bank version, there is restriction to launch a
 
 ## SYNOPSYS
 
-List all bank (when ROM signature is valid)
+### List all bank (when ROM signature is valid)
+
 /#bank
 Bank 1 to 32 is eeprom bank and bank 33 to 64 are ram bank
-Displays all signature even when ROM is not valid
+
+### Displays all signature even when ROM is not valid
+
 /#bank
-List all commands from a bank
+
+### List all commands from a bank
+
 /#help -b5
-Start a specific bank
+
+### Start a specific bank
+
 /#bank 1
+
 If you need to load a rom into a bank, you need to have a look to orixcfg binar
 
 ## DESCRIPTION

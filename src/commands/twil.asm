@@ -11,7 +11,7 @@
     twil_mainargs_arg1_ptr := userzp+5 ; 16 bits
 
 .proc _twil
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     twil_mainargs_argv
     sty     twil_mainargs_argv+1
