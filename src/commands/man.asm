@@ -12,7 +12,7 @@
     man_buffer_bkp      :=userzp+12
 
 
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     man_xmainargs_ptr
     sty     man_xmainargs_ptr+1
@@ -157,15 +157,12 @@ next:
     dex
     bne     @L1
 
-   ; FREAD   SCREEN, 1080, 1, 0
-   ; cmp   #<1080
 
 @readkeyboard:
 
     BRK_KERNEL XRDW0
     cmp     #27
     jmp     @readagain
-   ; bmi     cget_loop
     ; A bit crap to flush screen ...
     ; read again ?
 out:

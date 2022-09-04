@@ -239,7 +239,7 @@
 	normal:
 		;KBDSHT: b7: Ctrl, b6: Funct,  b1: Shift
 		bit	KBDSHT
-		bmi	ctrl_keys
+		bmi	ctrl_keys_for_long_jump	; Used because do_case normal cursor is too long for relative branch for ctrl_keys
 		jvs	funct_keys
 
 		; (key < $20) or (key == $7f) => cursor
@@ -265,6 +265,8 @@
 		do_case	key
 			case_of KEY_LEFT, backward_char
 			case_of KEY_RIGHT, forward_char
+			case_of KEY_UP, get_history_up
+			case_of KEY_DOWN, get_history_down
 			case_of KEY_RETURN, accept_line
 			case_of KEY_DEL, backward_delete_char
 ;			case_of {' ', '}'}, self_insert
@@ -272,6 +274,8 @@
 		end_case
 		jmp	loop
 
+ctrl_keys_for_long_jump:
+	jmp		ctrl_keys ; Could be bmi
 	;----------------------------------------------------------------------
 	; [Shift]+<cursor> (spécifique Orix)
 	;----------------------------------------------------------------------
@@ -312,6 +316,8 @@
 
 			case_of CTRL_C, key_break
 			case_of CTRL_L, clear_screen
+
+			case_of CTRL_R, launch_history_search
 
 			; Compatibilité Telestrat
 			case_of	CTRL_X, kill_line
@@ -1826,6 +1832,132 @@
 		bpl	out
 		bit	out			; SEV
 		rts
+.endproc
+
+.proc launch_history_search
+	; On checke si la banque shellext est chargée
+	ldy     #shell_bash_struct::shell_extension_loaded
+    lda     (bash_struct_ptr),y
+    beq     @shell_extension_not_loaded ; on quitte car non présente
+
+    lda     #<$c006
+    ldy     #>$c006
+	jsr		launch_history_bank_vector
+
+	jsr		restore_states_for_shell
+
+@shell_extension_not_loaded:
+	pla
+	pla
+	rts
+.endproc
+
+.proc launch_history_bank_vector
+
+	; Don't modify X here
+
+    sta VAPLIC+1
+    sta VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
+
+    sty VAPLIC+2
+    sty VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
+
+    lda #$00
+    sta TWILIGHTE_BANKING_REGISTER
+
+    lda #$02
+    sta BNKCIB
+
+    lda TWILIGHTE_REGISTER
+    ora #%00100000
+    sta TWILIGHTE_REGISTER
+	; On envoie le ptr de ligne de commande pour que la banque shellext remplisse la ligne de commande
+    lda bash_struct_ptr
+    ldy bash_struct_ptr+1
+	;sei
+    jmp EXBNK
+.endproc
+
+.proc	restore_states_for_shell
+	pha
+    lda TWILIGHTE_REGISTER
+    and #%11011111  ; Switch to eeprom again
+    sta TWILIGHTE_REGISTER
+
+    lda $321
+    and #%11111000
+    ora #$05
+    sta $321
+
+    lda #$05
+    sta BNKCIB
+    sta VAPLIC
+    sta ID_BANK_TO_READ_FOR_READ_BYTE
+    lda #$00
+    sta TWILIGHTE_BANKING_REGISTER
+	pla
+
+	rts
+.endproc
+
+.proc	get_history_down
+	ldx #$01 ; Down
+	jmp	get_history
+.endproc
+
+.proc	get_history_up
+	ldx	#$02 ; up
+	jmp	get_history
+.endproc
+
+
+.proc	get_history
+	; On checke si la banque shellext est chargée
+	ldy #shell_bash_struct::shell_extension_loaded
+    lda (bash_struct_ptr),y
+    beq @shell_extension_not_loaded ; on quitte car non présente
+
+	cpx #$01
+	beq @go_down
+
+	ldx	sh_history_flag
+    lda #<$c009
+    ldy #>$c009
+	jmp	@launch_history_get
+
+@go_down:
+	ldx sh_history_flag
+    lda #<$c00d
+    ldy #>$c00d
+@launch_history_get:
+	jsr launch_history_bank_vector
+
+	pha
+	jsr restore_states_for_shell
+	pla
+
+	cmp #$00
+	beq @exit
+	; X contains the pos
+
+@shell_extension_not_loaded:
+
+	lda	#$01
+
+	rts
+@exit:
+	sty	sh_history_flag
+	txa	; save pos
+
+
+	ldy #shell_bash_struct::pos_command_line
+    sta (bash_struct_ptr),y
+
+	sta	buffer_pos
+	sta	buffer_end
+
+
+	rts
 .endproc
 
 ;======================================================================

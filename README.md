@@ -1,6 +1,7 @@
 Github action : [![build](https://github.com/orix-software/shell/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/orix-software/shell/actions/workflows/main.yml)
 
 # Build code
+
 ./configure
 make
 

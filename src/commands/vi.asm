@@ -25,19 +25,19 @@ ZP_APP_PTR11:=$A2
 ZP_APP_PTR12:=$A4
 
 vi_screen_address_position_edition          := ZP_APP_PTR1 ; 2 bytes
-tmp0_16                                     :=      ZP_APP_PTR2 ; 2 bytes
-SCROLL_TMP_FROM                             :=   ZP_APP_PTR2 ; 2 bytes
-vi_tmp_16                                   :=  ZP_APP_PTR2 ; 2 bytes
-vi_tmp2_16                                  :=   ZP_APP_PTR2 ; 2 bytes
-vi_ptr_edition_buffer                       :=  ZP_APP_PTR3 ; 2 bytes
-vi_screen_x_position_edition                :=  ZP_APP_PTR4 ; 1 byte
-vi_screen_y_position_edition                :=   ZP_APP_PTR4+1 ; 1 byte
-vi_screen_x_position_command 	            :=   ZP_APP_PTR5
-vi_screen_y_position_edition_real           :=   ZP_APP_PTR5+1
-SCROLL_TMP_TO                              :=  ZP_APP_PTR6 ; 2 bytes
-vi_is_a_new_file                           :=  ZP_APP_PTR7 ; 1 bytes
-vi_first_column                            :=  ZP_APP_PTR7+1 ; one byte, first column for vi
-vi_current_position_ptr_edition_buffer     :=  ZP_APP_PTR8 ; 2 bytes
+tmp0_16                                     := ZP_APP_PTR2 ; 2 bytes
+SCROLL_TMP_FROM                             := ZP_APP_PTR2 ; 2 bytes
+vi_tmp_16                                   := ZP_APP_PTR2 ; 2 bytes
+vi_tmp2_16                                  := ZP_APP_PTR2 ; 2 bytes
+vi_ptr_edition_buffer                       := ZP_APP_PTR3 ; 2 bytes
+vi_screen_x_position_edition                := ZP_APP_PTR4 ; 1 byte
+vi_screen_y_position_edition                :=  ZP_APP_PTR4+1 ; 1 byte
+vi_screen_x_position_command 	            :=  ZP_APP_PTR5
+vi_screen_y_position_edition_real           :=  ZP_APP_PTR5+1
+SCROLL_TMP_TO                               :=  ZP_APP_PTR6 ; 2 bytes
+vi_is_a_new_file                            :=  ZP_APP_PTR7 ; 1 bytes
+vi_first_column                             :=  ZP_APP_PTR7+1 ; one byte, first column for vi
+vi_current_position_ptr_edition_buffer      :=  ZP_APP_PTR8 ; 2 bytes
 vi_current_position_ptr_edition_buffer_end  := ZP_APP_PTR11 ; 2 bytes
 vi_length_file                              := ZP_APP_PTR9 ; 2 bytes
 vi_current_position_in_edition_buffer       := ZP_APP_PTR10 ; 2 bytes
@@ -50,7 +50,7 @@ VI_SIZE_OF_BUFFER                         =  1000
  vi_command_line_edition_buffer  = 		     tmp0_16
  vi_text_address			=		   		     tmp0_16
 
- 
+
  VI_STRUCT_FILENAME_INDEX  =                   $00
 
 .struct vi_struct_data

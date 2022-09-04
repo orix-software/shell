@@ -12,6 +12,7 @@
     sh_mainargs_arg1_ptr              := userzp+18
     sh_saveY                          := userzp+20
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     sh_mainargs_argv
     sty     sh_mainargs_argv+1
@@ -102,10 +103,10 @@ thereis_a_script_to_execute:
     pha
     BRK_KERNEL XWR0
     pla
-    cmp    #$0D
-    beq    @compute
-    inc    ptr_file_sh_interactive_ptr
-    bne    @do_not_inc
+    cmp     #$0D
+    beq     @compute
+    inc     ptr_file_sh_interactive_ptr
+    bne     @do_not_inc
     inc    ptr_file_sh_interactive_ptr+1
 @do_not_inc:
     ;iny
@@ -122,19 +123,11 @@ thereis_a_script_to_execute:
 
 @do_not_inc3:
 
-   ; lda     ptr_file_sh_interactive_ptr_save
 
-   ; ldy     ptr_file_sh_interactive_ptr_save+1
-
-   ; jsr    _bash
-   ; cmp    #EOK
-  ;  bne    @call_xexec
-
-   ; jmp    @nextline
 @call_xexec:
 
-    lda     ptr_file_sh_interactive_ptr_save
-    ldy     ptr_file_sh_interactive_ptr_save+1
+    lda    ptr_file_sh_interactive_ptr_save
+    ldy    ptr_file_sh_interactive_ptr_save+1
 
     BRK_KERNEL XWSTR0
 
@@ -162,13 +155,13 @@ thereis_a_script_to_execute:
     crlf
     rts
 @nextline:
-    lda ptr_file_sh_interactive_ptr
-    sta ptr_file_sh_interactive_ptr_save
-    lda ptr_file_sh_interactive_ptr+1
-    sta ptr_file_sh_interactive_ptr_save+1
+    lda     ptr_file_sh_interactive_ptr
+    sta     ptr_file_sh_interactive_ptr_save
+    lda     ptr_file_sh_interactive_ptr+1
+    sta     ptr_file_sh_interactive_ptr_save+1
 
 
-    inc    sh_interactive_line_number
+    inc     sh_interactive_line_number
 
 
 @not_finished:

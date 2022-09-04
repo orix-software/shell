@@ -80,7 +80,7 @@
     lda     (cd_path),y
 
     cmp     #'/'
-    beq     @launch_xput
+    beq     @launch_xput2
 
 
 @path_with_no_slash_at_the_end:
@@ -104,6 +104,8 @@
     ; Here we have 'cd ..'
     ; let's pull folder
     BRK_KERNEL XGETCWD  ; Get A & Y
+    ;sta     cd_path
+    ;sty     cd_path+1
     sta     cd_path_2
     sty     cd_path_2+1
     ; loop until we reach 0
@@ -144,7 +146,14 @@
 @launch_xput:
     lda     cd_path_2
     ldy     cd_path_2+1
-    BRK_KERNEL   XPUTCWD_ROUTINE
+    BRK_KERNEL   XPUTCWD
+    ; and free
+    jmp     free_cd_memory
+
+@launch_xput2:
+    lda     cd_path
+    ldy     cd_path+1
+    BRK_KERNEL   XPUTCWD
     ; and free
     jmp     free_cd_memory
 
@@ -170,11 +179,9 @@ not_dot:
     stx     cd_fp+1
     fclose(cd_fp)
 
-
     lda     cd_path
     ldy     cd_path+1
-
-    BRK_KERNEL   XPUTCWD_ROUTINE
+    BRK_KERNEL   XPUTCWD
 
 free_cd_memory:
     mfree(cd_path)
@@ -193,7 +200,7 @@ try_to_recurse:
     lda     cd_path_2
     ldy     cd_path_2+1
 
-    BRK_KERNEL   XPUTCWD_ROUTINE
+    BRK_KERNEL   XPUTCWD
     jmp     free_cd_memory
 
 

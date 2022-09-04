@@ -101,8 +101,6 @@
     sta     (basic11_ptr4),y
     ; end of block
 
-
-
     jsr     basic11_displays_frame
 
     ;jsr     basic11_menu_letter_management_right
@@ -111,14 +109,12 @@
     ora     #$80
     sta     $bb80+27*40+3,x
 
-
     ; Initialize position bar to posY)0
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     #$00
     sta     (basic11_ptr4),y
 
 ; Display initial bar
-
 
     ; end of initial bar
 
@@ -128,18 +124,13 @@
     lda     #$00
     lda     (basic11_ptr4),y
 
-
-
     jsr     basic11_init_bar
-
-
 
 @loopinformations:
 .ifdef basic11_debug
     jsr     basic11_display_current_key
 .endif
 @read_input:
-  ;  BRK_KERNEL XWR0
     jsr     basic11_read_joystick
     cmp     #$00
     bne     @joystick_pressed
@@ -153,7 +144,6 @@
 
     cmp     #KEY_LEFT
     beq     @change_letter_left
-    ;beq     start_commandline    ; left key not managed
 
     cmp     #KEY_UP
     beq     @keyup

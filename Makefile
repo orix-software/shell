@@ -4,13 +4,9 @@ LD=ld65
 CFLAGS=-ttelestrat
 LDFILES=
 ROM=shell
-ORIX_ROM=shell
 
 all : init build after_success
 .PHONY : all
-
-HOMEDIR=/home/travis/bin/
-ORIX_VERSION=1.0
 
 SOURCE=src/$(ROM).asm
 
@@ -25,22 +21,6 @@ else
         LD = $(CC65_HOME)/bin/ld65
         AR = $(CC65_HOME)/bin/ar65
 endif
-
-
-ifdef TRAVIS_BRANCH
-ifeq ($(TRAVIS_BRANCH), master)
-RELEASE:=$(shell cat VERSION)
-else
-RELEASE:=alpha
-endif
-
-endif
-
-
-
-
-TELESTRAT_TARGET_RELEASE=release/telestrat
-MYDATE = $(shell date +"%Y-%m-%d %H:%m")
 
 init:
 	./configure
@@ -59,12 +39,6 @@ build: $(SOURCE)
 	cp $(ROM)t.rom $(ROM)tus.rom
 	$(AS) $(CFLAGS) $(SOURCE) -DWITH_SDCARD_FOR_ROOT=1 -o $(ROM)sd.ld65 --debug-info
 	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)tsd.rom libs/lib8/twil.lib libs/lib8/ch376.lib
-
-
-
-test:
-	#cp src/include/orix.h build/usr/include/orix/
-
 
 after_success:
 	ls -l

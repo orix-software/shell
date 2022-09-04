@@ -1,3 +1,9 @@
+# 2022.4
+
+* Fix bug for touch (can not create file)
+* cp now works
+* update some pages
+
 # 2022.3
 
 * Add readline

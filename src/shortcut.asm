@@ -1,18 +1,13 @@
 .define SHORTCUT_XEXEC  $01
 .define SHORTCUT_VECTOR $02
 
-; This code manage shortcur from shell
-
-
+; This code manage shortcuts from shell
 
 .proc _manage_shortcut
-
-
     cmp     #'B'+$40
     beq     @start_shortcut
     cmp     #'L'+$40
     beq     @start_shortcut
-
     cmp     #'C'+$40
     beq     @start_shortcut
     cmp     #'N'+$40
@@ -20,6 +15,8 @@
     cmp     #'T'+$40
     beq     @start_shortcut
     cmp     #'G'+$40
+    beq     @start_shortcut
+    cmp     #'A'+$40
     beq     @start_shortcut
 
     bne     @exit
@@ -95,12 +92,15 @@
 
     jmp     (RES)
 
+str_systemd:
+    .asciiz "systemd"
+
 str_exec_basic11:
     .asciiz "basic11"        ; B
 str_exec_basic11_g:
     .asciiz "basic11 -g"     ; G
 shortcut_low:
-    .byte $00 ; A
+    .byte <str_systemd ; A
     .byte <str_exec_basic11 ; B
     .byte $00 ; C
     .byte $00 ; D
@@ -121,7 +121,7 @@ shortcut_low:
     .byte $00 ; S
     .byte <twilfirmware ; T
 shortcut_high:
-    .byte $00
+    .byte >str_systemd
     .byte >str_exec_basic11 ; B
     .byte $00 ; C
     .byte $00 ; D
@@ -133,7 +133,7 @@ shortcut_high:
     .byte $00 ; J
     .byte $00 ; K
     .byte >twillauncher ; L
-    .byte $00 ; M
+    .byte $00; M
     .byte >network_start ; N
     .byte $00 ; O
     .byte $00 ; P
@@ -142,7 +142,7 @@ shortcut_high:
     .byte $00 ; S
     .byte >twilfirmware ; T
 shortcut_action_type:
-    .byte $00
+    .byte SHORTCUT_XEXEC
     .byte SHORTCUT_XEXEC ; B
     .byte $00 ; C
     .byte $00 ; D
@@ -154,7 +154,7 @@ shortcut_action_type:
     .byte $00 ; J
     .byte $00 ; K
     .byte SHORTCUT_VECTOR ; L
-    .byte $00 ; M
+    .byte $00; M
     .byte SHORTCUT_VECTOR ; N
     .byte $00 ; O
     .byte $00 ; P

@@ -8,6 +8,7 @@
     viewhrs_mainargs_argv := userzp+4
     viewhrs_mainargs_argc := userzp+6
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     viewhrs_mainargs_argv
     sty     viewhrs_mainargs_argv+1

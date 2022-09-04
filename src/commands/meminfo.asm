@@ -22,9 +22,9 @@
     sta     meminfo_tmp1
 
     ldy     #$00
-    LDX     #$20 ;
-    STX     DEFAFF
-    LDX     #$03
+    ldx     #$20 ;
+    stx     DEFAFF
+    ldx     #$03
     BRK_ORIX XDECIM
     print   strKB
 

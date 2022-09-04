@@ -4,7 +4,7 @@
     uname_mainargs_argv := userzp+3
     uname_mainargs_argc := userzp+2
 
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     uname_mainargs_ptr
     sty     uname_mainargs_ptr+1
