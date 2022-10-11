@@ -1,15 +1,27 @@
-.define NETWORK_ROM $02
+.define NETWORK_ROM  $02
+.define SHELLEXT_ROM $03
+.define SYSTEMD_ROM  $04
 
 .define NO_LOAD_ROM $00
 .define LOAD_ROM    $01
 
 save_mode := userzp+11 ; FIXME erase shell commands
 
+.proc systemd_start
+    lda    #SYSTEMD_ROM
+    jmp    _twilbank
+.endproc
+
+.proc shellext_start
+    lda    #SHELLEXT_ROM
+    jmp    _twilbank
+.endproc
+
 .proc network_start
     ; Test version
     lda     $342
-    and     #%00000011
-    cmp     #$03
+    and     #%00000111
+    cmp     #$04
     bne     @out
 
     lda    #NETWORK_ROM
@@ -21,53 +33,53 @@ save_mode := userzp+11 ; FIXME erase shell commands
 
 .proc twillauncher
     jmp     @load_and_start
-  ;  lda     #NO_LOAD_ROM ; No Force to check rom signature to load or not
-    ;sta     TR2
-    ;lda     #$01
-    ;sta     save_mode
-    ;jsr     checking_rom_signature
-    ;lda     TR2
-    ;cmp     #NO_LOAD_ROM
-    ;beq     @load_and_start
-    ;rts
+
 @load_and_start:
     lda    #$01
     jmp    _twilbank
 .endproc
 
 .proc twilfirmware
-    ;lda     #NO_LOAD_ROM ; No Force to check rom signature to load or not
-    ;sta     TR0
 
-    lda     #$00
-    sta     save_mode
-
-   ; jsr    checking_rom_signature
-
-;    lda     TR0
-    ;cmp     #NO_LOAD_ROM
-    ;beq     @load_and_start
-    ;rts
 @load_and_start:
     lda    #$00
     jmp    _twilbank
 .endproc
 
-
-
 .proc _twilbank
-    buffer := userzp+2 ; FIXME erase shell commands
-    routine_to_load:= userzp+4 ; FIXME erase shell commands
-    ptr1 := userzp+6 ; FIXME erase shell commands
-    current_bank:= userzp+8 ; FIXME erase shell commands
-    ptr2 := userzp+9 ; FIXME erase shell commands
-    fd_systemd := userzp+13 ; FIXME erase shell commands
+    buffer          := userzp+2 ; FIXME erase shell commands
+    routine_to_load := userzp+4 ; FIXME erase shell commands
+    ptr1            := userzp+6 ; FIXME erase shell commands
+    current_bank    := userzp+8 ; FIXME erase shell commands
+    ptr2            := userzp+9 ; FIXME erase shell commands
+    fd_systemd      := userzp+13 ; FIXME erase shell commands
 
     sta     save_mode
 
     malloc   100,ptr1,str_oom ; [,fail_value]
 
+    lda     save_mode
+    cmp     #SYSTEMD_ROM
+    bne     @test_shellext
 
+    lda     #<str_path_rom
+    sta     ptr2
+    lda     #>str_path_rom
+    sta     ptr2+1
+    jmp     @copy
+
+@test_shellext:
+    lda     save_mode
+    cmp     #SHELLEXT_ROM
+    bne     @check_network_rom
+
+    lda     #<str_path_shellext
+    sta     ptr2
+    lda     #>str_path_shellext
+    sta     ptr2+1
+    jmp     @copy
+
+@check_network_rom:
     lda     save_mode
     cmp     #NETWORK_ROM
     bne     @systemd_rom
@@ -96,7 +108,6 @@ save_mode := userzp+11 ; FIXME erase shell commands
     iny
     bne     @loop4
 
-
 @out:
     sta     (ptr1),y
 
@@ -111,21 +122,17 @@ save_mode := userzp+11 ; FIXME erase shell commands
     cmp     #$FF
     bne     @read ; not null then  start because we did not found a conf
     print   str_failed
+    print (ptr1)
     mfree(ptr1)
-    print str_path_rom
     print str_not_found
+
+    ldy     #$01 ; Error
 
     rts
 @read:
     sta     fd_systemd
     stx     fd_systemd+1
     mfree(ptr1)     ; Free path string
-
-    ;lda     #<userzp
-    ;ldy     #>usze
-
-;@me:
- ;   jmp @me
 
     malloc   512,routine_to_load,str_oom ;  [,fail_value]
     cmp      #$00
@@ -155,7 +162,6 @@ save_mode := userzp+11 ; FIXME erase shell commands
     lda     buffer+1
     sta     PTR_READ_DEST+1
 
-
   ; We read the file with the correct
     lda     #<16384
     ldy     #>16384
@@ -165,8 +171,6 @@ save_mode := userzp+11 ; FIXME erase shell commands
     BRK_KERNEL XFREAD
 
     fclose(fd_systemd)
-
-
 
 ; X contains the bankid
 ; AY contains the the adress of the buffer
@@ -196,9 +200,23 @@ save_mode := userzp+11 ; FIXME erase shell commands
     sta     RES
 
     lda     save_mode
+    cmp     #SYSTEMD_ROM
+    beq     @systemd_bank
+
+
+@check_shellext_rom:
+    lda     save_mode
+    cmp     #SHELLEXT_ROM
+    bne     @check_systemd_bank
+    ldx     #34
+    jmp     @loading_rom
+
+
+@check_systemd_bank:
+    lda     save_mode
     cmp     #NETWORK_ROM
     bne     @systemd_bank
-    ldx     #34 ; bank33
+    ldx     #35 ; bank33
     jmp     @loading_rom
 
 @systemd_bank:
@@ -210,14 +228,9 @@ save_mode := userzp+11 ; FIXME erase shell commands
 
     jsr     run
 
-
-
     mfree   (routine_to_load)
-
+    ldy     #$00 ; Error code ok
     rts
-
-    ;jsr     twil_copy_buffer_to_ram_bank
-    ; XMAINARGS
 
     ; if s, then start : load rom into ram
     ; execute RAM
@@ -233,6 +246,8 @@ str_path_rom:
     .asciiz "/usr/share/systemd/systemd.rom"
 str_path_network:
     .asciiz "/usr/share/network/network.rom"
+str_path_shellext:
+    .asciiz "/usr/share/shell/shellext.rom"
 .endproc
 
 .proc twil_copy_buffer_to_ram_bank
@@ -297,10 +312,30 @@ str_path_network:
 
 
     mfree    (buffer)
+
+
+
+    lda     save_mode
+    cmp     #SYSTEMD_ROM
+    bne     @check_shellext
+
+    jsr     $c000
+    lda     #$00
+    beq     @out
+
+@check_shellext:
+
     lda     save_mode
     beq     @firmware
+    cmp     #SHELLEXT_ROM
+    bne     @check_others
 
 
+    jsr     $c000       ; Shell extentions
+    lda     #$00
+    beq     @out
+
+@check_others:
     jsr     $c006       ; Twil firm buffer
     lda     #$00
     beq     @out

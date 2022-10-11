@@ -20,12 +20,13 @@
 
 
     XMAINARGS = $2C
-    XGETARGV =  $2E
+    XGETARGV  = $2E
 
 
-    lda         #$01
-    sta         bank_all_banks_display
+    lda     #$01
+    sta     bank_all_banks_display
 
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
 
 
@@ -98,10 +99,10 @@
     sta     $342
     pla
 @do_not_switch_to_ram_bank:
-    ;jmp     @do_not_switch_to_ram_bank
+
     jsr     _twil_get_registers_from_id_bank
     ; A bank
-    ;jmp @not_an_option
+
     sta     first_char_id_bank
     stx     $343
 

@@ -129,22 +129,22 @@
 
 .proc _basic11_find_next_software_down_key
     ldy     #basic11_gui_struct::software_key_to_launch_low
-    lda     (basic11_ptr4),y   
+    lda     (basic11_ptr4),y
     sta     basic11_ptr3
-    
+
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
 
     ldy     #$00
-@L1000:    
+@L1000:
     lda     (basic11_ptr3),y
     beq     @out2
 
-    
+
     iny
     bne     @L1000
-@out2:    
+@out2:
     iny
     tya
     clc
@@ -156,15 +156,11 @@
 
     ldy     #basic11_gui_struct::software_key_to_launch_low
     lda     basic11_ptr3
-    sta     (basic11_ptr4),y   
-    
-    
+    sta     (basic11_ptr4),y
+
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     basic11_ptr3+1
     sta     (basic11_ptr4),y
-    
-
-
 
     rts
 .endproc
@@ -173,9 +169,9 @@
 .proc _basic11_find_next_software_up_key
 
     ldy     #basic11_gui_struct::software_key_to_launch_low
-    lda     (basic11_ptr4),y   
+    lda     (basic11_ptr4),y
     sta     basic11_ptr3
-    
+
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
@@ -183,20 +179,20 @@
     lda     basic11_ptr3
     bne     @do_not_dec2
     dec     basic11_ptr3+1
-@do_not_dec2:    
+@do_not_dec2:
     dec     basic11_ptr3
 
     lda     basic11_ptr3
     bne     @do_not_dec3
     dec     basic11_ptr3+1
-@do_not_dec3:    
+@do_not_dec3:
     dec     basic11_ptr3
 
 
 
 
     ldy     #$00
-@L1000:    
+@L1000:
     lda     (basic11_ptr3),y
     beq     @out2
 
@@ -205,8 +201,7 @@
     bne     @do_not_dec
     dec     basic11_ptr3+1
 
-
-@do_not_dec:    
+@do_not_dec:
     dec     basic11_ptr3
     jmp     @L1000
 
@@ -215,20 +210,15 @@
     bne     @do_not_inc
     inc     basic11_ptr3+1
 
-@do_not_inc:    
-
+@do_not_inc:
 
     ldy     #basic11_gui_struct::software_key_to_launch_low
     lda     basic11_ptr3
-    sta     (basic11_ptr4),y   
-    
-    
+    sta     (basic11_ptr4),y
+
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     basic11_ptr3+1
     sta     (basic11_ptr4),y
-    
-
-
 
     rts
 .endproc

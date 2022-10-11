@@ -1,7 +1,7 @@
 .export _pstree
 
 .proc _pstree
-    jmp newpstree
+    jmp     newpstree
     print str_init
     crlf
     rts

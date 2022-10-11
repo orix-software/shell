@@ -29,3 +29,19 @@ When kernel has finished to initialize at boot time, sh command is started in in
 *Ctrl-t* : swap char under the cursor with the previous one, and shift the cursor to the right
 
 *Ctrl-o* : Switch into replacement or insertion mode
+
+## Shortcuts for tools
+
+*Funct+T* : Start Twilighte setup
+
+*Funct+L* : Start Loader
+
+*Funct+B* : Start Basic11
+
+*Funct+G* : Start basic11 gui
+
+## Available commands
+
+The command line is limited in characters (37). If you reach this limit, you won’t be able to type the complete command line Known bugs
+
+* « ./ » can not be used to launch a binar

@@ -6,7 +6,7 @@ display manual pages
 
 ## SYNOPSYS
 
-+ # man lsmem
++ man lsmem
 
 ## DESCRIPTION
 

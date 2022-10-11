@@ -3,16 +3,15 @@
 .export _twil
 
 
-twil_current_bank := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
-twil_ptr2         := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
-
+    twil_current_bank      := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
+    twil_ptr2              := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     twil_ptr1:= userzp ;
     twil_mainargs_argv     := userzp+2
     twil_mainargs_argc     := userzp+4 ; 8 bits
     twil_mainargs_arg1_ptr := userzp+5 ; 16 bits
 
 .proc _twil
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     twil_mainargs_argv
     sty     twil_mainargs_argv+1
@@ -109,10 +108,6 @@ savemount:
     ldx     #$01
     jsr     READ_BYTE_FROM_OVERLAY_RAM
     rts
-
-
-
-
 
 str_version:
   	.asciiz "Version : "

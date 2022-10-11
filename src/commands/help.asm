@@ -79,11 +79,11 @@
      ; there is a char
 @noparam:
 
-    lda    #<internal_commands_str
-    sta    help_ptr3
+    lda     #<internal_commands_str
+    sta     help_ptr3
 
-    lda    #>internal_commands_str
-    sta    help_ptr3+1
+    lda     #>internal_commands_str
+    sta     help_ptr3+1
 
     ldx     #$00
 loop:

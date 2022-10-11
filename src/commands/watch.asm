@@ -6,16 +6,18 @@
     watch_ptr2              := userzp+4
     watch_mainargs_argv     := userzp+6
     watch_mainargs_argc     := userzp+8
-    watch_mainargs_arg1_ptr := userzp+10
+    watch_mainargs_arg1_ptr := userzp+10 ; 2 bytes
+    watch_save_bank         := userzp+12
 
-    malloc 100
-    sta     save_mainargs_ptr
-    sty     save_mainargs_ptr+1
-
+    lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
     sta     watch_mainargs_argv
     sty     watch_mainargs_argv+1
     stx     watch_mainargs_argc
+
+    malloc 100
+    sta     save_mainargs_ptr
+    sty     save_mainargs_ptr+1
 
     cpx     #$01
 

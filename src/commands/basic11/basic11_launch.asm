@@ -1,7 +1,7 @@
 
 .proc   basic11_launch
 
-    
+
     lda     basic11_ptr4
     sta     basic11_ptr1
     lda     basic11_ptr4+1
@@ -18,7 +18,7 @@
 
     ldx     #$00
     ldy     #$00
-@L500:    
+@L500:
     lda     basic11_mode
     cmp     #BASIC11_ROM
     beq     @command_basic11
@@ -37,16 +37,16 @@
 
 
     ldy     #basic11_gui_struct::software_key_to_launch_low
-    lda     (basic11_ptr4),y   
+    lda     (basic11_ptr4),y
     sta     basic11_ptr3
-    
+
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
 
 
     ldy     #$00
-@L600:    
+@L600:
     lda     (basic11_ptr3),y
     cmp     #';'
     beq     @end_of_command

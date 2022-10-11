@@ -6,13 +6,11 @@
     routine_to_load:=userzp+4 ; FIXME erase shell commands
 
 
-   
-
     malloc   100,routine_to_load,str_oom ; [,fail_value]
     cmp      #$00
     bne      @not_oom
     cpy      #$00
-    bne      @not_oom    
+    bne      @not_oom
 
     rts
 

@@ -1,6 +1,6 @@
 .proc basic11_keyup_bar
 
-    
+
     ldy    #basic11_gui_struct::current_entry_id
     lda    (basic11_ptr4),y
     beq    @out3
@@ -55,7 +55,7 @@
 @out501:
     iny
 
-    
+
 @L2000:
 
     lda     (basic11_ptr3),y
@@ -67,7 +67,7 @@
     iny
 
     bne     @L2000
-@out500:    
+@out500:
 
 @out3:
     rts
@@ -83,7 +83,7 @@
 
     ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
     lda    (basic11_ptr4),y
-    
+
 
     sec
     sbc    #$01
@@ -91,25 +91,19 @@
 
 
     ldy     #basic11_gui_struct::basic11_posy_screen
-    
+
     jsr     compute_position_bar
 
-    jsr     displays_bar    
+    jsr     displays_bar
     ; Compute key
 
-    ldy     #basic11_gui_struct::current_entry_id 
+    ldy     #basic11_gui_struct::current_entry_id
     lda     (basic11_ptr4),y
     sec
     sbc     #$01
     sta     (basic11_ptr4),y
     jsr     _basic11_find_next_software_up_key
-    
 
-
-
-  
-    
-    
 
 @out:
     rts
@@ -119,31 +113,29 @@
 
     ldy     #$00
     lda     #' '
-@L2004:    
-    
+@L2004:
+
     sta     $bb80,y
     iny
     cpy     #39
     bne     @L2004
 
     ldy     #basic11_gui_struct::software_key_to_launch_low
-    lda     (basic11_ptr4),y   
+    lda     (basic11_ptr4),y
     sta     basic11_ptr3
-    
+
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
 
-
-
     ldy     #$00
-@L200:    
+@L200:
     lda     (basic11_ptr3),y
     beq     @out20
     sta     $bb80,y
     iny
     jmp     @L200
-    
-@out20:    
+
+@out20:
     rts
 .endproc
