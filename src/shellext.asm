@@ -299,6 +299,7 @@ _history:
         lda     #$00
         sta     next_current_position
         sta     history_entry_current_id
+        mfree (argv)
 
         rts
 

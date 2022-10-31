@@ -32,13 +32,15 @@ When kernel has finished to initialize at boot time, sh command is started in in
 
 ## Shortcuts for tools
 
-*Funct+T* : Start Twilighte setup
-
-*Funct+L* : Start Loader
+*Funct+A* : Start Systemd rom
 
 *Funct+B* : Start Basic11
 
 *Funct+G* : Start basic11 gui
+
+*Funct+L* : Start Loader
+
+*Funct+T* : Start Twilighte setup
 
 ## Available commands
 

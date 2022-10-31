@@ -17,11 +17,10 @@
     bank_all_banks_display          := userzp+13                      ; used when bank has no option
     bank_save_argc                  := userzp+14
     first_char_id_bank              := userzp+15
-
+    tmp3                            := userzp+17
 
     XMAINARGS = $2C
     XGETARGV  = $2E
-
 
     lda     #$01
     sta     bank_all_banks_display
@@ -79,7 +78,6 @@
     sbc     #$30
     sta     bank_save_argc
     ldx     first_char_id_bank ; 2 chars, get the first digit
-    ;dex
     lda     #$00
 @compute_again:
 
@@ -94,9 +92,9 @@
     cmp     #32
     bcc     @do_not_switch_to_ram_bank
     pha
-    lda     $342
+    lda     TWILIGHTE_REGISTER
     ora     #%00100000
-    sta     $342
+    sta     TWILIGHTE_REGISTER
     pla
 @do_not_switch_to_ram_bank:
 
@@ -104,7 +102,7 @@
     ; A bank
 
     sta     first_char_id_bank
-    stx     $343
+    stx     TWILIGHTE_BANKING_REGISTER
 
 
 
@@ -164,29 +162,29 @@ displays_all_banks:
     lda     #64
     sta     bank_decimal_current_bank
 
-    lda     $343
+    lda     TWILIGHTE_BANKING_REGISTER
     sta     save_twilighte_banking_register
 
     ; switch to ram
-    lda     $342
+    lda     TWILIGHTE_REGISTER
     sta     save_twilighte_register
     ora     #%00100000
-    sta     $342
+    sta     TWILIGHTE_REGISTER
 
     jsr     displays_banking
 
-    lda     $342
-    and     #%11011111
-    sta     $342
+    lda     TWILIGHTE_REGISTER
+    and     #%11011111  ; Return to eeprom mode
+    sta     TWILIGHTE_REGISTER
 
     jsr     displays_banking
 
     sei
     lda     save_twilighte_register
-    sta     $342
+    sta     TWILIGHTE_REGISTER
 
     lda     save_twilighte_banking_register
-    sta     $343
+    sta     TWILIGHTE_BANKING_REGISTER
     cli
 
     rts
@@ -195,7 +193,7 @@ displays_banking:
 
 
     lda     #$07
-    sta     $343
+    sta     TWILIGHTE_BANKING_REGISTER
 
 parse_next_banking_set:
 
@@ -228,6 +226,7 @@ loop2:
     cmp     #$C0   ; Does signature is in rom ?
     bcc     @exit
 
+
 .IFPC02
 .pc02
     stz     ptr2
@@ -236,6 +235,8 @@ loop2:
     lda     #$00
     sta     ptr2
 .endif
+
+    ;jsr     checking_rom
 
 @loopme:
     ldy     ptr2
@@ -247,9 +248,9 @@ loop2:
     bcc     @none_char
     cmp     #$7F                        ; '7f'
     bcs     @none_char
-@skip:
 
-     jsr     display_char
+@skip:
+    jsr     display_char
 
 @none_char:
 
@@ -290,22 +291,23 @@ loop2:
     lda     bank_decimal_current_bank
     cmp     #16
     bne     @skip12
-    lda     #03
-    sta     $343
+    lda     #$03
+    sta     TWILIGHTE_BANKING_REGISTER
 
 @skip12:
-
-    dec     $343
+    dec     TWILIGHTE_BANKING_REGISTER
     bpl     parse_next_banking_set
-@end_of_bank:
 
+@end_of_bank:
     rts
+
 @check_ctrl:
     lda     bank_stop_listing
     bne     @wait_key
     asl     KBDCTC
     bcc     @no_ctrl
     rts
+
 @check_kernel_ram_overlay:
     lda     bank_decimal_current_bank
     cmp     #52
@@ -321,28 +323,27 @@ check_if_bank_7_6_5:
     bne     @check_bank4
 @set4:
     lda     #$04
-    sta     $343
+    sta     TWILIGHTE_BANKING_REGISTER
     rts
 @check_bank4:
     cmp     #$04
     bne     @others
 @set0:
     lda     #$00
-    sta     $343
+    sta     TWILIGHTE_BANKING_REGISTER
     rts
 @others:
     cmp     #20
     bne     @exit
 @set3:
     lda     #$03
-    sta     $343
+    sta     TWILIGHTE_BANKING_REGISTER
     rts
 @exit:
-    ;cmp     #61
-    ;beq     @set4
     rts
+
 display_char:
-    BRK_ORIX XWR0
+    BRK_KERNEL XWR0
     rts
 
 display_bank_id:
@@ -363,7 +364,7 @@ greater_than_10:
     cmp     #20
     bcs     greater_than_20
     pha
-    lda      #'1'
+    lda     #'1'
     BRK_ORIX XWR0
     pla
     clc
@@ -375,7 +376,7 @@ greater_than_20:
     cmp     #30
     bcs     greater_than_30
     pha
-    lda      #'2'
+    lda     #'2'
     BRK_ORIX XWR0
     pla
     clc
@@ -383,6 +384,7 @@ greater_than_20:
     BRK_ORIX XWR0
     CPUTC ':'
     rts
+
 greater_than_30:
     cmp     #40
     bcs     greater_than_40
@@ -395,6 +397,7 @@ greater_than_30:
     BRK_ORIX XWR0
     CPUTC ':'
     rts
+
 greater_than_40:
     cmp     #50
     bcs     greater_than_50
@@ -407,6 +410,7 @@ greater_than_40:
     BRK_ORIX XWR0
     CPUTC ':'
     rts
+
 greater_than_50:
     cmp     #60
     bcs     greater_than_60
@@ -420,18 +424,16 @@ greater_than_50:
     BRK_ORIX XWR0
     CPUTC ':'
     rts
-greater_than_60:
 
+greater_than_60:
     pha
     lda     #'6'
     BRK_ORIX XWR0
     pla
-    ;cld
     sec
     sbc     #12
-    ;sed
     BRK_ORIX XWR0
-    CPUTC ':'
+    print #':'
     rts
 
 upd_ptr:
@@ -464,6 +466,41 @@ get_rom_type:
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     rts
 
+checking_rom:
+    ; ce code est supposé mettre des couleurs différentes pour indiquer s'il y une anomalie dans la banque
+    lda     ptr1
+    sta     tmp3
+
+    lda     ptr1+1
+    sta     tmp3+1
+
+
+    lda     #<$FFFE
+    sta     ptr1
+    lda     #>$FFFE
+    sta     ptr1+1
+
+    ; Get Type
+    ldy     #$00
+    ldx     #$00                        ; Read mode
+    jsr     READ_BYTE_FROM_OVERLAY_RAM
+    cmp     #$FA
+    beq     @orix_rom
+    cli
+@me:
+    jmp     @me
+    lda     #'2'
+    BRK_KERNEL XWR0
+    sei
+@orix_rom:
+@skip:
+    lda     tmp3
+    sta     ptr1
+
+    lda     tmp3+1
+    sta     ptr1+1
+    rts
+
 usage:
     .byte "bank [-a]",$0D,$0A
     .asciiz "bank IDBANK"
@@ -482,6 +519,7 @@ str_kernel_reserved:
     tax
     lda     bank,y
     rts
+
 @bank0:
     ; Impossible to have bank 0
     tax

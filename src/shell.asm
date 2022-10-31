@@ -159,6 +159,12 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         cmp     #' '
         beq     ltrim
 
+        cmp     #'#' ; Comment ?
+        bne     exec_cmd
+        jsr     verify_shell_extension_rom_and_launch
+        jmp     loop
+
+
     exec_cmd:
         ; Si Z=1 alors on a atteint la fin de la ligne
         beq     loop
@@ -176,7 +182,27 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         inc     bash_struct_command_line_ptr+1
 
     skip:
-        ; A contient déjà la bonne valeur
+        jsr     verify_shell_extension_rom_and_launch
+
+
+
+
+        lda     bash_struct_command_line_ptr
+        ldy     bash_struct_command_line_ptr+1
+        jsr     _bash
+
+        cmp     #EOK
+        beq     loop
+
+
+        lda     bash_struct_command_line_ptr
+        ldy     bash_struct_command_line_ptr+1
+        jsr     external_cmd
+        jmp     loop
+.endproc
+
+.proc verify_shell_extension_rom_and_launch
+
         ldy     #shell_bash_struct::shell_extension_loaded
         lda     (bash_struct_ptr),y
         beq     @shell_extension_not_loaded
@@ -198,22 +224,8 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         stx     ID_BANK_TO_READ_FOR_READ_BYTE
         lda     #$00
         sta     TWILIGHTE_BANKING_REGISTER
-
 @shell_extension_not_loaded:
-
-
-        lda     bash_struct_command_line_ptr
-        ldy     bash_struct_command_line_ptr+1
-        jsr     _bash
-
-        cmp     #EOK
-        beq     loop
-
-
-        lda     bash_struct_command_line_ptr
-        ldy     bash_struct_command_line_ptr+1
-        jsr     external_cmd
-        jmp     loop
+        rts
 .endproc
 
 .proc register_command_line
@@ -1354,7 +1366,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.4"
+    .asciiz  "Shell v2023.1"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00
