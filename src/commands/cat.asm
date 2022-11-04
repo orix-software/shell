@@ -1,7 +1,6 @@
 .export _cat
 
 .proc _cat
-
     cat_save_argvlow  := userzp+1
     cat_save_argvhigh := userzp+2
     cat_save_argc     := userzp+3
@@ -12,7 +11,6 @@
 
     lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
-
 
     sta     cat_save_argvlow
     sty     cat_save_argvhigh

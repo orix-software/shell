@@ -133,10 +133,8 @@ next:
     sta     man_ptr1+1
 
     ldx     #05
-
     ldy     #$00
 @L1:
-
     lda     man_buffer_size
     bne     @dec
     lda     man_buffer_size+1
@@ -147,8 +145,6 @@ next:
 
     lda     (man_buffer),y
     sta     (man_ptr1),y
-
-
 
     iny
     bne     @L1

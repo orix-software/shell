@@ -125,13 +125,12 @@ loopme:
 
     crlf
     rts
+
 usage:
     print str_usage
     rts
+
 list_command_in_bank:
-
-    ;jmp     list_command_in_bank
-
     sec
     sbc     #$30
     sta     current_bank

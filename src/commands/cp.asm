@@ -13,19 +13,17 @@ cp_mv_fp_dest_nb_bytes  := userzp+14
 
 .export _mv,_cp
 
-;.proc
-.proc _mv
 
-  lda   #$01 ; don't Delete param1 file
-  sta   cp_tmp
-  jmp   _cp_mv_execute
+.proc _mv
+    lda   #$01 ; don't Delete param1 file
+    sta   cp_tmp
+    jmp   _cp_mv_execute
 .endproc
 
 .proc _cp
-
-  lda     #$00 ; don't Delete param1 file FIXME 65c02
-  sta    cp_tmp
-  jmp   _cp_mv_execute
+    lda     #$00 ; don't Delete param1 file FIXME 65c02
+    sta    cp_tmp
+    jmp   _cp_mv_execute
 .endproc
 
 .proc _cp_mv_execute

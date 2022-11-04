@@ -29,7 +29,6 @@
     BRK_KERNEL XEXEC
 
 @usage:
-
     rts
 
 .endproc

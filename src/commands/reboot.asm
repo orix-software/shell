@@ -1,6 +1,5 @@
 .export _reboot
 
-
 .proc _reboot
 STORE_CODE_TO_REBOOT:=$1000
 

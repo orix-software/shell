@@ -45,11 +45,9 @@
     cpx     #$FF
     bne     @free
     rts
+
 @free:
-
-
 	malloc .strlen(df_msg)+1, userzp
-
 
 df_suite:
 	strcpy AY, str_df_values
@@ -100,18 +98,18 @@ df_suite:
 
 	jsr     bcd2str
 	; Remplace le caractère nul par un ' '
-	lda #' '
-	sta (RES),y
+	lda     #' '
+	sta     (RES),y
 
-	jsr display_size
+	jsr     display_size
 
-	lda userzp+2
-	sta RES
-	lda userzp+3
-	sta RES+1
-	lda userzp+4
-	sta RESB
-	lda userzp+5
+	lda     userzp+2
+	sta     RES
+	lda     userzp+3
+	sta     RES+1
+	lda     userzp+4
+	sta     RESB
+	lda     userzp+5
 	sta RESB+1
 	jsr convd
 
