@@ -64,7 +64,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
 
     XMAINARGS = $2C
-    XGETARGV =  $2E
+    XGETARGV  = $2E
 
     lda     #$00
     sta     basic11_no_arg_provided
@@ -909,6 +909,9 @@ tapes_path_basic10:
     cpy     #$00
     bne     @no_oom4
     print   str_enomem
+
+
+
     rts
 @no_oom4:
 
