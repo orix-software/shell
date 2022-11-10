@@ -60,7 +60,6 @@ STORE_CURRENT_DEVICE :=$99
 ;----------------------------------------------------------------------
 
 XMAINARGS       = $2C
-XMAINARGS_GETV  = $2E
 XGETARGV        = $2E
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
@@ -266,17 +265,21 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 @autoboot_present:
     fclose(fp)
-
+    print str_starting
+    print autoboot_path
+    crlf
     strcpy (bash_struct_ptr), autoboot_exec
     lda     bash_struct_ptr
     ldy     bash_struct_ptr+1
     jsr     external_cmd
 
     rts
+str_starting:
+    .asciiz "Starting "
 autoboot_path:
     .asciiz "/etc/autoboot"
 autoboot_exec:
-    .asciiz "sub4 /etc/autoboot"
+    .asciiz "submit /etc/autoboot"
 .endproc
 
 .proc register_command_line
@@ -358,7 +361,6 @@ autoboot_exec:
 
         lda     #ENOENT         ; Error
         rts
-        ; jmp     orix_try_to_find_command_in_bin_path
 
     command_found:
         ; at this step we found the command from a rom
@@ -400,7 +402,6 @@ autoboot_exec:
 
         print  str_oom
         ; HCL
-        ;jmp    start_prompt
         rts
 
     @check_too_many_open_files:
@@ -411,7 +412,6 @@ autoboot_exec:
 
     @S20: ; Used also when all is ok
         ; HCL
-        ;jmp     start_prompt
         rts
 
     @check_i_o_error:
@@ -420,7 +420,6 @@ autoboot_exec:
 
         print  str_i_o_error
         ; HCL
-        ;jmp    start_prompt
         rts
 
     @check_format_error:
@@ -429,17 +428,9 @@ autoboot_exec:
 
         print  str_exec_format_error
         ; HCL
-        ;jmp    start_prompt
         rts
 
     @check_other:
-
-
-        ; display error
-        ;cmp    #ENOENT
-        ;bne    @print_not_found_command
-        ;print  str_impossible_to_mount_sdcard
-        ;jmp     start_prompt
 
     @print_not_found_command:
         ldy    #$00
@@ -459,7 +450,6 @@ autoboot_exec:
         print   str_command_not_found
 
         ; HCL
-        ;jmp     start_prompt
         rts
 .endproc
 
@@ -468,10 +458,7 @@ autoboot_exec:
 ;----------------------------------------------------------------------
 .include "readline.s"
 
-;----------------------------------------------------------------------
-;
-;----------------------------------------------------------------------
-.include "tables/text_first_line_adress.asm"
+
 
 ;----------------------------------------------------------------------
 ;
@@ -973,9 +960,7 @@ addr_commands_end:
     .error  "Error too many commands, kernel won't be able to start command"
 .endif
 
-
 commands_length:
-
 .ifdef WITH_BASIC10
     .byt 7 ; _basic10
 .endif
