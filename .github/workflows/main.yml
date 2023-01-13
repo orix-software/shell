@@ -91,6 +91,7 @@ jobs:
     steps:
       - name: Checkout repository and submodules
         uses: actions/checkout@v2
+        # Remove recursive
         with:
           submodules: true
 
