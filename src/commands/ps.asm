@@ -31,7 +31,7 @@
 
     ldy     #$00
     PRINT_BINARY_TO_DECIMAL_16BITS 1
-    CPUTC   ' '
+    print   #' '
 
 
     lda     #kernel_process_struct::kernel_one_process_struct_ptr_low

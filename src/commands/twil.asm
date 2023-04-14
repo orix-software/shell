@@ -2,7 +2,6 @@
 
 .export _twil
 
-
     twil_current_bank      := ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
     twil_ptr2              := OFFSET_TO_READ_BYTE_INTO_BANK   ; 2 bytes
     twil_ptr1:= userzp ;

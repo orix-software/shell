@@ -2,7 +2,6 @@
 
 ;mount -t vfat /dev/sdc1 /
 
-
 .proc _mount
     mount_ptr1          := userzp ; 16 bits
     mount_mainargs_ptr  := userzp+2

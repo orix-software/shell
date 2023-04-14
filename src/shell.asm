@@ -23,14 +23,14 @@
 .include   "dependencies/orix-sdk/include/SDK.inc"
 
 ;----------------------------------------------------------------------
-;                   Txiligthe board includes
+;                   Twilighte board includes
 ;----------------------------------------------------------------------
 .include   "../libs/usr/arch/include/twil.inc"
 
 ;----------------------------------------------------------------------
 ;                           Zero Page
 ;----------------------------------------------------------------------
-userzp                       :=	VARLNG ; $8C
+userzp                       :=	VARLNG ; $8C don't change VARLNG : there is conflict with systemd rom
 
 
 bash_struct_ptr              := userzp   ; Struct for shell, when shell start, it malloc a struct 16bits
@@ -39,16 +39,18 @@ sh_esc_pressed               := userzp+2
 sh_length_of_command_line    := userzp+3 ; Only useful when we are un prompt mode
 ;tmp1_for_internal_command    :=userzp+3
 
-exec_address                 := userzp+4
-ptr1_for_internal_command    :=userzp+4
+exec_address                 := userzp+4 ; 2 bytes
+ptr1_for_internal_command    := userzp+4
 
-bash_struct_command_line_ptr :=userzp+6 ; For compatibility but should be removed (echo, ls)
-bash_tmp1                    :=userzp+8
-sh_ptr_for_internal_command  :=userzp+10 ; cd
+bash_struct_command_line_ptr := userzp+6 ; For compatibility but should be removed (echo, ls)
+bash_tmp1                    := userzp+8
+sh_ptr_for_internal_command  := userzp+10 ; cd
 
-sh_ptr1                      :=userzp+12
-sh_history_flag              :=userzp+16 ; Used to store the position of the entry of  his history
+sh_ptr1                      := userzp+12
+sh_history_flag              := userzp+16 ; Used to store the position of the entry of  his history
 
+sh_esc_pressed_at_boot       := userzp+17
+fp                           := userzp+18
 
 
 STORE_CURRENT_DEVICE :=$99
@@ -58,7 +60,6 @@ STORE_CURRENT_DEVICE :=$99
 ;----------------------------------------------------------------------
 
 XMAINARGS       = $2C
-XMAINARGS_GETV  = $2E
 XGETARGV        = $2E
 
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
@@ -88,6 +89,18 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         ptr1                    :=  OFFSET_TO_READ_BYTE_INTO_BANK    ; 2 bytes
         current_bank            :=  ID_BANK_TO_READ_FOR_READ_BYTE    ; 1 bytes
+
+        lda     #$01                ; ESC not pressed
+        sta     sh_esc_pressed_at_boot
+
+        BRK_KERNEL XRD0 ; primitive exits even if no key had been pressed
+        bcs   @no_key_pressed
+        ; When a key is pressed, A contains the ascii of the value
+
+@here_a_key_is_pressed:
+        dec     sh_esc_pressed_at_boot
+
+@no_key_pressed:
 
         .out    .sprintf("SHELL: SIZEOF SHELL STRUCT : %s", .string(.sizeof(shell_bash_struct)))
 
@@ -137,6 +150,17 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         ; if it's hot reset, then don't initialize current path.
         bit     FLGRST ; COLD RESET ?
 
+        ; Checking if we have to start /etc/autoboot
+
+
+        lda     sh_esc_pressed_at_boot
+        beq     @do_not_boot_autoboot
+
+        jsr     start_autoboot
+
+@do_not_boot_autoboot:
+
+
     loop:
         cursor  on
 
@@ -145,6 +169,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         lda     #ORIX_ID_BANK       ; Kernel bank
         sta     RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM
+
 
         jsr     readline
         beq     loop
@@ -158,6 +183,12 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         cmp     #' '
         beq     ltrim
+
+        cmp     #'#' ; Comment ?
+        bne     exec_cmd
+        jsr     verify_shell_extension_rom_and_launch
+        jmp     loop
+
 
     exec_cmd:
         ; Si Z=1 alors on a atteint la fin de la ligne
@@ -176,7 +207,24 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         inc     bash_struct_command_line_ptr+1
 
     skip:
-        ; A contient déjà la bonne valeur
+        jsr     verify_shell_extension_rom_and_launch
+
+        lda     bash_struct_command_line_ptr
+        ldy     bash_struct_command_line_ptr+1
+        jsr     _bash
+
+        cmp     #EOK
+        beq     loop
+
+
+        lda     bash_struct_command_line_ptr
+        ldy     bash_struct_command_line_ptr+1
+        jsr     external_cmd
+        jmp     loop
+.endproc
+
+.proc verify_shell_extension_rom_and_launch
+
         ldy     #shell_bash_struct::shell_extension_loaded
         lda     (bash_struct_ptr),y
         beq     @shell_extension_not_loaded
@@ -198,22 +246,40 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         stx     ID_BANK_TO_READ_FOR_READ_BYTE
         lda     #$00
         sta     TWILIGHTE_BANKING_REGISTER
-
 @shell_extension_not_loaded:
+        rts
+.endproc
 
+.proc start_autoboot
+  ;  rts
+    strcpy (bash_struct_ptr), autoboot_path
 
-        lda     bash_struct_command_line_ptr
-        ldy     bash_struct_command_line_ptr+1
-        jsr     _bash
+   ; strncpy (ptr2), (exec_address),#20
 
-        cmp     #EOK
-        beq     loop
+    fopen (bash_struct_ptr), O_RDONLY,,fp ; open the filename located in ptr 'basic11_ptr2', in readonly and store the fp in fp address
+    cpx     #$FF
+    bne     @autoboot_present ; not null then  start because we did not found a conf
+    cmp     #$FF
+    bne     @autoboot_present ; not null then  start because we did not found a conf
+    rts
 
+@autoboot_present:
+    fclose(fp)
+    print str_starting
+    print autoboot_path
+    crlf
+    strcpy (bash_struct_ptr), autoboot_exec
+    lda     bash_struct_ptr
+    ldy     bash_struct_ptr+1
+    jsr     external_cmd
 
-        lda     bash_struct_command_line_ptr
-        ldy     bash_struct_command_line_ptr+1
-        jsr     external_cmd
-        jmp     loop
+    rts
+str_starting:
+    .asciiz "Starting "
+autoboot_path:
+    .asciiz "/etc/autoboot"
+autoboot_exec:
+    .asciiz "submit /etc/autoboot"
 .endproc
 
 .proc register_command_line
@@ -295,7 +361,6 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         lda     #ENOENT         ; Error
         rts
-        ; jmp     orix_try_to_find_command_in_bin_path
 
     command_found:
         ; at this step we found the command from a rom
@@ -337,7 +402,6 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         print  str_oom
         ; HCL
-        ;jmp    start_prompt
         rts
 
     @check_too_many_open_files:
@@ -348,7 +412,6 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
     @S20: ; Used also when all is ok
         ; HCL
-        ;jmp     start_prompt
         rts
 
     @check_i_o_error:
@@ -357,7 +420,6 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         print  str_i_o_error
         ; HCL
-        ;jmp    start_prompt
         rts
 
     @check_format_error:
@@ -366,17 +428,9 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
         print  str_exec_format_error
         ; HCL
-        ;jmp    start_prompt
         rts
 
     @check_other:
-
-
-        ; display error
-        ;cmp    #ENOENT
-        ;bne    @print_not_found_command
-        ;print  str_impossible_to_mount_sdcard
-        ;jmp     start_prompt
 
     @print_not_found_command:
         ldy    #$00
@@ -396,7 +450,6 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         print   str_command_not_found
 
         ; HCL
-        ;jmp     start_prompt
         rts
 .endproc
 
@@ -405,10 +458,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 ;----------------------------------------------------------------------
 .include "readline.s"
 
-;----------------------------------------------------------------------
-;
-;----------------------------------------------------------------------
-.include "tables/text_first_line_adress.asm"
+
 
 ;----------------------------------------------------------------------
 ;
@@ -910,9 +960,7 @@ addr_commands_end:
     .error  "Error too many commands, kernel won't be able to start command"
 .endif
 
-
 commands_length:
-
 .ifdef WITH_BASIC10
     .byt 7 ; _basic10
 .endif
@@ -1354,7 +1402,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2022.4"
+    .asciiz  "Shell v2023.1"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00

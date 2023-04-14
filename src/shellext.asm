@@ -1,4 +1,4 @@
-.define VERSION "2022.3"
+.define VERSION "2022.4"
 
 .include   "telestrat.inc"
 .include   "fcntl.inc"
@@ -10,6 +10,10 @@
 .include   "dependencies/kernel/src/include/keyboard.inc"
 .include   "include/bash.inc"
 
+XMAINARGS       = $2C
+XMAINARGS_GETV  = $2E
+XGETARGV        = $2E
+
 .define HISTORY_MAX_NUMBER_ENTRY 20
 
 userzp := $80 ; FIXME
@@ -18,6 +22,8 @@ savex   := userzp
 savea   := userzp+1
 saveptr := userzp+3
 savepos := userzp+5
+argv    := userzp+7
+argc    := userzp+9 ; 1 byte
 
 
 
@@ -261,6 +267,45 @@ rom_signature:
     .ASCIIZ VERSION
 
 _history:
+
+        initmainargs argv, argc, 0
+
+        ldx     argc
+        cpx     #$01
+        beq     @no_arg
+
+        cpx     #$02
+        bne     @no_arg
+
+        getmainarg #1, (argv)
+
+        sta     argv
+        sty     argv+1
+
+        ; History with one arg
+
+        ldy     #$00
+
+        lda     (argv),y
+        cmp     #'-'
+        bne     @no_arg
+
+
+        iny
+        lda     (argv),y
+        cmp     #'c'
+        bne     @no_arg
+        ; history -c here
+        lda     #$00
+        sta     next_current_position
+        sta     history_entry_current_id
+        mfree (argv)
+
+        rts
+
+
+@no_arg:
+        mfree (argv)
 
         ldx     #$00
 @L1:

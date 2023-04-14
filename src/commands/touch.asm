@@ -28,10 +28,10 @@
     fclose(touch_fp)
 
     rts
+
 @missing_operand:
     print   touch
     print   str_missing_operand
     rts
 
 .endproc
-

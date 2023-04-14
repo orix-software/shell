@@ -104,8 +104,7 @@
     ; Here we have 'cd ..'
     ; let's pull folder
     BRK_KERNEL XGETCWD  ; Get A & Y
-    ;sta     cd_path
-    ;sty     cd_path+1
+
     sta     cd_path_2
     sty     cd_path_2+1
     ; loop until we reach 0
