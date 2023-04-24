@@ -3,28 +3,37 @@
 ## Introduction
 
 Bank command is command line tool to see which bank are loaded into EEPROM bank and RAM bank. Each bank has a
-"signature". Bank allows to see theses banks.
-Bank can also starts a ROM with his id. In that case, you don’t need to have a rom "orix friendly" and you can start it
-from command line. In the current bank version, there is restriction to launch a command.
+"signature". Bank allows to see theses signatures.
+Bank can also start a ROM with his identifier. In that case, you don't need to have a rom "orix friendly" and you can start it
+from command line.
 
 ## SYNOPSYS
 
 ### List all bank (when ROM signature is valid)
 
+```bash
 /#bank
-Bank 1 to 32 is eeprom bank and bank 33 to 64 are ram bank
+```
+
+Bank 1 to 32 are eeprom banks and banks from 33 to 64 are ram banks
 
 ### Displays all signature even when ROM is not valid
 
+```bash
 /#bank
+```
 
 ### List all commands from a bank
 
+```bash
 /#help -b5
+```
 
 ### Start a specific bank
 
+```bash
 /#bank 1
+```
 
 If you need to load a rom into a bank, you need to have a look to orixcfg binar
 

@@ -10,7 +10,7 @@
 
 ## DESCRIPTION
 
-Displays malloc table. Free chunks and busy chuncks are displayed with ranges.
+Displays malloc table. Free chunks and busy chuncks are displayed with ranges, and process name
 
 ## EXAMPLES
 
