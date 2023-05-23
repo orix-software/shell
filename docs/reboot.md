@@ -2,7 +2,7 @@
 
 ## Introduction
 
- reboot machine
+reboot machine
 
 ## SYNOPSYS
 

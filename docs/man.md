@@ -14,9 +14,9 @@ Displays manual. All .hlp files are located in /usr/share/man/. It manages multi
 
 ## Keys
 
-* SPACE to switch to next page
++ SPACE to switch to next page
 
-* ESC to exit
++ ESC to exit
 
 ## EXAMPLES
 

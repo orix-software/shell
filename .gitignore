@@ -3,4 +3,6 @@ a.o65
 error.txt
 *.ld65
 libs/
+*.rom
+*.sym
 

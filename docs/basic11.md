@@ -97,7 +97,7 @@ folder). If the key is found, it will start the tape file located in "/usr/share
 2. If the key is unknown, it will try to find it in "/home/basic11"
 If the tap file is in the oric.org db file, basic11 will load the software configuration from the db software file (as joystick
 configuration, and the id of the rom). Basic11 load the right rom into ram bank, override the default basic11 path to the tape
-file folder ("usr/share/basic11/[firstletter software].
+file folder ("usr/share/basic11/[firstletter software]).
 It means that if you load this kind of software and you can quit the software, each file action in basic11 rom, will be performed
 in "usr/share/basic11/[firstletter software]."
 Not working tapes (for instance)
@@ -114,10 +114,10 @@ files in /home/basic10
 + HU*BERT
 + Schtroumpfs (Missing file for the tape file on Oric.org: SCH.BIN)
 + Stanley (special loading routine)
-* Them
-* Titan
++ Them
++ Titan
 + Visif
-* Dig Dog (Write into $c000 - RAM which is possible from the loader)
++ Dig Dog (Write into $c000 - RAM which is possible from the loader)
 + Volcanic demo
 + Clavidact
 
@@ -133,7 +133,7 @@ Fire flash, Scuba Dive, 3D fongus (i,f letters)
 
 ## Some informations to start .tap file
 
-* Le trésor du pirate : check information on www.oric.org (on "Trésor du pirate" software page), it explains on to proceed when the games is CLOAD'ed
++ Le trésor du pirate : check information on www.oric.org (on "Trésor du pirate" software page), it explains on to proceed when the games is CLOAD'ed
 
 ## Joysticks issues
 

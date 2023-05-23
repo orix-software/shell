@@ -6,7 +6,7 @@ Create an empty file
 
 ## SYNOPSYS
 
-+ #touch myfile
++ touch myfile
 
 ## DESCRIPTION
 

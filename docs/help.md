@@ -10,8 +10,8 @@ Display commands
 
 ## DESCRIPTION
 
-- No parameter : Displays all internals shell command
-- bX parameter : Displays all internals commands in bank X
++ No parameter : Displays all internals shell command
++ bX parameter : Displays all internals commands in bank X
 
 ## SOURCE
 

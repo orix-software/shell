@@ -609,15 +609,9 @@ internal_commands_length:
     .include "commands/mkdir.asm"
 .endif
 
-.ifdef WITH_MORE
-    .include "commands/more.asm"
-.endif
-
 .ifdef WITH_MOUNT
     .include "commands/mount.asm"
 .endif
-
-
 
 .ifdef WITH_PS
     .include "commands/ps.asm"
@@ -789,7 +783,6 @@ addr_commands:
     .addr  _basic11
 .endif
 
-
 ; 2
 .ifdef WITH_CAT
     .addr  _cat
@@ -870,9 +863,6 @@ addr_commands:
     .addr  _mount
 .endif
 
-.ifdef WITH_MORE
-    .addr  _more
-.endif
 ; 30
 
 .ifdef WITH_DATE
@@ -1032,10 +1022,6 @@ commands_length:
 
 .ifdef WITH_MOUNT
     .byt 5 ; mount
-.endif
-
-.ifdef WITH_MORE
-    .byt 4 ; mount
 .endif
 
 
@@ -1212,11 +1198,6 @@ str_mkdir:
 .ifdef WITH_MOUNT
 mount:
     .asciiz "mount"
-.endif
-
-.ifdef WITH_MORE
-more:
-    .asciiz "more"
 .endif
 
 ; 27

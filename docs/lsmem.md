@@ -6,7 +6,7 @@
 
 ## SYNOPSYS
 
-+ #lsmem
++ lsmem
 
 ## DESCRIPTION
 

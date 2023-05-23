@@ -2,7 +2,7 @@
 
 ## Introduction
 
- Display the current path
+Display the current path
 
 ## SYNOPSYS
 
