@@ -1337,7 +1337,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2023.1"
+    .asciiz  "Shell v2023.2"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00

@@ -35,15 +35,15 @@
     ldy     #$00
 
     ; Get the numnber of line
-    lda     (lsmem_ptr_malloc),y ; Low
+    lda     (lsmem_ptr_malloc),y
     sta     lsmem_kernel_max_number_of_malloc
 
     ldx     #$00
-
-    ldy     #$01
+    ldy     #$00
 
     ; Test if free chunk is used
 @L1:
+    iny
     sty     lsmem_savey
 
     stx     lsmem_savex
