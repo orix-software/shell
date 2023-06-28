@@ -2,11 +2,11 @@
 
 ## Introduction
 
- move a file to another file
+move a file to another file
 
 ## SYNOPSYS
 
-+ #mv from to
++ mv from to
 
 ## DESCRIPTION
 

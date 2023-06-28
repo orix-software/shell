@@ -2,11 +2,11 @@
 
 ## Introduction
 
- Copy a file to another file
+Copy a file to another file
 
 ## SYNOPSYS
 
-+ #cp from to
++ cp from to
 
 ## DESCRIPTION
 

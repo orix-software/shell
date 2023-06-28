@@ -6,11 +6,13 @@ Displays a hrs file
 
 ## SYNOPSYS
 
-+ /#viewhrs toto.hrs
++ viewhrs toto.hrs -t 1
+
+Wait 1 before returning to shell
 
 ## DESCRIPTION
 
-Displays a hrs file
+Displays a hrs file. If -t is not present, it will wait a key pressed
 
 ## EXAMPLES
 

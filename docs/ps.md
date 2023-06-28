@@ -6,7 +6,7 @@ Displays process list
 
 ## SYNOPSYS
 
-+ #ps
++ ps
 
 ## DESCRIPTION
 

@@ -6,7 +6,7 @@ Displays env variables
 
 ## SYNOPSYS
 
-+ #env
++ env
 
 ## DESCRIPTION
 

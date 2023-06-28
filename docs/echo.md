@@ -6,7 +6,7 @@ Display a message
 
 ## SYNOPSYS
 
-+ #echo hello
++ echo hello
 
 ## DESCRIPTION
 

@@ -188,7 +188,6 @@ thereis_a_script_to_execute:
 @notFinished:
     lda    #$01
 
-
 @S20:
     rts
 str_error:

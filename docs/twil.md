@@ -7,9 +7,9 @@ can swap root folder to usbkey or sdcard.
 
 ## SYNOPSYS
 
-+ /#twil -f  : displays Twilighte board firmware
-+ /#twil -u  : switch default device : usbdrive
-+ /#twil -s  : swap default device to : sdcard
++ twil -f  : displays Twilighte board firmware
++ twil -u  : switch default device : usbdrive
++ twil -s  : swap default device to : sdcard
 
 ## DESCRIPTION
 

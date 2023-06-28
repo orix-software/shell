@@ -6,7 +6,7 @@ Displays mounts
 
 ## SYNOPSYS
 
-+ #mount
++ mount
 
 ## DESCRIPTION
 

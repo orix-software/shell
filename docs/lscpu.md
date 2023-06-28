@@ -6,7 +6,7 @@ Displays cpu info. It detects : 6502, 65c02 and 65816
 
 ## SYNOPSYS
 
-+ #lscpu
++ lscpu
 
 ## DESCRIPTION
 

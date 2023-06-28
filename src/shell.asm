@@ -613,14 +613,6 @@ internal_commands_length:
     .include "commands/mount.asm"
 .endif
 
-.ifdef WITH_OCONFIG
-    .include "commands/oconfig.asm"
-.endif
-
-.ifdef WITH_ORICSOFT
-    .include "commands/oricsoft.asm"
-.endif
-
 .ifdef WITH_PS
     .include "commands/ps.asm"
 .endif
@@ -635,10 +627,6 @@ internal_commands_length:
 
 .ifdef WITH_RM
     .include "commands/rm.asm"
-.endif
-
-.ifdef WITH_SEDSD
-    .include "commands/sedsd.asm"
 .endif
 
 .ifdef WITH_TOUCH
@@ -782,7 +770,10 @@ internal_commands_length:
 ;----------------------------------------------------------------------
 addr_commands:
 ; 0
-
+; 1
+.ifdef WITH_BANK
+    .addr  _banks
+.endif
 ; 0
 .ifdef WITH_BASIC10
     .addr  _basic10
@@ -792,10 +783,6 @@ addr_commands:
     .addr  _basic11
 .endif
 
-; 1
-.ifdef WITH_BANK
-    .addr  _banks
-.endif
 ; 2
 .ifdef WITH_CAT
     .addr  _cat
@@ -810,9 +797,7 @@ addr_commands:
     .addr  _cp
 .endif
 ; 6
-.ifdef WITH_DATE
-    .addr  _otimer
-.endif
+
 ; 7
 .ifdef WITH_DEBUG
     .addr  _debug
@@ -877,14 +862,13 @@ addr_commands:
 .ifdef WITH_MOUNT
     .addr  _mount
 .endif
+
 ; 30
-.ifdef WITH_OCONFIG
-    .addr  _oconfig
+
+.ifdef WITH_DATE
+    .addr  _otimer
 .endif
-; 31
-.ifdef WITH_ORICSOFT
-    .addr  _oricsoft
-.endif
+
 ; 32
 .ifdef WITH_PS
     .addr  _ps
@@ -903,10 +887,6 @@ addr_commands:
     .addr  _rm
 .endif
 
-.ifdef WITH_SEDSD
-    .addr  _sedsd
-.endif
-
 .ifdef WITH_SETFONT
     .addr  _setfont
 .endif
@@ -915,13 +895,7 @@ addr_commands:
     .addr  _sh
 .endif
 
-
 .addr  _systemd
-
-
-.ifdef WITH_TELNETD
-    .addr  _telnetd
-.endif
 
 .ifdef WITH_TOUCH
     .addr  _touch
@@ -937,10 +911,6 @@ addr_commands:
 
 .ifdef WITH_UNAME
     .addr  _uname
-.endif
-
-.ifdef WITH_VI
-    .addr  _vi
 .endif
 
 .ifdef WITH_VIEWHRS
@@ -961,16 +931,17 @@ addr_commands_end:
 .endif
 
 commands_length:
+
+.ifdef WITH_BANK
+    .byt 4 ; _banks
+.endif
+
 .ifdef WITH_BASIC10
     .byt 7 ; _basic10
 .endif
 
 .ifdef WITH_BASIC11
     .byt 7 ; _basic11
-.endif
-
-.ifdef WITH_BANK
-    .byt 4 ; _banks
 .endif
 
 .ifdef WITH_CAT
@@ -1053,13 +1024,6 @@ commands_length:
     .byt 5 ; mount
 .endif
 
-.ifdef WITH_OCONFIG
-    .byt 7 ; oconfig
-.endif
-
-.ifdef WITH_ORICSOFT
-    .byt 7 ; oricsoft
-.endif
 
 .ifdef WITH_PS
     .byt 2 ; ps
@@ -1077,10 +1041,6 @@ commands_length:
     .byt 2 ; rm
 .endif
 
-.ifdef WITH_SEDSD
-    .byt 7
-.endif
-
 .ifdef WITH_SETFONT
     .byt 7
 .endif
@@ -1092,10 +1052,6 @@ commands_length:
 ;.ifdef WITH_RESCUE
 .byt 7 ; sh
 ;.endif
-
-.ifdef WITH_TELNETD
-    .byt 7 ; telnetd
-.endif
 
 .ifdef WITH_TOUCH
     .byt 5 ; touch
@@ -1131,6 +1087,11 @@ commands_length:
 
 list_of_commands_bank:
 ; 0
+.ifdef WITH_BANK
+banks:
+    .asciiz "bank"
+.endif
+
 .ifdef WITH_BASIC10
 basic10:
     .asciiz "basic10"
@@ -1141,10 +1102,7 @@ basic11:
     .asciiz "basic11"
 .endif
 ; 1
-.ifdef WITH_BANK
-banks:
-    .asciiz "bank"
-.endif
+
 ; 2
 .ifdef WITH_CAT
 cat:
@@ -1163,25 +1121,18 @@ cp:
     .asciiz "cp"
 .endif
 ; 6
-.ifdef WITH_DATE
-date:
-    .asciiz "otimer"
-.endif
+
 
 .ifdef WITH_DEBUG
 debug:
     .asciiz "debug"
 .endif
 
-; 7
-
 .ifdef WITH_DF
 df:
     .asciiz "df"
 .endif
-; 8
 
-; 9
 
 ; 10
 .ifdef WITH_ENV
@@ -1248,22 +1199,17 @@ str_mkdir:
 mount:
     .asciiz "mount"
 .endif
+
 ; 27
 .ifdef WITH_MV
 mv:
     .asciiz "mv"
 .endif
-; 28
-.ifdef WITH_OCONFIG
-oconfig:
-    .asciiz "oconfig"
+
+.ifdef WITH_DATE
+date:
+    .asciiz "otimer"
 .endif
-; 29
-.ifdef WITH_ORICSOFT
-oricsoft:
-    .asciiz "oricsft"
-.endif
-; 30
 
 ; 31
 .ifdef WITH_PS
@@ -1288,11 +1234,6 @@ rm:
     .asciiz "rm"
 .endif
 
-.ifdef WITH_SEDORIC
-sedoric:
-    .asciiz "sedoric"
-.endif
-
 .ifdef WITH_SETFONT
 setfont:
     .asciiz "setfont"
@@ -1306,12 +1247,6 @@ sh:
 ;.ifdef WITH_RESCUE
 systemd:
     .asciiz "systemd"
-
-
-.ifdef WITH_TELNETD
-telnetd:
-    .asciiz "telnetd"
-.endif
 
 .ifdef WITH_TOUCH
 touch:
@@ -1402,7 +1337,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2023.1"
+    .asciiz  "Shell v2023.2"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00
