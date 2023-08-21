@@ -28,12 +28,10 @@
     dex
     ; Checking shift.define NO_LOAD_ROM $00
 
-
     lda     KBDSHT
     and     #%00000001
     cmp     #$01
     bne     @not_shift
-
 
 @not_shift:
     lda     shortcut_action_type,x
@@ -53,6 +51,7 @@
     sty     RESB
 
     ldx     #$00
+
 @L1:
     ldy     RESB
     lda     (RES),y
@@ -69,10 +68,12 @@
 @out:
     sta     (bash_struct_ptr),y
 
+    ; FIXME macro orixsdk
     lda     bash_struct_ptr
     ldy     bash_struct_ptr+1
 
     BRK_KERNEL XEXEC
+
 @exit:
     lda     #$01 ; No shortcut found
     rts
@@ -87,9 +88,8 @@
     ; When shortcut is successful we are here, we return $00
     lda     #$00 ; Successful
     rts
+
 @run:
-
-
     jmp     (RES)
 
 str_systemd:

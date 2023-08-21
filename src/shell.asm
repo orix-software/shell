@@ -477,17 +477,21 @@ autoboot_exec:
 ;----------------------------------------------------------------------
 internal_commands_str:
 .ifdef WITH_CD
-    cd:
+cd:
     .asciiz "cd"
 .endif
 
 echo:
-.asciiz "echo"
+    .asciiz "echo"
 
 help:
-.asciiz "help"
+    .asciiz "help"
+
 pwd:
-.asciiz "pwd"
+    .asciiz "pwd"
+
+loader:
+    .asciiz "loader"
 
 internal_commands_ptr:
 .ifdef WITH_CD
@@ -498,6 +502,7 @@ internal_commands_ptr:
 ;.addr   exec
 .addr   help
 .addr   pwd
+.addr   loader
 
 internal_commands_addr:
 .ifdef WITH_CD
@@ -508,6 +513,7 @@ internal_commands_addr:
 ;.addr _exec
 .addr _help
 .addr _pwd
+.addr _loader_no_fork
 
 internal_commands_length:
 .ifdef WITH_CD
@@ -518,6 +524,7 @@ internal_commands_length:
 ;.byte 4 ; exec
 .byte 4 ; help
 .byte 3 ; pwd
+.byte 6 ; loader
 
 .ifdef WITH_CD
     .include "commands/cd.asm"
@@ -527,6 +534,7 @@ internal_commands_length:
 .include "commands/exec.asm"
 .include "commands/help.asm"
 .include "commands/pwd.asm"
+.include "commands/loader.asm"
 .include "commands/twilbank.asm"
 
 ; Commands
