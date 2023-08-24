@@ -97,8 +97,10 @@ str_systemd:
 
 str_exec_basic11:
     .asciiz "basic11"        ; B
+
 str_exec_basic11_g:
     .asciiz "basic11 -g"     ; G
+
 shortcut_low:
     .byte <str_systemd ; A
     .byte <str_exec_basic11 ; B
