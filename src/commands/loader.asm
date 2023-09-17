@@ -1,5 +1,5 @@
-.export _loader_no_fork
+.export _loader
 
-.proc _loader_no_fork
+.proc _loader
     jmp     twillauncher
 .endproc

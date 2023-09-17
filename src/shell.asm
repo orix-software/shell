@@ -217,8 +217,10 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         beq     loop
 
 
-        lda     bash_struct_command_line_ptr
-        ldy     bash_struct_command_line_ptr+1
+        ; lda     bash_struct_command_line_ptr
+        ; ldy     bash_struct_command_line_ptr+1
+        ; BRK_KERNEL XEXEC
+        exec (bash_struct_command_line_ptr)
         jsr     external_cmd
         jmp     loop
 .endproc
@@ -228,8 +230,9 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         ldy     #shell_bash_struct::shell_extension_loaded
         lda     (bash_struct_ptr),y
         beq     @shell_extension_not_loaded
-
-        jsr     register_command_line
+        ; Disable for bug : Quannd on lance bootcfg et que cela lance cp, on se retrouve à essayer d'enregister la commande tapée alors que la rom history n'est pas chargée
+        
+       ; jsr     register_command_line
 
         lda     TWILIGHTE_REGISTER
         and     #%11011111  ; Switch to eeprom again
@@ -269,8 +272,11 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
     print autoboot_path
     crlf
     strcpy (bash_struct_ptr), autoboot_exec
-    lda     bash_struct_ptr
-    ldy     bash_struct_ptr+1
+    ; lda     bash_struct_ptr
+    ; ldy     bash_struct_ptr+1
+    ; BRK_KERNEL XEXEC
+    exec (bash_struct_ptr)
+
     jsr     external_cmd
 
     rts
@@ -283,6 +289,7 @@ autoboot_exec:
 .endproc
 
 .proc register_command_line
+        rts
         lda     #$00
         sta     TWILIGHTE_BANKING_REGISTER
 
@@ -392,7 +399,7 @@ autoboot_exec:
 ;
 ;----------------------------------------------------------------------
 .proc external_cmd
-        BRK_KERNEL XEXEC
+
 
         cpy    #EOK
         beq    @S20
@@ -490,8 +497,7 @@ help:
 pwd:
     .asciiz "pwd"
 
-loader:
-    .asciiz "loader"
+
 
 internal_commands_ptr:
 .ifdef WITH_CD
@@ -502,7 +508,7 @@ internal_commands_ptr:
 ;.addr   exec
 .addr   help
 .addr   pwd
-.addr   loader
+
 
 internal_commands_addr:
 .ifdef WITH_CD
@@ -513,7 +519,7 @@ internal_commands_addr:
 ;.addr _exec
 .addr _help
 .addr _pwd
-.addr _loader_no_fork
+
 
 internal_commands_length:
 .ifdef WITH_CD
@@ -524,7 +530,7 @@ internal_commands_length:
 ;.byte 4 ; exec
 .byte 4 ; help
 .byte 3 ; pwd
-.byte 6 ; loader
+
 
 .ifdef WITH_CD
     .include "commands/cd.asm"
@@ -535,6 +541,7 @@ internal_commands_length:
 .include "commands/help.asm"
 .include "commands/pwd.asm"
 .include "commands/loader.asm"
+.include "commands/twiconf.asm"
 .include "commands/twilbank.asm"
 
 ; Commands
@@ -641,9 +648,6 @@ internal_commands_length:
     .include "commands/touch.asm"
 .endif
 
-.ifdef WITH_TELNETD
-    .include "commands/telnetd.asm"
-.endif
 
 .ifdef WITH_TWILIGHT
     .include "commands/twil.asm"
@@ -695,8 +699,6 @@ internal_commands_length:
 ; hardware (sh.asm, twil.asm, reboot, mount, ls, df, debug, cat, basic11
 .include "lib/ch376.s"
 .include "lib/ch376_verify.s"
-
-
 
 ;----------------------------------------------------------------------
 ; FIXME common with telemon
@@ -833,6 +835,8 @@ addr_commands:
 .ifdef WITH_LESS
     .addr  _less
 .endif
+
+    .addr  _loader
 ; 20
 .ifdef WITH_LS
     .addr  _ls
@@ -912,6 +916,8 @@ addr_commands:
 .ifdef WITH_TREE
     .addr  _tree
 .endif
+
+    .addr  _twiconf
 
 .ifdef WITH_TWILIGHT
     .addr  _twil
@@ -996,6 +1002,8 @@ commands_length:
     .byt 4 ;_less
 .endif
 
+    .byt 5 ; _loader
+
 .ifdef WITH_LS
     .byt 2 ; _ls
 .endif
@@ -1031,7 +1039,6 @@ commands_length:
 .ifdef WITH_MOUNT
     .byt 5 ; mount
 .endif
-
 
 .ifdef WITH_PS
     .byt 2 ; ps
@@ -1069,28 +1076,26 @@ commands_length:
     .byt 4 ; tree
 .endif
 
+    .byt 6 ; _twiconf
+
 .ifdef WITH_TWILIGHT
-    .byt 4 ; touch
+    .byt 4 ; twil
 .endif
 
 .ifdef WITH_UNAME
-    .byt 5 ;_uname
-.endif
-
-.ifdef WITH_VI
-    .byt 2  ; vi
+    .byt 5 ; _uname
 .endif
 
 .ifdef WITH_VIEWHRS
-    .byt 7  ; viewhrs
+    .byt 7 ; viewhrs
 .endif
 
 .ifdef WITH_WATCH
-    .byt 5  ; watch
+    .byt 5 ; watch
 .endif
 
 .ifdef WITH_XORIX
-    .byt 5 ;xorix
+    .byt 5 ; xorix
 .endif
 
 list_of_commands_bank:
@@ -1130,7 +1135,6 @@ cp:
 .endif
 ; 6
 
-
 .ifdef WITH_DEBUG
 debug:
     .asciiz "debug"
@@ -1140,7 +1144,6 @@ debug:
 df:
     .asciiz "df"
 .endif
-
 
 ; 10
 .ifdef WITH_ENV
@@ -1164,11 +1167,16 @@ kill:
 less:
     .asciiz "less"
 .endif
+
+loader:
+    .asciiz "loader"
+
 ; 18
 .ifdef WITH_LS
 ls:
     .asciiz "ls"
 .endif
+
 ; 19
 .ifdef WITH_LSCPU
 lscpu:
@@ -1266,6 +1274,9 @@ tree:
     .asciiz "tree"
 .endif
 
+twiconf:
+    .asciiz "twiconf"
+
 .ifdef WITH_TWILIGHT
 twilight:
     .asciiz "twil"
@@ -1345,7 +1356,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2023.2"
+    .asciiz  "Shell v2023.3"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00

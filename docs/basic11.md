@@ -34,15 +34,17 @@ Search a tape file from command line
 
 Basic11 has also many.tap files inserted in sdcard.tgz
 
-Try to find the software with option -l
+A software key can be found  -l.
 
 ```bash
 /#basic11 -l
 ```
 
-If you find your software, you can do perform ctrl+c.
-You can type space to do a pause.
-On that case, you can launch the tape file like :
+Space to do a pause.
+
+When the searched software is found on the screen, a ctrl+c returns to command line
+
+The key can be inserted to launch the software.
 
 ```bash
 /#basic11 "KEYDISPLAYED

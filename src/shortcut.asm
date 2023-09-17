@@ -69,10 +69,12 @@
     sta     (bash_struct_ptr),y
 
     ; FIXME macro orixsdk
-    lda     bash_struct_ptr
-    ldy     bash_struct_ptr+1
+    ; lda     bash_struct_ptr
+    ; ldy     bash_struct_ptr+1
+    ; BRK_KERNEL XEXEC
 
-    BRK_KERNEL XEXEC
+    ldx #$00 ; FORK
+    exec (bash_struct_ptr)
 
 @exit:
     lda     #$01 ; No shortcut found
@@ -143,6 +145,7 @@ shortcut_high:
     .byte $00 ; R
     .byte $00 ; S
     .byte >twilfirmware ; T
+
 shortcut_action_type:
     .byte SHORTCUT_XEXEC
     .byte SHORTCUT_XEXEC ; B

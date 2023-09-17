@@ -26,6 +26,7 @@
 
     ; A et Y at this step contains the ptr
 @L1:
+    ldx #$01
     BRK_KERNEL XEXEC
 
 @usage:

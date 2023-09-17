@@ -6,7 +6,7 @@ Display I/O Ports of the board
 
 ## SYNOPSYS
 
-+ #ioports
++ /#ioports
 
 ## DESCRIPTION
 

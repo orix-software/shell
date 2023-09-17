@@ -1,5 +1,7 @@
 # man
 
+![man](imgs/man.png)
+
 ## Introduction
 
 display manual pages
