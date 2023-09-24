@@ -1,5 +1,7 @@
 # otimer
 
+![otimer](imgs/otimer.png)
+
 ## Introduction
 
 Display timer since the Oric is power on
@@ -10,7 +12,7 @@ Display timer since the Oric is power on
 
 ## NOTES
 
-Each time Oric reboots, this timer is reset
+Each time Oric reboots, this timer is reset.
 
 ## SOURCE
 

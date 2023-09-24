@@ -2,7 +2,7 @@
 
 ## Introduction
 
- Displays malloc table
+Displays malloc table
 
 ## SYNOPSYS
 
@@ -19,3 +19,5 @@ Displays malloc table. Free chunks and busy chuncks are displayed with ranges, a
 ## SOURCE
 
 https://github.com/orix-software/shell/blob/master/src/commands/lsmem.asm
+
+![lsmem](imgs/lsmem.png)

@@ -1,5 +1,7 @@
 # ps
 
+![ps](imgs/ps.png)
+
 ## Introduction
 
 Displays process list

@@ -2,11 +2,15 @@
 
 ## Introduction
 
-Display commands
+Display commands stored in a bank
 
 ## SYNOPSYS
 
 + help
+
+### Displays all commands from bank 5
+
++ help -b5
 
 ## DESCRIPTION
 
@@ -16,3 +20,5 @@ Display commands
 ## SOURCE
 
 https://github.com/orix-software/shell/blob/master/src/commands/help.asm
+
+![help screenshot](imgs/help.png)

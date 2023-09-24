@@ -75,9 +75,11 @@
     mfree(basic11_ptr2)
 
 
-    ldy     basic11_ptr1+1
-    lda     basic11_ptr1
-    BRK_KERNEL XEXEC
+    ; ldy     basic11_ptr1+1
+    ; lda     basic11_ptr1
+    ; BRK_KERNEL XEXEC
+    ldx #$00 ; FORK
+    exec (basic11_ptr1)
 
     rts
 str_basic11:

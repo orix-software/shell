@@ -133,10 +133,11 @@ thereis_a_script_to_execute:
 
 @nextline2:
 
-    lda     ptr_file_sh_interactive_ptr_save
-
-    ldy     ptr_file_sh_interactive_ptr_save+1
-    BRK_KERNEL XEXEC
+    ; lda     ptr_file_sh_interactive_ptr_save
+    ; ldy     ptr_file_sh_interactive_ptr_save+1
+    ; BRK_KERNEL XEXEC
+    ldx     #$00 ; FORK
+    exec  (ptr_file_sh_interactive_ptr_save)
 
     cmp    #EOK
     beq    @nextline

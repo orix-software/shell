@@ -28,12 +28,10 @@
     dex
     ; Checking shift.define NO_LOAD_ROM $00
 
-
     lda     KBDSHT
     and     #%00000001
     cmp     #$01
     bne     @not_shift
-
 
 @not_shift:
     lda     shortcut_action_type,x
@@ -53,6 +51,7 @@
     sty     RESB
 
     ldx     #$00
+
 @L1:
     ldy     RESB
     lda     (RES),y
@@ -69,10 +68,14 @@
 @out:
     sta     (bash_struct_ptr),y
 
-    lda     bash_struct_ptr
-    ldy     bash_struct_ptr+1
+    ; FIXME macro orixsdk
+    ; lda     bash_struct_ptr
+    ; ldy     bash_struct_ptr+1
+    ; BRK_KERNEL XEXEC
 
-    BRK_KERNEL XEXEC
+    ldx #$00 ; FORK
+    exec (bash_struct_ptr)
+
 @exit:
     lda     #$01 ; No shortcut found
     rts
@@ -87,9 +90,8 @@
     ; When shortcut is successful we are here, we return $00
     lda     #$00 ; Successful
     rts
+
 @run:
-
-
     jmp     (RES)
 
 str_systemd:
@@ -97,8 +99,10 @@ str_systemd:
 
 str_exec_basic11:
     .asciiz "basic11"        ; B
+
 str_exec_basic11_g:
     .asciiz "basic11 -g"     ; G
+
 shortcut_low:
     .byte <str_systemd ; A
     .byte <str_exec_basic11 ; B
@@ -141,6 +145,7 @@ shortcut_high:
     .byte $00 ; R
     .byte $00 ; S
     .byte >twilfirmware ; T
+
 shortcut_action_type:
     .byte SHORTCUT_XEXEC
     .byte SHORTCUT_XEXEC ; B

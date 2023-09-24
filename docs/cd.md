@@ -1,6 +1,6 @@
 # cd
 
-## Introduction
+## INTRODUCTION
 
 Change directory
 
@@ -17,3 +17,7 @@ Change directory
 ## SOURCE
 
 https://github.com/orix-software/shell/blob/master/src/commands/cd.asm
+
+## Images
+
+![Screenshot cd](imgs/cd.png)

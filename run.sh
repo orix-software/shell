@@ -15,8 +15,11 @@ ld65 -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -tnone  shellext.ld65 -o 
 # ld65 -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -tnone  shellext.ld65 -o shellext.rom  -Ln shellext.sym
 
 
-
 cp shell.rom $ORICUTRON_PATH/roms
+cp autoboot $ORICUTRON_PATH/sdcard/etc/
+mkdir $ORICUTRON_PATH/sdcard/etc/orix/ -p
+cp menu.sub $ORICUTRON_PATH/sdcard/etc/orix/
+cp bootcfg $ORICUTRON_PATH/sdcard/bin/
 cp shellext.rom $ORICUTRON_PATH/roms
 cp shellext.rom $ORICUTRON_PATH/sdcard/usr/share/shell/
 #rm  $ORICUTRON_PATH/sdcard/usr/share/shell/shellext.rom
