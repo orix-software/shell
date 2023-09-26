@@ -1,7 +1,5 @@
 # man
 
-![man](imgs/man.png)
-
 ## Introduction
 
 display manual pages
@@ -27,3 +25,5 @@ Displays manual. All .hlp files are located in /usr/share/man/. It manages multi
 ## SOURCE
 
 https://github.com/orix-software/shell/blob/master/src/commands/man.asm
+
+![man](imgs/man.png)
