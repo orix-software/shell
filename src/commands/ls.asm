@@ -15,6 +15,7 @@ ls_pwd                   := userzp+12
 ls_fp                    := userzp+14
 ls_buffer_entry          := userzp+16
 ls_saveY                 := userzp+18
+ls_buffer_edt            := userzp+20
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
@@ -23,9 +24,23 @@ ls_saveY                 := userzp+18
     lda     #$03
     sta     ls_column_max
 
-    malloc  200
+    ; We use the same malloc for wildcard, filename and line to display
+    ; But we use different offset for the buffers
+    ; for wildcard and filename : ls_buffer_entry
+    ; for line to display : ls_buffer_edt
+    malloc  73 ; 13 + 60 (nb d'octets pour le CH376 : FIXME, c'est ici 60 mais c'est moins, à vérifier)
     sta     ls_buffer_entry
     sty     ls_buffer_entry+1
+
+    sta     ls_buffer_edt
+    sty     ls_buffer_edt+1
+    clc
+    adc     #13
+    bcc     @no_inc_ls_buffer_edt
+    inc     ls_buffer_edt+1
+
+@no_inc_ls_buffer_edt:
+    sta     ls_buffer_edt
 
     getcwd  ls_pwd
 
@@ -374,7 +389,8 @@ display_catalog:
 
   ZZ0013:
     lda     CH376_DATA
-    sta     BUFEDT+1,y
+    ;sta     BUFEDT+1,y
+    sta     (ls_buffer_edt),y
     iny
     dex
     bpl     ZZ0013
@@ -869,8 +885,13 @@ error:
     lda     #$07
     sta     TR1
 
-    ldy     #$0C
-    lda     BUFEDT+14,y
+
+
+    ldy     #$0C+13
+    lda     (ls_buffer_edt),y
+
+    ;ldy     #$0C
+   ; lda     BUFEDT+14,y
     lsr
     php
 
@@ -884,7 +905,11 @@ error:
 
     print     #'-'
 
-    lda     BUFEDT+13,y
+
+    ldy     #$0C+12
+    lda     (ls_buffer_edt),y
+
+  ;  lda     BUFEDT+13,y
     plp
     ror
     lsr
@@ -896,24 +921,34 @@ error:
 
     print     #'-'
 
-    lda     BUFEDT+13,y
+    ldy     #$0C+12
+    lda     (ls_buffer_edt),y
+
+   ; lda     BUFEDT+13,y
     and     #$1f
     jsr     Bin2BCD
 
     print     #' '
+    ldy     #$0C+11
+    lda     (ls_buffer_edt),y
 
-    lda     BUFEDT+12,y
+  ;  lda     BUFEDT+12,y
     lsr
     lsr
     lsr
     jsr     Bin2BCD
 
     print #':'
-    lda     BUFEDT+12,y
+    ldy     #$0C+11
+    lda     (ls_buffer_edt),y
+
+   ; lda     BUFEDT+12,y
     and     #$07
     sta     TR1
-    lda     BUFEDT+11,y
-    and     #$e0
+    ldy     #$0C+1
+    lda     (ls_buffer_edt),y
+   ; lda     BUFEDT+11,y
+    and     #$E0
     clc
     ror     TR1
     ror
@@ -1036,10 +1071,14 @@ Hex2Asc:
     BRK_KERNEL XWR0
 
     ; Copie la taille du fichier en RES-RESB
-    ldy     #$03
+    ldx     #$03
+    ldy     #19+$0C
  @loop:
-    lda     BUFEDT+17+$0C,y
-    sta     RES,y
+    ;sty     ls_saveY
+    lda     (ls_buffer_edt),y
+    ;lda     BUFEDT+17+$0C,x
+    sta     RES,x
+    dex
     dey
     bpl     @loop
 
@@ -1047,8 +1086,17 @@ Hex2Asc:
     jsr     convd
 
     ; Conversion en chaine
-    lda     #<(BUFEDT+17+$0C+4)
-    ldy     #>(BUFEDT+17+$0C+4)
+
+    ldy     ls_buffer_edt+1
+    lda     ls_buffer_edt
+    clc
+    adc     #17+$0C+4
+    bcc     @no_inc_offset_size
+    iny
+@no_inc_offset_size:
+
+    ;lda     #<(BUFEDT+17+$0C+4)
+    ;ldy     #>(BUFEDT+17+$0C+4)
     jsr     bcd2str
 
     ; Remplace les '0' non significatifs par des ' '
