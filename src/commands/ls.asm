@@ -28,7 +28,7 @@ ls_buffer_edt            := userzp+20
     ; But we use different offset for the buffers
     ; for wildcard and filename : ls_buffer_entry
     ; for line to display : ls_buffer_edt
-    malloc  73 ; 13 + 60 (nb d'octets pour le CH376 : FIXME, c'est ici 60 mais c'est moins, à vérifier)
+    malloc 45  ; 13 + 32 (nb d'octets pour une entrée du CH376 :)
     sta     ls_buffer_entry
     sty     ls_buffer_entry+1
 
@@ -143,7 +143,7 @@ list:
 
 
 
-@skip:
+;@skip:
 
 
 no_arg_for_dash_l_option:
@@ -241,7 +241,7 @@ display_one_file_catalog:
     jsr     _ch376_wait_response
     cmp     #CH376_USB_INT_SUCCESS
 
-    bne     Error
+   ; bne     Error
 
 go:
     lda     #CH376_RD_USB_DATA0
@@ -271,24 +271,19 @@ go:
   ZZ0001:
     rts
 
-
-
 ; ------------------------------------------------------------------------------
 Error:
-    print     txt_file_not_found
-    ;FREE RESB
-    print     (ls_buffer_entry)
-
+    ;cmp     #$1
+    ; jmp     error_oom
+    ; print     txt_file_not_found
+    ; ;FREE RESB
+    ; print     (ls_buffer_entry)
 
 error_oom:
     crlf
-
-
     rts
 
-
 _set_filename_ls:
-
     lda     #CH376_SET_FILE_NAME        ;$2f
     sta     CH376_COMMAND
     ldy     #$00
