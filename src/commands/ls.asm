@@ -16,6 +16,8 @@ ls_fp                    := userzp+14
 ls_buffer_entry          := userzp+16
 ls_saveY                 := userzp+18
 ls_buffer_edt            := userzp+20
+ls_wilcard_buffer_ptr    := userzp+22
+ls_buffer_ptr            := userzp+24
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
@@ -24,13 +26,19 @@ ls_buffer_edt            := userzp+20
     lda     #$03
     sta     ls_column_max
 
+    ; @me:
+    ;     jmp @me
+
+    ; lda     ls_arg
+
     ; We use the same malloc for wildcard, filename and line to display
     ; But we use different offset for the buffers
     ; for wildcard and filename : ls_buffer_entry
     ; for line to display : ls_buffer_edt
-    malloc 45  ; 13 + 32 (nb d'octets pour une entrée du CH376 :)
+    malloc 60  ; 13 + 32 (nb d'octets pour une entrée du CH376 :) + 15 pour le buffer de wildcard
     sta     ls_buffer_entry
     sty     ls_buffer_entry+1
+    sta     ls_wilcard_buffer_ptr
 
     ; compute ptr buffer for edt
     sta     ls_buffer_edt
@@ -42,6 +50,15 @@ ls_buffer_edt            := userzp+20
 
 @no_inc_ls_buffer_edt:
     sta     ls_buffer_edt
+
+    lda     ls_buffer_entry
+    clc
+    adc     #13+33
+    bcc     @no_inc_ls_wilcard_buffer_ptr
+    inc     ls_wilcard_buffer_ptr+1
+
+@no_inc_ls_wilcard_buffer_ptr:
+    sta     ls_wilcard_buffer_ptr
 
     getcwd  ls_pwd
 
@@ -81,6 +98,7 @@ ls_buffer_edt            := userzp+20
     sta     ls_arg
     sty     ls_arg+1
 
+   ; print (ls_arg)
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ls_arg[0] = 0 si pas de paramètre
 
@@ -115,9 +133,10 @@ ls_buffer_edt            := userzp+20
 
 @set_bufnom_empty:
     lda     ls_buffer_entry
-    sta     ls_arg
+    sta     ls_buffer_ptr
+
     lda     ls_buffer_entry+1
-    sta     ls_arg+1
+    sta     ls_buffer_ptr+1
 
     lda     #$00
     ldy     #$00
@@ -148,9 +167,9 @@ list:
 
 
 no_arg_for_dash_l_option:
-    lda     ls_mainargs
+    lda     ls_wilcard_buffer_ptr
     sta     RESB
-    lda     ls_mainargs+1
+    lda     ls_wilcard_buffer_ptr+1
     sta     RESB+1
 
 copy_mask:
@@ -262,25 +281,30 @@ go:
     bne     ZZ0003
 
   ZZ0004:
+    ; Erreur si aucun fichier trouvé
+    lda     ls_file_found
+    beq     Error
+
     ;FREE RESB
     lda     ls_column_max
     cmp     #$03
     bne     @skip_crlf
     crlf
+    ; lda     ls_file_found
+    ; beq     Error
 @skip_crlf:
-    ; Erreur si aucun fichier trouvé
-    lda     ls_file_found
-    beq     Error
+
+    ; lda     ls_file_found
+    ; beq     Error
 
   ZZ0001:
     rts
 
 ; ------------------------------------------------------------------------------
 Error:
-    ;cmp     #$1
-    ; jmp     error_oom
+
      print     txt_file_not_found
-    ; ;FREE RESB
+
      print     (ls_arg)
 
 error_oom:
