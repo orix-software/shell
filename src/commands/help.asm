@@ -8,8 +8,6 @@
 ;.res     userzp
 .endstruct
 
-
-
     current_command         :=  userzp      ; 1 byte
     current_column          :=  userzp+1    ; 1 byte
     help_number_command     :=  userzp+2     ; 1 byte
@@ -87,33 +85,28 @@
 
     ldx     #$00
 loop:
-    lda     help_ptr3         ; Get the ptr of command string
+    lda     help_ptr3                     ; Get the ptr of command string
     ldy     help_ptr3+1
-
-    stx     current_command             ; Save X
-
+    stx     current_command               ; Save X
     BRK_KERNEL XWSTR0                     ; Print command
 
-    ldx     current_command            ; Load X register with the current command to display
-
+    ldx     current_command               ; Load X register with the current command to display
     ; Next lines are build to put in columns commands
-    lda     internal_commands_length,x           ; get the length of the command
-
-
+    lda     internal_commands_length,x    ; get the length of the command
     sec      ; Add \0 to the compute of the string
     adc     help_ptr3
     bcc     @S1
     inc     help_ptr3+1
+
 @S1:
     sta     help_ptr3
-
-
     lda     internal_commands_length,x           ; get the length of the command
     tax
 
 loopme:
     stx     current_column              ; Save0 X in TR6
-    CPUTC   ' '                         ; Displays a char
+    print #' '
+    ;CPUTC   ' '                         ; Displays a char
     ldx     current_column              ; Get again X
     inx                                 ; inx
     cpx     #$08                        ; Do we reached 8 columns ?
@@ -139,16 +132,14 @@ list_command_in_bank:
     lda     (help_argv1_ptr),y
     beq     @only_one_digit
     ; convert to decimal
-
-
     sec
     sbc     #$30
     sta     bank_save_argc
     ldx     current_bank ; 2 chars, get the first digit
 
     lda     #$00
-@compute_again:
 
+@compute_again:
     clc
     adc     #10
     dex
@@ -182,13 +173,8 @@ list_command_in_bank:
     ldy     #$00
     ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
-
     beq     @no_commands ; no commands out
-
-
     sta     help_number_command
-
-
     ; Get now adress of commands
     lda     #<$FFF5
     sta     ptr1
@@ -198,17 +184,14 @@ list_command_in_bank:
     ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     RES
-
     iny
     ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
     sta     RES+1
-
     lda     RES
     sta     ptr1
     lda     RES+1
     sta     ptr1+1
-
     lda     ptr1+1
     cmp     #$C0   ; Does ptr of command are in the rom ?
     bcc     @no_commands ; If it's lower than $c0 then skip
@@ -220,7 +203,6 @@ list_command_in_bank:
     ldy     help_ptr2
     ldx     #$00
     jsr     READ_BYTE_FROM_OVERLAY_RAM
-
     beq     @S1
     cli
     BRK_KERNEL XWR0
@@ -230,14 +212,14 @@ list_command_in_bank:
 
 @S1:
     cli
-
     ldy     help_ptr2
     iny
     sty     help_length
     cpy     #$08
     bne     @add_spaces
+
 @continue:
-    CPUTC ' '
+    print #' '
     sei
     jsr     @update_ptr
     ldy     #$00
@@ -247,17 +229,18 @@ list_command_in_bank:
 @out:
     lda     help_ID_BANK_TO_READ_FOR_READ_BYTE_save
     sta     ID_BANK_TO_READ_FOR_READ_BYTE
-
     cli
     crlf
     rts
+
 @no_commands:
     cli
     print str_nocommands_found
     rts
+
 @add_spaces:
     sty     help_ptr2
-    CPUTC ' '
+    print #' '
     ldy     help_ptr2
     iny
     cpy     #$08
@@ -270,11 +253,10 @@ list_command_in_bank:
     adc     ptr1
     bcc     @S2
     inc     ptr1+1
+
 @S2:
     sta     ptr1
     rts
-
-
 
 str_nocommands_found:
     .byte "No commands found in this bank",$0A,$0D,0

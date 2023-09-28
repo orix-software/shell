@@ -93,18 +93,18 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     cmp     #'-'
     bne     @is_a_tape_file_in_arg
     jmp     @basic11_option_management
+
 @no_arg:
     mfree (basic11_argv_ptr)
 
     lda     basic11_mode
     cmp     #BASIC11_ROM
     beq     @start_rom_in_eeprom
-
-
     jmp     @load_ROM_in_memory_and_start
 
 @start_rom_in_eeprom:
     jmp     @start
+
 @is_a_tape_file_in_arg:
     lda     #$01
     sta     basic11_no_arg_provided
@@ -158,8 +158,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @L2
 
 @outcpy:
-
-
     ; do strcat
     ; get letter
     sty     basic11_saveY
@@ -195,9 +193,11 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     iny
     inx
     bne     @L3
+
 @outstrcat:
     ; concat .db
     ldx     #$00
+
 @L400:
     lda     str_dot_db,x
     beq     @out_concat
@@ -205,11 +205,11 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     inx
     iny
     bne     @L400
+
 @out_concat:
     sta     (basic11_ptr1),y
 
     mfree (basic11_argv_ptr)
-
 
     fopen  (basic11_ptr1), O_RDONLY
     cpx     #$FF
@@ -218,13 +218,8 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     beq     @noparam_free ; not null then  start because we did not found a conf
     bne     @parsecnf
 
-
 @start:
-
-
     sei
-
-
     ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
     sta     basic11_ptr2
@@ -250,6 +245,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     jsr     prepare_rom_rnd
 
     ldx     #$00
+
 @L1000:
     lda     code_overlay_switch_sedoric,x
     sta     $477,x
@@ -286,10 +282,10 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 @jmp_basic10_vector:
     jmp     $F42D
     ; Check if it's a .tap
+
 @noparam_free:
 
     mfree (basic11_ptr1)
-
     jmp     @start
 
 @parsecnf:
@@ -340,8 +336,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     rts
 
 @basic11_option_management:
-
-
     ldy     #$01
     lda     (basic11_argv1_ptr),y
     cmp     #'g'
@@ -360,10 +354,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     print   str_can_not
     rts
 
-
-
 @continue_l_option:
-
     ; Search now
     print   basic_str_search
 
@@ -378,14 +369,18 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     ; Open
     rts
+
 @end_of_line:
     rts
+
 @end_of_key:
     rts
+
 @found:
     lda     #$00
     sta     basic11_found
     rts
+
 @displays_all:
     lda     #$01
     sta     basic11_stop ; Define that there is no space bar pressed
@@ -394,6 +389,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #'|'
     BRK_KERNEL XWR0
     ldy     #$01
+
 @L12:
     BRK_KERNEL XRD0
     bcs     @no_char_action
@@ -403,6 +399,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     pla
     crlf
     rts
+
 @no_ctrl:
     pla
     cmp     #' '
@@ -441,7 +438,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     jmp     @L12
 
-
 @end_of_line_all:
     cpx     #29
     beq     @next2
@@ -450,6 +446,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     BRK_KERNEL XWR0
     inx
     bne     @end_of_line_all
+
 @next2:
     lda     (basic11_ptr1),y
     beq     @end_of_line_all_column
@@ -476,6 +473,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     BRK_KERNEL XWR0
     inx
     bne     @end_of_key_all
+
 @next:
     lda     #'|'
     BRK_KERNEL XWR0
@@ -503,13 +501,9 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ldx     #$00
     BRK_KERNEL XDECIM
     crlf
-
-
     rts
 
 @no_oom:
-
-
     lda     basic11_mode
     cmp     #BASIC11_ROM
     beq     @start_copy_path
@@ -520,6 +514,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 @start_copy_path:
     ; copy path
     ldy     #$00
+
 @L100:
     lda     basic11_mode
     cmp     #BASIC10_ROM
@@ -531,12 +526,13 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 @copy_rom_path:
     lda     rom_path,y
+
 @enter_test_eos:
     beq     @end_copy
     sta     (basic11_ptr1),y
-
     iny
     bne     @L100
+
 @end_copy:
     ; Now check if we are in USB or not
     sty     basic11_tmp0  ; Save Y
@@ -572,6 +568,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #'d'
     sta     (basic11_ptr1),y
     iny
+
 @concat_end:
     lda     $F2 ; Load id ROM
     clc
@@ -595,9 +592,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ; Add EOS
     lda     #$00
     sta     (basic11_ptr1),y
-
-
-
     fopen (basic11_ptr1), O_RDONLY
     cpx     #$FF
     bne     @read_rom
@@ -615,14 +609,15 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @no_enomem_kernel_error
     print   str_enomem
     rts
+
 @no_enomem_kernel_error:
     cmp     #ENOENT
     bne     @no_enoent_kernel_error
     print   (basic11_ptr1)
     print   str_not_found
     rts
-@no_enoent_kernel_error:
 
+@no_enoent_kernel_error:
     print   str_basic11_missing_rom
 
     ldy     basic11_ptr1+1
@@ -632,6 +627,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     crlf
 
     rts
+
 @read_rom:
     ; We found the rom, now load it
     sta     basic11_fp

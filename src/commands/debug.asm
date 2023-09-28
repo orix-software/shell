@@ -4,6 +4,8 @@
     ; routine used for some debug
     print   str_cpu
     jsr     _getcpu
+    cmp     #CPU_65816
+    beq     @is65c816
     cmp     #CPU_65C02
     bne     @is6502
     print   str_65C02
@@ -12,15 +14,20 @@
     bra     @next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 .p02
 @is6502:
-
     print   str_6502
+    jmp     @debug_next
+
+@is65c816:
+    print   str_65c816
+
+@debug_next:
 	crlf
+
 @next:
     print   str_ch376
     jsr     _ch376_ic_get_ver
     BRK_KERNEL XWR0
     crlf
-
 
     print   str_ch376_check_exist
     jsr     _ch376_check_exist
@@ -75,9 +82,12 @@ ok2:
     print   str_ok_key
     rts
 
+str_65c816:
+    .asciiz "65c816"
 
 str_error_sdcard:
     .asciiz "sdcard mount error !  "
+
 str_ok_sdcard:
     .asciiz "sdcard mount OK !  "
 

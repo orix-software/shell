@@ -56,16 +56,15 @@ check_sdb1:
     cmp     str_sdb1,y
     bne     error
     iny
-    cpy     #9
+    cpy     #$09
     bne     @L2
+
 @out2:
     cpy     #$09
     bne     error
     rts
 
-
 mount_no_param:
-
     print str_mount
     ldy     #$00
     lda     (mount_ptr1),y
@@ -73,22 +72,30 @@ mount_no_param:
     bne     usb_key
     print str_sdcard
     rts
+
 usb_key:
     print str_usbkey
 	rts
+
 error:
     print str_error
     rts
+
 str_error:
     .byt "error",$0A,$0D,0
+
 str_mount:
     .byte "rootfs on / type FAT32 ",0
+
 str_sdcard:
     .byt "/dev/sda1 (sdcard)",$0A,$0D,0
+
 str_usbkey:
     .byt "/dev/usb1",$0A,$0D,0
+
 str_sda1:
     .asciiz "/dev/sda1"
+
 str_sdb1:
     .asciiz "/dev/sdb1"
 .endproc

@@ -23,10 +23,9 @@
     beq     @next
 
     sty     pstree_savey
-   ; pha
+
     print #'-'
-;  pla
-    ;tay
+
     ldy     pstree_savey
     ldx     #$0D
     BRK_KERNEL XVALUES

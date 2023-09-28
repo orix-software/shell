@@ -9,18 +9,23 @@
     bne     is6502
     print   str_65C02
     jmp     next         ; FIXME 65c02
+
 is65c816:
     print   str_65c816
     jmp     next
    ; bra     next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
+
 is6502:
     print   str_6502
+
 next:
     crlf
     print   str_lscpu
     rts
+
 str_65c816:
     .asciiz "65c816"
+
 str_architecture:
     .asciiz "Architecture:   "
 ;6502",$0D,$0A ; or 65c02 or 65816

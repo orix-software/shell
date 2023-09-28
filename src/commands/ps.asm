@@ -7,8 +7,6 @@
     ptr_kernel_process_current   :=userzp+2
     ptr_one_process              :=userzp+4 ; 2 bytes
     ps_current_process_read      :=userzp+6 ; 1 bytes max 256 process to display
-
-
     print   str_ps_title
 
     ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
@@ -55,21 +53,19 @@
     ldy     #kernel_one_process_struct::process_name
 @L1:
     lda     (ptr_one_process),y
-
     beq     @S1
     BRK_KERNEL XWR0
     iny
     bne     @L1
+
 @S1:
-
-
     crlf
+
 @SKIP_NOPROCESS:
     ldy     ps_current_process_read
     iny
     cpy     #KERNEL_MAX_PROCESS
     bne     @NEXT_PROCESS
-
     rts
 
 str_ps_title:

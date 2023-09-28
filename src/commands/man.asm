@@ -177,8 +177,10 @@ out:
 
 str_man_error:
   .byte   "What manual page do you want?",$0D,$0A,0
+
 man_path:
   .asciiz "/usr/share/man/"
+
 str_man_hlp:
   .asciiz ".hlp"
 .endproc

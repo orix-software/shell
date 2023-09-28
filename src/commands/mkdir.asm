@@ -28,6 +28,7 @@
     sty     mkdir_arg+1
 
     ldy     #$00
+
 @L20:
     lda     (mkdir_arg),y
     beq     @out20
@@ -35,6 +36,7 @@
     beq     @slash_found
     iny
     bne     @L20
+
 @out20:
     lda     mkdir_arg
     ldy     mkdir_arg+1
@@ -42,9 +44,11 @@
     BRK_KERNEL XMKDIR
     BRK_KERNEL XCLOSE ; ???
     rts
+
 @slash_found:
     print str_arg_not_managed_yet
     rts
+
 @missing_operand:
     print str_mkdir
     print str_missing_operand
