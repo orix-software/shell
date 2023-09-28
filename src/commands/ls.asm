@@ -32,6 +32,7 @@ ls_buffer_edt            := userzp+20
     sta     ls_buffer_entry
     sty     ls_buffer_entry+1
 
+    ; compute ptr buffer for edt
     sta     ls_buffer_edt
     sty     ls_buffer_edt+1
     clc
@@ -165,13 +166,13 @@ copy_mask:
     ; la destination, RESB, est déjà renseignée et AY contient l'adresse de la source
     strcpy , AY
 
-    ; RESB pointe toujours sur BUFEDT
+    ; RESB pointe toujours sur ls_buffer_entry
     jsr     WildCard
 
     beq     *+5
     jmp     Error
 
-    bcs     all
+    bcc     all
 
     ldy     #$00
     lda     (ls_buffer_entry),y
@@ -262,8 +263,11 @@ go:
 
   ZZ0004:
     ;FREE RESB
-
+    lda     ls_column_max
+    cmp     #$03
+    bne     @skip_crlf
     crlf
+@skip_crlf:
     ; Erreur si aucun fichier trouvé
     lda     ls_file_found
     beq     Error
@@ -275,9 +279,9 @@ go:
 Error:
     ;cmp     #$1
     ; jmp     error_oom
-    ; print     txt_file_not_found
+     print     txt_file_not_found
     ; ;FREE RESB
-    ; print     (ls_buffer_entry)
+     print     (ls_arg)
 
 error_oom:
     crlf
@@ -290,7 +294,7 @@ _set_filename_ls:
 loop300:
     lda     (ls_buffer_entry),y
 
-    beq     end300                         ; we reached 0 value
+    beq     end300                      ; we reached 0 value
     cmp     #'a'                        ; 'a'
     bcc     skip300
     cmp     #$7B                        ; 'z'
@@ -655,7 +659,7 @@ end_mask:
 
     ; On arrive ici si l'extension se termine par '*' ou via end_mask
 extension_star:
-    ; Vérifie si on a utiliser un caractère joker
+    ; Vérifie si on a utilisé un caractère joker
 
     ldy     #11-1
 check:
