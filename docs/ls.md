@@ -2,7 +2,7 @@
 
 ## Display catalog
 
-List all the file in the current folder. Token are supported (*,?) ex : « ls ?e.tap » will list all files with a ‘e ’ in the
+List all the file in the current folder. Token are supported (*,?) ex : 'ls ?e.tap' will list all files with a 'e' in the
 second letter
 
 ## SYNOPSYS

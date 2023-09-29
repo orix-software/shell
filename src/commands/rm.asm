@@ -5,19 +5,12 @@
     rm_mainargs_argc      := userzp+2
     rm_mainargs_arg1_ptr  := userzp+4
 
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-    sta     rm_mainargs_argv
-    sty     rm_mainargs_argv+1
-    stx     rm_mainargs_argc
+    initmainargs rm_mainargs_argv, rm_mainargs_argc, 0
+
     cpx     #$01
     beq     missing_operand
 
-    ldx     #$01
-    lda     rm_mainargs_argv
-    ldy     rm_mainargs_argv+1
-
-    BRK_KERNEL XGETARGV
+    getmainarg #1, (rm_mainargs_argv)
     sta     rm_mainargs_arg1_ptr
     sty     rm_mainargs_arg1_ptr+1
 
@@ -33,7 +26,7 @@
 skip_rm_slash_case:
     lda     rm_mainargs_arg1_ptr
     ldx     rm_mainargs_arg1_ptr+1
-    BRK_KERNEL XRM
+    BRK_KERNEL XRM ; FIXME macro
     cmp     #ENOENT
     beq     no_such_file
     rts

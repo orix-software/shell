@@ -11,20 +11,14 @@
 
 .proc _twil
     ; FIXME macro
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-    sta     twil_mainargs_argv
-    sty     twil_mainargs_argv+1
-    stx     twil_mainargs_argc
+
+    initmainargs  twil_mainargs_argv, twil_mainargs_argc, 0
 
     cpx     #$01
     beq     usage      ; if there is no args, let's displays all banks
 
-    ldx     #$01
-    lda     twil_mainargs_argv
-    ldy     twil_mainargs_argv+1
 
-    BRK_KERNEL XGETARGV
+    getmainarg #1, (twil_mainargs_argv)
     sta     twil_mainargs_arg1_ptr
     sty     twil_mainargs_arg1_ptr+1
 
@@ -46,6 +40,7 @@
     BRK_KERNEL XWR0
     crlf
     rts
+
 error:
     print   str_unknown
     crlf
@@ -77,7 +72,6 @@ check_next_parameter_u:
     print str_swap_root_to_usbkey
     crlf
     rts
-
 
 check_next_parameter_d:
     cmp     #'d'       ; Swap

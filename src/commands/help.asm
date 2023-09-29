@@ -43,20 +43,21 @@
     inc     help_argv1_ptr
     bne     @skip30
     inc     help_argv1_ptr+1
+
 @skip30:
     iny
     bne     @get_first_arg
+
 @found_eos:
    ; mfree(cd_path)
     rts
 
 @found_space:
-
     inc     help_argv1_ptr
     bne     @skip31
     inc     help_argv1_ptr+1
-@skip31:
 
+@skip31:
     ldy     #$00
     lda     (help_argv1_ptr),y
     beq     @noparam
@@ -67,6 +68,7 @@
     beq     usage
     cmp     #'b'
     bne     usage
+
 @read_next_byte:
     iny
     lda     (help_argv1_ptr),y ; get arg
@@ -76,7 +78,6 @@
     bne     list_command_in_bank
      ; there is a char
 @noparam:
-
     lda     #<internal_commands_str
     sta     help_ptr3
 
@@ -84,12 +85,10 @@
     sta     help_ptr3+1
 
     ldx     #$00
-loop:
-    lda     help_ptr3                     ; Get the ptr of command string
-    ldy     help_ptr3+1
-    stx     current_command               ; Save X
-    BRK_KERNEL XWSTR0                     ; Print command
 
+loop:
+    stx     current_command               ; Save X
+    print (help_ptr3)
     ldx     current_command               ; Load X register with the current command to display
     ; Next lines are build to put in columns commands
     lda     internal_commands_length,x    ; get the length of the command
@@ -106,7 +105,6 @@ loop:
 loopme:
     stx     current_column              ; Save0 X in TR6
     print #' '
-    ;CPUTC   ' '                         ; Displays a char
     ldx     current_column              ; Get again X
     inx                                 ; inx
     cpx     #$08                        ; Do we reached 8 columns ?
@@ -219,7 +217,7 @@ list_command_in_bank:
     bne     @add_spaces
 
 @continue:
-    print #' '
+    print   #' '
     sei
     jsr     @update_ptr
     ldy     #$00

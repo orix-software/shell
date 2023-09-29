@@ -182,7 +182,7 @@ display_size:
     adc     RES
     sta     RES
     bcc     *+4
-    inc RES+1
+    inc     RES+1
 .endif
     rts
 

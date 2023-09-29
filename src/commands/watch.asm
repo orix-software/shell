@@ -57,8 +57,6 @@
     bcc     @no_ctrl
 
     SWITCH_ON_CURSOR
-
-
     rts
 
 @no_ctrl:

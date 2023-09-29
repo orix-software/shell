@@ -677,10 +677,6 @@ internal_commands_length:
     .include "commands/watch.asm"
 .endif
 
-.ifdef WITH_VI
-    .include "commands/vi.asm"
-.endif
-
 .ifdef WITH_VIEWHRS
     .include "commands/viewhrs.asm"
 .endif

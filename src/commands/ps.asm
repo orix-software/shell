@@ -20,7 +20,6 @@
     sty     ps_current_process_read
     ldy     ps_current_process_read
 
-
     lda     (ptr_kernel_process),y
     beq     @SKIP_NOPROCESS
 
@@ -28,9 +27,8 @@
     tya
 
     ldy     #$00
-    PRINT_BINARY_TO_DECIMAL_16BITS 1
+    PRINT_BINARY_TO_DECIMAL_16BITS 1 ; FIXME macro
     print   #' '
-
 
     lda     #kernel_process_struct::kernel_one_process_struct_ptr_low
     clc

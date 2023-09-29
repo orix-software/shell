@@ -161,11 +161,6 @@ list:
 @EOS:
     sta     (ls_buffer_entry),y
 
-
-
-;@skip:
-
-
 no_arg_for_dash_l_option:
     lda     ls_wilcard_buffer_ptr
     sta     RESB
@@ -208,7 +203,6 @@ copy_mask:
 
   ZZ0002:
     jsr     _set_filename_ls
-    ;jsr     _ch376_set_file_name
     jsr     _ch376_file_open
     ; Au retour, on peut avoir USB_INT_SUCCESS ou USB_INT_DISK_READ)
 

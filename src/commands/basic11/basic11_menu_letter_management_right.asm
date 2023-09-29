@@ -8,11 +8,7 @@
 @skip:
     inc     basic11_first_letter_gui
 
-.ifdef basic11_debug
-    lda     basic11_first_letter_gui
-    ora     #$80
-    sta     $bb80+16
-.endif
+
 
     ldy     #basic11_gui_struct::current_index_letter
     lda     (basic11_ptr4),y

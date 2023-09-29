@@ -10,17 +10,16 @@
     man_buffer_size     :=userzp+8
     man_ptr1            :=userzp+10
     man_buffer_bkp      :=userzp+12
+    man_xmainargs_argc  :=userzp+14
 
 
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-    sta     man_xmainargs_ptr
-    sty     man_xmainargs_ptr+1
+    initmainargs man_xmainargs_ptr, man_xmainargs_argc, 0
+
     cpx     #$01 ; No args ?
     bne     start_man
     jmp     error_arg
 start_man:
-    ;
+    ; FIXME macro
     MALLOC  (.strlen("/usr/share/man/")+FNAME_LEN+1+4)             ; length of /usr/share/man/ + 8 + .hlp + \0
     ; FIXME test OOM
     TEST_OOM
@@ -37,11 +36,7 @@ start_man:
     sta     RES+1
     jsr     _strcpy               ; MAN_SAVE_MALLOC_PTR contains adress of a new string
 
-    ldx     #$01 ; get arg
-    lda     man_xmainargs_ptr
-    ldy     man_xmainargs_ptr+1
-    BRK_KERNEL XGETARGV
-
+    getmainarg #1, (man_xmainargs_ptr)
     sta     RESB
     sty     RESB+1
 
@@ -72,16 +67,10 @@ start_man:
 
     ; Not found
     ; Free memory for path
-    lda     MAN_SAVE_MALLOC_PTR
-    ldy     MAN_SAVE_MALLOC_PTR+1
-    BRK_KERNEL XFREE
+    mfree(MAN_SAVE_MALLOC_PTR)
+    print   txt_file_not_found
 
-    print   txt_file_not_found, SAVE
-
-    ldx     #$01 ; get arg
-    lda     man_xmainargs_ptr
-    ldy     man_xmainargs_ptr+1
-    BRK_KERNEL XGETARGV
+    getmainarg #1, (man_xmainargs_ptr)
     BRK_KERNEL XWSTR0
 
     crlf
@@ -89,9 +78,8 @@ start_man:
     rts
 error:
     ; Free memory for path
-    lda     MAN_SAVE_MALLOC_PTR
-    ldy     MAN_SAVE_MALLOC_PTR+1
-    BRK_KERNEL XFREE
+    mfree(MAN_SAVE_MALLOC_PTR)
+
 error_arg:
     print   str_man_error
     rts
@@ -108,9 +96,10 @@ next:
     rts
 @continue:
 
-    SWITCH_OFF_CURSOR
+    SWITCH_OFF_CURSOR ; FIXME macro
+
 @readagain:
-    CLS
+    CLS ; FIXME macro
     lda     man_buffer
     sta     man_buffer_bkp
     lda     man_buffer+1
@@ -162,15 +151,12 @@ next:
     ; A bit crap to flush screen ...
     ; read again ?
 out:
-    BRK_KERNEL XHIRES
+    BRK_KERNEL XHIRES ; FIXME macro
     BRK_KERNEL XTEXT
 
-    SWITCH_ON_CURSOR
+    SWITCH_ON_CURSOR ; FIXME macro
 
-    lda     MAN_SAVE_MALLOC_PTR
-    ldy     MAN_SAVE_MALLOC_PTR+1
-    BRK_KERNEL XFREE
-
+    mfree(MAN_SAVE_MALLOC_PTR)
     fclose(MAN_FP)
 
     rts

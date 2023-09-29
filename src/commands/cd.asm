@@ -8,8 +8,6 @@
     cd_argv1_ptr      := ptr1_for_internal_command ; 16 bits
     cd_path_2         := userzp+6
 
-
-
     ; Let's malloc
     MALLOC(KERNEL_MAX_PATH_LENGTH)
     cmp     #NULL
@@ -31,6 +29,7 @@
     sta     cd_argv1_ptr+1
 
     ldy     #shell_bash_struct::command_line
+
 @get_first_arg:
     lda     (bash_struct_ptr),y
     beq     @found_eos
@@ -46,15 +45,12 @@
     mfree(cd_path)
     rts
 
-
-
 @found_space:
     inc     cd_argv1_ptr
     bne     @skip40
     inc     cd_argv1_ptr+1
+
 @skip40:
-
-
     ; copy in malloc args
     ldy     #$00
 @L1:
@@ -84,10 +80,6 @@
 
 
 @path_with_no_slash_at_the_end:
-
-
-@not_slash_only:
-
     ; check if it's . or ..
     ; FIXME : add trim
 
@@ -114,6 +106,7 @@
     beq     free_cd_memory ; yes we go out
 
     ldy     #$00
+
 @L2:
     lda     (cd_path_2),y
     beq     @end_of_string_found
@@ -124,6 +117,7 @@
 @end_of_string_found:
     ; now let's find last '/'
     dey
+
 @L3:
     lda     (cd_path_2),y
     cmp     #'/'
@@ -133,12 +127,11 @@
     ; We reached 0 : then we are in "/" root
     iny
     bne     @slash_found
+
 @only_one_dot:
     rts
 
 @slash_found:
-
-
     lda     #$00
     sta     (cd_path_2),y
 
@@ -158,9 +151,7 @@
 
 
 not_dot:
-
     fopen (cd_path), O_RDONLY
-
     cpx     #$FF
     bne     @not_null
     cmp     #$FF
@@ -191,8 +182,8 @@ try_to_recurse:
     bne     @fill_eos
 
     iny
-@fill_eos:
 
+@fill_eos:
     lda     #$00
     sta     (cd_path_2),y
 
@@ -201,7 +192,6 @@ try_to_recurse:
 
     BRK_KERNEL   XPUTCWD
     jmp     free_cd_memory
-
 
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0

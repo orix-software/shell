@@ -41,7 +41,6 @@
     rts
 
 @print_usage:
-@cat_error_param:
     print     txt_usage
     rts
 

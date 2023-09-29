@@ -37,18 +37,15 @@
     sbc     #$01
     sta     (basic11_ptr4),y
 
-
     jsr     _basic11_find_next_software_up_key
 
     ldx     #$00
     ldy     #$00
 
 @L2001:
-
     lda     (basic11_ptr3),y
     cmp     #';'
     beq     @out501
-
     iny
     jmp     @L2001
 
@@ -57,17 +54,14 @@
 
 
 @L2000:
-
     lda     (basic11_ptr3),y
-    beq     @out500
+    beq     @out3
     sta     $bb80+40+2,x
     inx
     cpx     #35         ; Cut title (35 chars)
-    beq     @out500
+    beq     @out3
     iny
-
     bne     @L2000
-@out500:
 
 @out3:
     rts
@@ -80,18 +74,13 @@
     tax
     dex
     txa
-
     ldy    #basic11_gui_struct::basic11_posy_screen ; is it 0 ?
     lda    (basic11_ptr4),y
-
-
     sec
     sbc    #$01
     sta    (basic11_ptr4),y
 
-
     ldy     #basic11_gui_struct::basic11_posy_screen
-
     jsr     compute_position_bar
 
     jsr     displays_bar
@@ -113,8 +102,8 @@
 
     ldy     #$00
     lda     #' '
-@L2004:
 
+@L2004:
     sta     $bb80,y
     iny
     cpy     #39
