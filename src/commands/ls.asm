@@ -26,10 +26,7 @@ ls_buffer_ptr            := userzp+24
     lda     #$03
     sta     ls_column_max
 
-    ; @me:
-    ;     jmp @me
 
-    ; lda     ls_arg
 
     ; We use the same malloc for wildcard, filename and line to display
     ; But we use different offset for the buffers
