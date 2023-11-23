@@ -13,10 +13,8 @@
     ; FIXME macro
 
     initmainargs  twil_mainargs_argv, twil_mainargs_argc, 0
-
     cpx     #$01
     beq     usage      ; if there is no args, let's displays all banks
-
 
     getmainarg #1, (twil_mainargs_argv)
     sta     twil_mainargs_arg1_ptr
@@ -31,6 +29,7 @@
     cmp     #'f'
     bne     check_next_parameter_u
     print   str_version
+
     lda     TWILIGHTE_REGISTER       ; get Twilighte register
     and     #%00001111 ; Select last 4 bits
     cmp     #15        ; Max version #15
@@ -105,18 +104,25 @@ savemount:
 
 str_version:
   	.asciiz "Version : "
+
 str_unknown:
 	.asciiz "Unknown version"
+
 str_swap_root_to_usbkey:
     .asciiz "Swap / to /dev/usb1"
+
 str_swap_root_to_sdcard:
     .asciiz "Swap / to /dev/sda1"
+
 str_swap_to_bank_sram:
     .asciiz "Swapped to RAM banking"
+
 str_swap_to_bank_rom:
     .asciiz "Swapped to EEPROM banking"
+
 str_overflow_banking:
 	.asciiz "This version of board can only manage 4 sets"
+
 str_usage:
 	.byte "Usage: twil -f",$0A,$0D
     .byte "       twil -u",$0A,$0D

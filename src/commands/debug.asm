@@ -41,6 +41,7 @@
     jsr     mount_key
     crlf
 
+    ; FIXME macro
     lda     #$09
     ldy     #$02
 
@@ -93,13 +94,16 @@ str_ok_sdcard:
 
 str_error_key:
     .asciiz "key mount error !  "
+
 str_ok_key:
     .asciiz "key mount OK !  "
 
 str_ch376:
     .asciiz "CH376 VERSION : "
+
 str_ch376_check_exist:
     .asciiz "CH376 CHECK EXIST : "
+
 str_cpu:
     .asciiz "CPU: "
 .endproc

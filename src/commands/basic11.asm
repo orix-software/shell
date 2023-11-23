@@ -109,14 +109,13 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     crlf
 
+    ; FIXME macro
     lda     #basic11_sizeof_max_length_of_conf_file_bin
     ldy     #$00
     ldx     #$20 ;
     stx     DEFAFF
     ldx     #$00
     BRK_KERNEL XDECIM
-
-
     rts
 
 @no_oom5:
@@ -128,6 +127,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 @no_check_param:
 
     ldy     #$00
+
 @L2:
     lda     basic11_mode
     cmp     #BASIC11_ROM
@@ -137,6 +137,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
 @copy_atmos_db_path:
     lda     basic_conf_str,y    ; Copy db path into ptr
+
 @continue_copy_path_db:
     beq     @outcpy
     sta     (basic11_ptr1),y
@@ -169,8 +170,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     tay
     lda     (basic11_argv1_ptr),y
     ldy     basic11_save_pos_arg
-
-
     cmp     #$22 ; " char
     beq     @outstrcat
     cmp     #$00
@@ -209,10 +208,17 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     BRK_KERNEL XVARS
     sta     basic11_ptr2
     sty     basic11_ptr2+1
+
+    
+    ; Let's copy BUFEDT
+    jsr     copy_bufedt
+   
+
     ldy     #$00
     lda     (basic11_ptr2),y
     pha
 
+    ; At this step we lost orix management
     jsr     basic11_stop_via
 
     ldx     #$00
@@ -238,10 +244,10 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @L1000
 
     jmp     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS
+
 @copy:
     sei
     pla
-
     sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
 
     ; Crap fix
@@ -254,7 +260,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     lda     #%00010111
     sta     VIA2::DDRA
-
 
     lda     VIA2::PRA
     and     #%10100000
@@ -286,17 +291,15 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 
     ; FIXME macro
 
-  ; We read the file with the correct
+    ; We read the file with the correct
     lda     #<basic11_sizeof_binary_conf_file
     ldy     #>basic11_sizeof_binary_conf_file
-  ; reads byte
+    ; reads byte
     ldx     basic11_fp
     BRK_KERNEL XFREAD
 
     ; Close fp
     fclose (basic11_fp)
-
-
     mfree(basic11_ptr1)
 
     jmp     @load_ROM_in_memory_and_start
@@ -608,19 +611,18 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ; We found the rom, now load it
     sta     basic11_fp
     sty     basic11_fp+1
- ; define target address
+    ; define target address
     lda     basic11_ptr1
     sta     PTR_READ_DEST
 
     lda     basic11_ptr1+1
     sta     PTR_READ_DEST+1
 
-
     ; FIXME macro
-  ; We read the file with the correct
+    ; We read the file with the correct
     lda     #<$FFFF
     ldy     #>$FFFF
-  ; reads byte
+    ; reads byte
     ldx     basic11_fp
     BRK_KERNEL XFREAD
     fclose(basic11_fp)
@@ -800,6 +802,20 @@ tapes_path:
 tapes_path_basic10:
     .asciiz "/usr/share/basic10/"
 
+copy_bufedt:
+    initmainargs basic11_ptr1, basic11_ptr4, 1
+
+    ldy     #$00
+@copy_bufedt:
+    lda     (basic11_ptr1),y
+    beq     @end_copy_bufedt
+    sta     BUFEDT,y   ; Because we pass to basic ROM the command line
+    iny
+    bne     @copy_bufedt
+
+@end_copy_bufedt:
+    sta     BUFEDT,y
+    rts
 
 .proc   basic11_read_main_dbfile
     ;
@@ -849,7 +865,6 @@ tapes_path_basic10:
     sty     basic11_fp+1
     mfree(basic11_ptr2)
 
-
     malloc BASIC11_MAX_MAINDB_LENGTH,basic11_ptr1 ; Index ptr
     cmp     #$00
     bne     @no_oom4
@@ -859,7 +874,7 @@ tapes_path_basic10:
     rts
 
 @no_oom4:
-  ; define target address
+    ; define target address
     lda     basic11_ptr1 ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
 
@@ -867,10 +882,10 @@ tapes_path_basic10:
     sta     PTR_READ_DEST+1
 
     ; FIXME macro
-  ; We read the file with the correct
+    ; We read the file with the correct
     lda     #<BASIC11_MAX_MAINDB_LENGTH
     ldy     #>BASIC11_MAX_MAINDB_LENGTH
-  ; reads byte
+    ; reads byte
     ldx     basic11_fp
     BRK_KERNEL XFREAD
     fclose  (basic11_fp)
@@ -902,14 +917,19 @@ tapes_path_basic10:
 
 str_basic11_missing_rom:
     .asciiz "Missing ROM file : "
+
 rom_path:
     .asciiz "/usr/share/atmos/basic"
+
 rom_path_basic10:
     .asciiz "/usr/share/oric1/basic"
+
 str_can_not:
     .asciiz "Can not open"
+
 str_enomem:
     .byte "Kernel error : Out of Memory",$0D,$0A,$00
+
 str_dot_db:
     .asciiz ".db"
 
@@ -919,9 +939,11 @@ str_basic11_not_known:
 str_basic11_missing:
     .byte "Missing file : "
 ; don't put any other string here, the is no EOS because we earn one byte to displays message error with next path
+
 str_basic11_maindb:
     .byte BASIC11_PATH_DB
     .asciiz "basic11.db"
+
 basic_conf_str:
     .asciiz BASIC11_PATH_DB
 
@@ -936,6 +958,7 @@ basic_str_search:
     .byte  "+--------+-----------------------------+"
     .byte  "|  key   |            NAME             |"
     .byte  "+--------+-----------------------------+",0
+
 basic_str_last_line:
     .byte  "--------+-----------------------------+",0
 

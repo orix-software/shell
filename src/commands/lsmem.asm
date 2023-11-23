@@ -19,8 +19,6 @@
    lsmem_copy_malloc_struct_ptr            := userzp+18 ; 2 bytes
    lsmem_kernel_max_number_of_malloc       := userzp+20 ; 1 byte store the nb of bysy malloc
 
-
-
    ldx     #MALLOC_TABLE_COPY ; Free
    BRK_KERNEL XVALUES
    sta     lsmem_ptr_malloc
@@ -117,7 +115,7 @@
     sta     lsmem_ptr_malloc
     sty     lsmem_ptr_malloc+1
 
-; Displays all free chunk
+    ; Displays all free chunk
 
     ldy     #$00
 
@@ -126,7 +124,6 @@
     sta     lsmem_kernel_max_number_of_malloc
 
     ldx     #$00
-
     ldy     #$01
 
     ; Test if free chunk is used
@@ -160,19 +157,14 @@
     ldy     lsmem_savey
     lda     (lsmem_ptr_malloc),y ; low
 
-
     jsr     _print_hexa
-
     inc     lsmem_savey ; high
 
 ;;;;;;;;;;;;;;;; low adress
 
     ldy     lsmem_savey
     lda     (lsmem_ptr_malloc),y ; high
-
     jsr     _print_hexa_no_sharp
-
-
 
     print   #' '
   ; Affichage de la size free
@@ -213,23 +205,15 @@
     sta     lsmem_ptr_command_name
     sty     lsmem_ptr_command_name+1
 
-
-
     print   (lsmem_ptr_command_name)
-
     jmp     @skip_display_name
 
 @display_init_name:
-
     print str_INIT
 
 @skip_display_name:
     inc     lsmem_savey
-
-
-
     crlf
-
     ldy     lsmem_savey
     ldx     lsmem_savex
     inx
@@ -243,14 +227,19 @@
 str_column:
     .asciiz "TYPE START END   SIZE  PROCESS"
     ;  PROGRAM  PID FUNC",0
+
 str_empty_program:
     .asciiz "       "
+
 str_FREE:
     .asciiz "Free "
+
 str_BUSY:
     .asciiz "Busy "
+
 str_INIT:
     .asciiz "init"
+
 str_SPACE:
     .asciiz "unkn "
 .endproc

@@ -339,19 +339,15 @@
     ldy     #basic11_gui_struct::software_key_to_launch_high
     sta     (basic11_ptr4),y
 
-
-
     lda     #$00
     sta     basic11_gui_key_reached
     sta     basic11_do_not_display
 
     ;       index first software
 
-
     ldy     #basic11_gui_struct::current_entry_id
     lda     #$00
     sta     (basic11_ptr4),y
-
 
     ldx     #$00
     ldy     #$00
@@ -453,6 +449,7 @@
     cpx     basic11_first_letter_gui
     beq     @compute_next_letter
     ; The next letter is not the current + 1, will fill the next index with 0
+
 @compute_next_letter:
     tya
     clc
@@ -587,6 +584,7 @@
     iny
     lda     basic11_ptr2+1
     sta     (basic11_ptr4),y
+
 @out2:
     rts
 .endproc
@@ -602,8 +600,8 @@
     beq     @100
     clc
     adc     #$01
-@100:
 
+@100:
     asl
     clc
     adc     #basic11_gui_struct::index ; 3735
@@ -614,17 +612,17 @@
     iny
     lda     (basic11_ptr4),y
     sta     basic11_ptr2+1
-
-
-
     rts
 .endproc
 
 basic_str_fullline_title:
     .asciiz  "+-Basic 11 Menu------------------------+"
+
 basic10_str_fullline_title:
     .asciiz  "+-Basic 10 Menu------------------------+"
+
 basic_str_fullline:
     .asciiz  "+--------------------------------------+"
+
 basic_str_emptyline:
     .asciiz  "|                                      |"

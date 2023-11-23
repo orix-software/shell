@@ -187,6 +187,7 @@ try_to_recurse:
     lda     #$00
     sta     (cd_path_2),y
 
+    ; FIXME macro
     lda     cd_path_2
     ldy     cd_path_2+1
 

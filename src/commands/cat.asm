@@ -45,7 +45,6 @@
     rts
 
 @readfile:
-
     lda     #$FF
     tay
     jsr     _ch376_set_bytes_read

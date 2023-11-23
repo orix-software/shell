@@ -35,16 +35,17 @@ ls_buffer_ptr            := userzp+24
     ; But we use different offset for the buffers
     ; for wildcard and filename : ls_buffer_entry
     ; for line to display : ls_buffer_edt
-    malloc 60  ; 13 + 32 (nb d'octets pour une entrée du CH376 :) + 15 pour le buffer de wildcard
+    malloc 100  ; 13 + 32 (nb d'octets pour une entrée du CH376 :) + 15 pour le buffer de wildcard
     sta     ls_buffer_entry
     sty     ls_buffer_entry+1
     sta     ls_wilcard_buffer_ptr
+    sty     ls_wilcard_buffer_ptr+1
 
     ; compute ptr buffer for edt
     sta     ls_buffer_edt
     sty     ls_buffer_edt+1
     clc
-    adc     #13
+    adc     #50
     bcc     @no_inc_ls_buffer_edt
     inc     ls_buffer_edt+1
 
@@ -98,7 +99,7 @@ ls_buffer_ptr            := userzp+24
     sta     ls_arg
     sty     ls_arg+1
 
-   ; print (ls_arg)
+    ; print (ls_arg)
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ls_arg[0] = 0 si pas de paramètre
 
@@ -115,13 +116,15 @@ ls_buffer_ptr            := userzp+24
     lda     (ls_arg),y
     bne     list
 
+    ;
     ; format long
     lda     #$FF
     sta     ls_column_max
 
+    ; check if it's only ls -l ?
     lda     ls_argc
     cmp     #$02
-    beq     @set_bufnom_empty
+    beq     @set_bufnom_empty ; Yes it's only ls -l
 
     ; Get arg 2
 
@@ -266,6 +269,8 @@ go:
     rts
 
   ZZ0005:
+; @me:
+;     jmp     @me
     jsr     display_catalog
 
     ; display_one_file_catalog renvoie la valeur de _ch376_wait_response qui renvoie 1 en cas d'erreur
@@ -309,9 +314,9 @@ _set_filename_ls:
     lda     #CH376_SET_FILE_NAME        ;$2f
     sta     CH376_COMMAND
     ldy     #$00
+
 loop300:
     lda     (ls_buffer_entry),y
-
     beq     end300                      ; we reached 0 value
     cmp     #'a'                        ; 'a'
     bcc     skip300
@@ -375,6 +380,7 @@ display_catalog:
     ldy     #$01
 
   ZZ0007:
+
     lda     CH376_DATA
     sta     (ls_buffer_entry),y
     iny
@@ -1227,6 +1233,7 @@ BCDA = (TR0-$FB) & $FF ; = $0C
 ;
 ; ------------------------------------------------------------------------------
 .proc bcd2str
+
 	sta     RES
 	sty     RES+1
 

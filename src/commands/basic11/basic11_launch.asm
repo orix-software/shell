@@ -1,7 +1,5 @@
 
 .proc   basic11_launch
-
-
     lda     basic11_ptr4
     sta     basic11_ptr1
     lda     basic11_ptr4+1
@@ -20,13 +18,14 @@
     ldy     #$00
 @L500:
     lda     basic11_mode
-    cmp     #BASIC11_ROM
+    cmp     #BASIC11_ROM            ; Is it basic11 rom ?
     beq     @command_basic11
     lda     str_basic10,x
     jmp     @continue_copy_command
 
 @command_basic11:
     lda     str_basic11,x
+
 @continue_copy_command:
     beq     @out500
     sta     (basic11_ptr1),y
@@ -35,7 +34,6 @@
     jmp     @L500
 @out500:
 
-
     ldy     #basic11_gui_struct::software_key_to_launch_low
     lda     (basic11_ptr4),y
     sta     basic11_ptr3
@@ -43,8 +41,6 @@
     ldy     #basic11_gui_struct::software_key_to_launch_high
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
-
-
     ldy     #$00
 @L600:
     lda     (basic11_ptr3),y
@@ -69,10 +65,10 @@
     tay
     lda     #$00
     sta     (basic11_ptr1),y
-
-
     mfree(basic11_ptr4)
     mfree(basic11_ptr2)
+
+
 
     ldx #$00 ; FORK
     exec (basic11_ptr1)

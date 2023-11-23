@@ -17,7 +17,8 @@
 
     print  str_init
 
-    ldy     #$00
+
+    ldy     #$01
 @loop:
     lda     (pstree_ptr),y
     beq     @next
@@ -29,7 +30,6 @@
     ldy     pstree_savey
     ldx     #$0D
     BRK_KERNEL XVALUES
-
     sta     pstree_ptr2
     sty     pstree_ptr2+1
 
@@ -37,7 +37,6 @@
     ;
     ldy     pstree_savey
 @next:
-
     iny
     cpy     pstree_max_process
     bne     @loop

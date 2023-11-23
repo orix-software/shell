@@ -17,6 +17,7 @@
 
     fopen (touch_mainargs_arg1_ptr), O_CREAT,,touch_fp
     fclose(touch_fp)
+    mfree(touch_mainargs_arg1_ptr)
     rts
 
 @missing_operand:

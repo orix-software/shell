@@ -135,7 +135,7 @@ Fire flash, Scuba Dive, 3D fongus (i,f letters)
 
 ## Some informations to start .tap file
 
-+ Le trésor du pirate : check information on www.oric.org (on "Trésor du pirate" software page), it explains on to proceed when the games is CLOAD'ed
+Le tresor du pirate : check information on www.oric.org (on "Tresor du pirate" software page), it explains on to proceed when the games is CLOAD'ed
 
 ## Joysticks issues
 
@@ -162,9 +162,16 @@ Cload works with .tap file. Multitap files works too.
 Get a tape file, and place it in the root folder of the sdcard.
 
 Starts basic11 :
+
+```bash
 /#basic11
+```
+
 or
+
+```bash
 /#basic11 "DEFENDER"
+```
 
 CLOAD"ZORGONS => it will load zorgons.tap
 

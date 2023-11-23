@@ -124,6 +124,7 @@ shortcut_low:
     .byte $00 ; R
     .byte $00 ; S
     .byte <twilfirmware ; T
+
 shortcut_high:
     .byte >str_systemd
     .byte >str_exec_basic11 ; B

@@ -657,9 +657,7 @@ internal_commands_length:
     .include "commands/tree.asm"
 .endif
 
-.ifdef WITH_UNAME
     .include "commands/uname.asm"
-.endif
 
 .ifdef WITH_SETFONT
     .include "commands/setfont.asm"
@@ -919,9 +917,7 @@ addr_commands:
     .addr  _twil
 .endif
 
-.ifdef WITH_UNAME
     .addr  _uname
-.endif
 
 .ifdef WITH_VIEWHRS
     .addr  _viewhrs
@@ -1078,9 +1074,8 @@ commands_length:
     .byt 4 ; twil
 .endif
 
-.ifdef WITH_UNAME
     .byt 5 ; _uname
-.endif
+
 
 .ifdef WITH_VIEWHRS
     .byt 7 ; viewhrs
@@ -1278,15 +1273,8 @@ twilight:
     .asciiz "twil"
 .endif
 
-.ifdef WITH_UNAME
 uname:
     .asciiz "uname"
-.endif
-
-.ifdef WITH_VI
-vi:
-    .asciiz "vi"
-.endif
 
 .ifdef WITH_VIEWHRS
 viewhrs:

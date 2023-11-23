@@ -29,6 +29,7 @@ str_65c816:
 str_architecture:
     .asciiz "Architecture:   "
 ;6502",$0D,$0A ; or 65c02 or 65816
+
 str_lscpu:
     .byte   "CPU op-mode(s): 8-bit",$0D,$0A ; or 16 bits if we detect a 65c816
     .byte   "Byte Order:     Little Endian",$0D,$0A
