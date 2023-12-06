@@ -140,7 +140,7 @@ jobs:
       - name: Check unit-test
         run: |
           ls -l ${GITHUB_WORKSPACE}/oricutron/sdcard/
-          #bash tests/unit_test/verify.sh ${GITHUB_WORKSPACE}/oricutron/sdcard/
+          bash tests/unit_test/verify.sh ${GITHUB_WORKSPACE}/oricutron/sdcard/
 
 
       - name: List build directory content
