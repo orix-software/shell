@@ -45,17 +45,29 @@
     mfree(cd_path)
     rts
 
+@not_supported:
+    print str_not_supported
+    rts
+
 @found_space:
     inc     cd_argv1_ptr
     bne     @skip40
     inc     cd_argv1_ptr+1
-
 @skip40:
+    ldy     #$00
+    lda     (cd_argv1_ptr),y
+    cmp     #' '
+    beq     @found_space
+
+
     ; copy in malloc args
     ldy     #$00
 @L1:
     lda     (cd_argv1_ptr),y
     beq     @S1
+    cmp     #'.'            ; Avoid to have in arg * )
+    bcc     @not_supported
+
     sta     (cd_path),y
     iny
     bne     @L1
@@ -71,8 +83,8 @@
     lda     #$00
     sta     (cd_path),y
     jmp     @L7
-@it_slash:
 
+@it_slash:
     lda     (cd_path),y
 
     cmp     #'/'
@@ -196,4 +208,7 @@ try_to_recurse:
 
 str_not_a_directory:
     .byte "Not a directory",$0D,$0A,0
+
+str_not_supported:
+    .byte "Not supported",$0D,$0A,0
 .endproc

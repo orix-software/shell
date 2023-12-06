@@ -35,6 +35,7 @@
     sta     help_argv1_ptr+1
 
     ldy     #shell_bash_struct::command_line
+
 @get_first_arg:
     lda     (bash_struct_ptr),y
     beq     @noparam
@@ -53,12 +54,16 @@
     rts
 
 @found_space:
+    ldy     #$00
     inc     help_argv1_ptr
     bne     @skip31
     inc     help_argv1_ptr+1
-
 @skip31:
-    ldy     #$00
+    lda     (help_argv1_ptr),y
+    cmp     #' '
+    beq     @found_space
+
+    ;ldy     #$00
     lda     (help_argv1_ptr),y
     beq     @noparam
     cmp     #'-'
@@ -99,17 +104,17 @@ loop:
 
 @S1:
     sta     help_ptr3
-    lda     internal_commands_length,x           ; get the length of the command
+    lda     internal_commands_length,x    ; get the length of the command
     tax
 
 loopme:
-    stx     current_column              ; Save0 X in TR6
+    stx     current_column               ; Save0 X in TR6
     print #' '
-    ldx     current_column              ; Get again X
-    inx                                 ; inx
-    cpx     #$08                        ; Do we reached 8 columns ?
-    bne     loopme                      ; no, let's display again a space
-    ldx     current_command             ; do we reached
+    ldx     current_column               ; Get again X
+    inx                                  ; inx
+    cpx     #$08                         ; Do we reached 8 columns ?
+    bne     loopme                       ; no, let's display again a space
+    ldx     current_command              ; do we reached
     inx
     cpx     #BASH_NUMBER_OF_COMMANDS_BUILTIN  ; loop until we have display all commands
     bne     loop

@@ -40,8 +40,8 @@
     bne     check_sdb1 ; ???? FIXME
 
 check_sdb1:
-
     ldy     #$00
+
 @L2:
     lda     (mount_mainargs_argv),y
     beq     @out2

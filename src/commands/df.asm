@@ -146,12 +146,11 @@ df_suite:
 	ldy     #>str_usb1
 
 print_device:
-	BRK_KERNEL XWSTR0
+    BRK_KERNEL XWSTR0
 
 df_end:
-	crlf
-	rts
-
+    crlf
+    rts
 
 ;----------------------------------------------------------------------
 ;		Suppression des '0' non significatifs
@@ -203,5 +202,3 @@ str_usb1:
     .asciiz "usb1"
 
 .endproc
-
-

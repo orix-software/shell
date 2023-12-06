@@ -13,7 +13,6 @@
 is65c816:
     print   str_65c816
     jmp     next
-   ; bra     next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 
 is6502:
     print   str_6502
@@ -28,7 +27,6 @@ str_65c816:
 
 str_architecture:
     .asciiz "Architecture:   "
-;6502",$0D,$0A ; or 65c02 or 65816
 
 str_lscpu:
     .byte   "CPU op-mode(s): 8-bit",$0D,$0A ; or 16 bits if we detect a 65c816
@@ -36,5 +34,4 @@ str_lscpu:
     .byte   "CPU(s):         1",$0D,$0A
     .byte   "Socket(s):      1",$0D,$0A
     .byte   "CPU MHz:        1",$0D,$0A,0
-    ;.asc "BogoMIPS:              5187.00"
 .endproc

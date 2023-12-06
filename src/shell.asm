@@ -679,9 +679,7 @@ internal_commands_length:
     .include "commands/viewhrs.asm"
 .endif
 
-.ifdef WITH_XORIX
-    .include "commands/xorix.asm"
-.endif
+
 
 ; Functions
 .include "lib/strcpy.asm"
@@ -927,9 +925,6 @@ addr_commands:
     .addr  _watch
 .endif
 
-.ifdef WITH_XORIX
-    .addr  _xorix
-.endif
 addr_commands_end:
 
 .if addr_commands_end-addr_commands > 255
@@ -1083,10 +1078,6 @@ commands_length:
 
 .ifdef WITH_WATCH
     .byt 5 ; watch
-.endif
-
-.ifdef WITH_XORIX
-    .byt 5 ; xorix
 .endif
 
 list_of_commands_bank:
@@ -1284,11 +1275,6 @@ viewhrs:
 .ifdef WITH_WATCH
 watch:
     .asciiz "watch"
-.endif
-
-.ifdef WITH_XORIX
-xorix:
-    .asciiz "xorix"
 .endif
 
 .ifdef WITH_CA65

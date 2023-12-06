@@ -3,10 +3,10 @@
 .proc _viewhrs
 
 
-    VIEWHRS_SAVE_FP           := userzp
-    viewhrs_mainargs_arg1     := userzp+2
-    viewhrs_mainargs_argv     := userzp+4
-    viewhrs_mainargs_argc     := userzp+6
+    VIEWHRS_SAVE_FP                := userzp
+    viewhrs_mainargs_arg1          := userzp+2
+    viewhrs_mainargs_argv          := userzp+4
+    viewhrs_mainargs_argc          := userzp+6
     viewhrs_mainargs_arg_time      := userzp+8
     viewhrs_mainargs_time_activate := userzp+10
 

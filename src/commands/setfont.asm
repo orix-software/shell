@@ -26,10 +26,9 @@
 
     cpx     #$02
     beq     @continue
-
     jmp     usage
+
 @continue:
- ;   MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
     malloc .strlen(setfont_path)+FNAME_LEN+1+1, userzp, str_oom
     cmp     #$00
     bne     @nooom

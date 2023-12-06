@@ -2,7 +2,7 @@
 
 
 ; Ne pas augmenter la taille car avec submit, cela fera trop
-CP_SIZE_OF_BUFFER=1000
+CP_SIZE_OF_BUFFER = 1000
 
 cp_mv_rm_argv_ptr       := userzp   ; 16 bits
 cp_mv_rm_argc           := userzp+2 ; 8 bits

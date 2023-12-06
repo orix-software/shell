@@ -6,27 +6,27 @@
 
 .proc _lsmem
 
-   lsmem_ptr_malloc                        := userzp
-   lsmem_ptr_pid_table  := userzp+2	 ; Get struct
-   lsmem_savey_kernel_malloc_busy_pid_list := userzp+4
-   lsmem_savey                             := userzp+6  ; 1 byte
-   lsmem_savex                             := userzp+7  ; 1 byte
-   lsmem_savexbis                          := userzp+8  ; 1 byte
-   lsmem_ptr_command_name                  := userzp+10
-   lsmem_ptr_command_name_tmp              := userzp+12
-   lsmem_current_process_read              := userzp+14
-   lsmem_ptr_one_process                   := userzp+16
-   lsmem_copy_malloc_struct_ptr            := userzp+18 ; 2 bytes
-   lsmem_kernel_max_number_of_malloc       := userzp+20 ; 1 byte store the nb of bysy malloc
+    lsmem_ptr_malloc                        := userzp
+    lsmem_ptr_pid_table  := userzp+2	 ; Get struct
+    lsmem_savey_kernel_malloc_busy_pid_list := userzp+4
+    lsmem_savey                             := userzp+6  ; 1 byte
+    lsmem_savex                             := userzp+7  ; 1 byte
+    lsmem_savexbis                          := userzp+8  ; 1 byte
+    lsmem_ptr_command_name                  := userzp+10
+    lsmem_ptr_command_name_tmp              := userzp+12
+    lsmem_current_process_read              := userzp+14
+    lsmem_ptr_one_process                   := userzp+16
+    lsmem_copy_malloc_struct_ptr            := userzp+18 ; 2 bytes
+    lsmem_kernel_max_number_of_malloc       := userzp+20 ; 1 byte store the nb of bysy malloc
 
-   ldx     #MALLOC_TABLE_COPY ; Free
-   BRK_KERNEL XVALUES
-   sta     lsmem_ptr_malloc
-   sty     lsmem_ptr_malloc+1
+    ldx     #MALLOC_TABLE_COPY ; Free
+    BRK_KERNEL XVALUES
+    sta     lsmem_ptr_malloc
+    sty     lsmem_ptr_malloc+1
 
-   print   str_column
+    print   str_column
 
-   crlf
+    crlf
 
 ; Displays all free chunk
 

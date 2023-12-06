@@ -26,6 +26,7 @@ jobs:
              orix-sdk/**/*
              md2hlp/**/*
              orix-software/**/*
+             oricutron/**/*
           key: ${{ secrets.CACHE_ID }}-orix-sdk_
 
       - name: Checkout cc65
@@ -68,10 +69,18 @@ jobs:
           echo "src/include" >> .git/info/sparse-checkout
           git checkout
 
-      - name: Compile orix-sdk
+      - name: Prepare environment for oricutron
         if: steps.cache-sdk.outputs.cache-hit != 'true'
-        working-directory: orix-sdk
-        run: mkdir -p build/{lib,bin} && CC65_HOME=${GITHUB_WORKSPACE}/cc65 make lib
+        run: |
+          sudo apt-get install -y xvfb libgtk-3-0 libgtk-3-dev libsdl1.2debian libsdl1.2-dev
+          git clone https://github.com/pete-gordon/oricutron.git
+          cd oricutron && make && pwd && cd .. && ls -l && echo ${GITHUB_WORKSPACE}
+          echo Timeout oricutron : $secret.TMOUT_ORICUTRON
+
+      # - name: Compile orix-sdk
+      #   if: steps.cache-sdk.outputs.cache-hit != 'true'
+      #   working-directory: orix-sdk
+      #   run: mkdir -p build/{lib,bin} && CC65_HOME=${GITHUB_WORKSPACE}/cc65 make lib
 
       - name: Display tools
         run: |
@@ -109,6 +118,7 @@ jobs:
              orix-sdk/**/*
              md2hlp/**/*
              orix-software/**/*
+             oricutron/**/*
           key: ${{ secrets.CACHE_ID }}-orix-sdk_
 
       - name: Prepare environment for project
@@ -116,6 +126,22 @@ jobs:
 
       - name: Compile project
         run: CC65_HOME=${GITHUB_WORKSPACE}/../cc65 make
+
+      - name: Unit-test with oricutron
+        run: |
+          git clone https://github.com/orix-software/docker-unit-test.git
+          cd docker-unit-test && bash install.sh ${GITHUB_WORKSPACE} && cd ..
+          cp build/usr/share/shell/shellsd.rom ${GITHUB_WORKSPACE}/oricutron/roms/kernel.rom
+          #cat  tests/unit_test/xopen.sub > ${GITHUB_WORKSPACE}/oricutron/sdcard/ETC/AUTOBOOT
+          #cat  tests/unit_test/xrm.sub >> ${GITHUB_WORKSPACE}/oricutron/sdcard/ETC/AUTOBOOT
+          cd ${GITHUB_WORKSPACE}/oricutron
+          timeout --preserve-status 5 ./xvfb.sh || exit 0
+
+      - name: Check unit-test
+        run: |
+          ls -l ${GITHUB_WORKSPACE}/oricutron/sdcard/
+          #bash tests/unit_test/verify.sh ${GITHUB_WORKSPACE}/oricutron/sdcard/
+
 
       - name: List build directory content
         run: ls -lR build
