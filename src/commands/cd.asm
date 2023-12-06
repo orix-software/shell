@@ -9,13 +9,14 @@
     cd_path_2         := userzp+6
 
     ; Let's malloc
-    MALLOC(KERNEL_MAX_PATH_LENGTH)
+    malloc #KERNEL_MAX_PATH_LENGTH
     cmp     #NULL
     bne     @not_null_1
     cpy     #NULL
     bne     @not_null_1
     print   str_oom
     rts
+
 @not_null_1:
     sta     cd_path
     sty     cd_path+1
@@ -38,9 +39,11 @@
     inc     cd_argv1_ptr
     bne     @skip30
     inc     cd_argv1_ptr+1
+
 @skip30:
     iny
     bne     @get_first_arg
+
 @found_eos:
     mfree(cd_path)
     rts

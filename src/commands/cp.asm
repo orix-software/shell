@@ -116,7 +116,6 @@ continue2:
     jmp     @copy_finished
 
 @continue_to_write:
-
     fwrite (MALLOC_PTR1), (cp_mv_fp_dest_nb_bytes), 1, cp_mv_fp_dest
     jmp     @loop_until_eof
 
@@ -128,9 +127,11 @@ continue2:
     lda     cp_tmp
     beq     @out
 
-    lda     cp_mv_rm_save_argv_ptr2
-    ldx     cp_mv_rm_save_argv_ptr2+1
-    BRK_KERNEL XRM
+    unlink cp_mv_rm_save_argv_ptr2
+
+    ; lda     cp_mv_rm_save_argv_ptr2
+    ; ldx     cp_mv_rm_save_argv_ptr2+1
+    ; BRK_KERNEL XRM
     ; now remove file
 
 @out:

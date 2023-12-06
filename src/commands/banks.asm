@@ -22,8 +22,6 @@
     XMAINARGS = $2C
     XGETARGV  = $2E
 
-
-
     lda     #$01
     sta     bank_all_banks_display
 
@@ -31,20 +29,10 @@
     BRK_KERNEL XMAINARGS
 
     initmainargs bank_save_argvlow, bank_save_argc, 0
-
-
     cpx     #$01
     beq     @jmp_displays_all_banks
 
-
     getmainarg #1, (bank_save_argvlow)
-
-    ; ldx     #$01
-    ; lda     bank_save_argvlow
-    ; ldy     bank_save_argvhigh
-
-    ; BRK_KERNEL XGETARGV
-
     sta     ptr3
     sty     ptr3+1
 
@@ -482,7 +470,6 @@ usage:
 str_kernel_reserved:
     .byte "Kernel reserved",$0D,$0A,$00
 .endproc
-
 
 ;unsigned char twil_get_registers_from_id_bank(unsigned char bank);
 .proc _twil_get_registers_from_id_bank

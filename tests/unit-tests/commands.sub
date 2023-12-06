@@ -29,4 +29,9 @@ setfont
 #twil
 uname
 viewhrs
+
+cp started started.cop
+cp started testmv
+cp testmv.mv
+
 touch stopped

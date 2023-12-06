@@ -9,23 +9,12 @@
     XMAINARGS = $2C
     XGETARGV =  $2E
 
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-
-    sta     cat_save_argvlow
-    sty     cat_save_argvhigh
-    stx     cat_save_argc
-
+    initmainargs cat_save_argvlow, cat_save_argc, 0
     cpx     #$01
     beq     @print_usage
 
 
-    ldx     #$01 ; get arg
-    lda     cat_save_argvlow
-    ldy     cat_save_argvhigh
-    BRK_KERNEL XGETARGV
-
-
+    getmainarg #1, (cat_save_argvlow)
     sta     cat_save_ptr_arg
     sty     cat_save_ptr_arg+1
 

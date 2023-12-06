@@ -806,6 +806,7 @@ copy_bufedt:
     initmainargs basic11_ptr1, basic11_ptr4, 1
 
     ldy     #$00
+
 @copy_bufedt:
     lda     (basic11_ptr1),y
     beq     @end_copy_bufedt
