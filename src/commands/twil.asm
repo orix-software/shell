@@ -89,6 +89,7 @@ check_next_parameter_d:
     print str_swap_root_to_sdcard
     crlf
     rts
+
 savemount:
     sta     RES
     ldx     #XVARS_KERNEL_CH376_MOUNT

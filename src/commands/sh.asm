@@ -110,7 +110,6 @@ thereis_a_script_to_execute:
 
 
 @call_xexec:
-
     lda    ptr_file_sh_interactive_ptr_save
     ldy    ptr_file_sh_interactive_ptr_save+1
 
