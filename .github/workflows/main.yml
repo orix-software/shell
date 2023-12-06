@@ -131,7 +131,7 @@ jobs:
         run: |
           git clone https://github.com/orix-software/docker-unit-test.git
           cd docker-unit-test && bash install.sh ${GITHUB_WORKSPACE} && cd ..
-          cp build/usr/share/shell/shellsd.rom ${GITHUB_WORKSPACE}/oricutron/roms/kernel.rom
+          cp build/usr/share/shell/shellsd.rom ${GITHUB_WORKSPACE}/oricutron/roms/shell.rom
           cat  tests/unit-tests/commands.sub > ${GITHUB_WORKSPACE}/oricutron/sdcard/ETC/AUTOBOOT
           #cat  tests/unit_test/xrm.sub >> ${GITHUB_WORKSPACE}/oricutron/sdcard/ETC/AUTOBOOT
           cd ${GITHUB_WORKSPACE}/oricutron
