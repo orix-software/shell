@@ -1,3 +1,5 @@
+#! /bin/submit
+touch started
 bank
 #basic10
 #basic11
@@ -25,3 +27,6 @@ setfont
 #touch
 #twiconf
 #twil
+uname
+viewhrs
+touch stopped
