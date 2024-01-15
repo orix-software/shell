@@ -42,14 +42,14 @@
     crlf
 
     ; FIXME macro
-    lda     #$09
-    ldy     #$02
 
-    BRK_KERNEL XMALLOC
+    malloc  #$209
+
     ; A & Y are the ptr here
     BRK_KERNEL XFREE
 
     rts
+
 mount_sdcard:
     lda     #CH376_SET_USB_MODE ; $15
     sta     CH376_COMMAND
@@ -62,6 +62,7 @@ mount_sdcard:
     beq 	ok
     print   str_error_sdcard
     rts
+
 ok:
     print   str_ok_sdcard
     rts
@@ -79,6 +80,7 @@ mount_key:
     beq 	ok2
     print   str_error_key
     rts
+
 ok2:
     print   str_ok_key
     rts

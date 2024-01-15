@@ -58,6 +58,7 @@
     inc     help_argv1_ptr
     bne     @skip31
     inc     help_argv1_ptr+1
+
 @skip31:
     lda     (help_argv1_ptr),y
     cmp     #' '
@@ -158,6 +159,7 @@ list_command_in_bank:
     ora     #%00100000
     sta     $342
     pla
+
 @do_not_switch_to_ram_bank:
     jsr     _twil_get_registers_from_id_bank
     ; A bank
@@ -229,6 +231,7 @@ list_command_in_bank:
     sty     help_ptr2
     dec     help_number_command
     bne     @loopme
+
 @out:
     lda     help_ID_BANK_TO_READ_FOR_READ_BYTE_save
     sta     ID_BANK_TO_READ_FOR_READ_BYTE

@@ -220,6 +220,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         ; lda     bash_struct_command_line_ptr
         ; ldy     bash_struct_command_line_ptr+1
         ; BRK_KERNEL XEXEC
+        ldx     #$00
         exec (bash_struct_command_line_ptr)
         jsr     external_cmd
         jmp     loop
@@ -231,7 +232,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         lda     (bash_struct_ptr),y
         beq     @shell_extension_not_loaded
         ; Disable for bug : Quannd on lance bootcfg et que cela lance cp, on se retrouve à essayer d'enregister la commande tapée alors que la rom history n'est pas chargée
-        
+
        ; jsr     register_command_line
 
         lda     TWILIGHTE_REGISTER
@@ -275,6 +276,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
     ; lda     bash_struct_ptr
     ; ldy     bash_struct_ptr+1
     ; BRK_KERNEL XEXEC
+    ldx     #$00
     exec (bash_struct_ptr)
 
     jsr     external_cmd
@@ -1326,7 +1328,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz "Shell v2023.4"
+    .asciiz "Shell v2024.1"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00

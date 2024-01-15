@@ -1,6 +1,8 @@
+# Shell rom source code
+
 Github action : [![build](https://github.com/orix-software/shell/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/orix-software/shell/actions/workflows/main.yml)
 
-# Build code
+## Build
 
 ./configure
 make
@@ -10,7 +12,7 @@ Maintainers :
 * Jede
 * Assinie
 
-# Shell for Orix (ROM)
+## Shell for Orix (ROM)
 
 How to compile ?
 
