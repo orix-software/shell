@@ -59,9 +59,6 @@ STORE_CURRENT_DEVICE :=$99
 ;                       Defines / Constants
 ;----------------------------------------------------------------------
 
-XMAINARGS       = $2C
-XGETARGV        = $2E
-
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 .include   "build.inc"
