@@ -69,7 +69,6 @@
     mfree(basic11_ptr2)
 
 
-
     ldx #$00 ; FORK
     exec (basic11_ptr1)
 

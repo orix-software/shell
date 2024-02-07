@@ -19,8 +19,6 @@
     first_char_id_bank              := userzp+15
     tmp3                            := userzp+17
 
-    XMAINARGS = $2C
-    XGETARGV  = $2E
 
     lda     #$01
     sta     bank_all_banks_display

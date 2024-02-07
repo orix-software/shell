@@ -1,5 +1,8 @@
 .export _basic11
 
+.define BASIC11_OFFSET_ROOT_PATH $FE70
+.define BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD $F2
+
 .define basic11_color_bar $11
 .define BASIC11_PATH_DB "/var/cache/basic11/"
 .define BASIC10_PATH_DB "/var/cache/basic10/"
@@ -42,6 +45,7 @@ basic11_argv1_ptr               := userzp+21 ; 16 bits
 
 basic11_mode                    := userzp+23 ; 8 bits store if we need to start atmos rom or oric-1
 basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start atmos rom or oric-1
+basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p path"
 
 .define BASIC10_ROM $01
 .define BASIC11_ROM $02
@@ -61,26 +65,25 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 .proc _basic_main
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
 
-    XMAINARGS = $2C
-    XGETARGV  = $2E
 
     lda     #$00
     sta     basic11_no_arg_provided
+    sta     basic11_default_path_set
 
-    initmainargs basic11_argv_ptr, basic11_argc, 0
+    initmainargs basic11_argv_ptr, basic11_argc, 0 ; Get args
     cpx     #$01
     beq     @no_arg
 
-    getmainarg #1, (basic11_argv_ptr)
+    getmainarg #1, (basic11_argv_ptr) ; Get first arg
     sta     basic11_argv1_ptr
     sty     basic11_argv1_ptr+1
 
     ldy     #$00
 
     lda     (basic11_argv1_ptr),y
-    cmp     #'-'
-    bne     @is_a_tape_file_in_arg
-    jmp     @basic11_option_management
+    cmp     #'-'                     ; is it Dash ?
+    bne     @is_a_tape_file_in_arg   ; No we check if a .tape file is provieded
+    jmp     @basic11_option_management ; Yes, check options
 
 @no_arg:
     mfree (basic11_argv_ptr)
@@ -97,7 +100,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #$01
     sta     basic11_no_arg_provided
 
-
+    ; Allocating memory to load conf file
     lda     #basic11_sizeof_max_length_of_conf_file_bin
     ldy     #$00
     BRK_KERNEL XMALLOC
@@ -125,13 +128,12 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ;malloc basic11_sizeof_max_length_of_conf_file_bin,basic11_ptr1,str_enomem ; Index ptr
 
 @no_check_param:
-
     ldy     #$00
 
 @L2:
-    lda     basic11_mode
+    lda     basic11_mode        ; Is it atmos ?
     cmp     #BASIC11_ROM
-    beq     @copy_atmos_db_path
+    beq     @copy_atmos_db_path ; Yes copy basic path in atmos path offset 
     lda     basic10_conf_str,y    ; Copy db path into ptr
     jmp     @continue_copy_path_db
 
@@ -148,7 +150,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ; do strcat
     ; get letter
     sty     basic11_saveY
-
 
     ldy     #$01      ; skip double quote and get first char
     lda     (basic11_argv1_ptr),y
@@ -209,19 +210,19 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sta     basic11_ptr2
     sty     basic11_ptr2+1
 
-    
     ; Let's copy BUFEDT
     jsr     copy_bufedt
-   
+
 
     ldy     #$00
     lda     (basic11_ptr2),y
     pha
 
-    ; At this step we lost orix management
+    ; At this step we lost orix management (kernel calls)
     jsr     basic11_stop_via
 
     ldx     #$00
+
 @loop:
     lda     #$00                                    ; FIXME 65C02
     sta     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS,x
@@ -273,7 +274,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     ; Check if it's a .tap
 
 @noparam_free:
-
     mfree (basic11_ptr1)
     jmp     @start
 
@@ -330,6 +330,9 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     cmp     #'g'
     beq     @gui
 
+    cmp     #'p'
+    beq     @root_path
+
     cmp     #'l'
     bne     @option_not_known
     mfree (basic11_argv_ptr)
@@ -341,6 +344,16 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @continue_l_option
     print   str_can_not
     rts
+
+@root_path:
+    getmainarg #2, (basic11_argv_ptr)
+    sta     basic11_argv1_ptr
+    sty     basic11_argv1_ptr+1
+    lda     #$01
+    sta     basic11_default_path_set
+    lda     #$02
+    sta     BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD
+    jmp     @load_ROM_in_memory_and_start
 
 @continue_l_option:
     ; Search now
@@ -464,6 +477,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     bne     @L12
     inc     basic11_ptr1+1
     jmp     @L12
+
 ; #############################################################
 ; # Code to load ROM into RAM bank
 ; #############################################################
@@ -495,7 +509,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sta     $F2
 
 @start_copy_path:
-    ; copy path
+    ; copy path of the root folder
     ldy     #$00
 
 @L100:
@@ -507,6 +521,10 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     jmp     @enter_test_eos
 
 @copy_rom_path:
+    ; Does user set -p arg ?
+
+
+@normal_path:
     lda     rom_path,y
 
 @enter_test_eos:
@@ -552,7 +570,8 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     iny
 
 @concat_end:
-    lda     $F2 ; Load id ROM
+    lda     BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD ; Load id ROM
+
     clc
     adc     #$30 ; Add '0' to get the right ascii rom
     ; add rom id
@@ -627,6 +646,14 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     BRK_KERNEL XFREAD
     fclose(basic11_fp)
 
+    ldy     #$00
+    lda     #$00
+
+@loop_copy_bufedt:
+    sta     BUFEDT,y   ; Because we pass to basic ROM the command line
+    iny
+    bne     @loop_copy_bufedt
+
 
     ldy     #$00
     lda     (basic11_ptr2),y
@@ -638,17 +665,18 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     #$C0
     sta     basic11_ptr2+1
 
+
+@start_with_default_path:
     ; Copy the driver
     ; and start
-
-    malloc 250,basic11_ptr3 ; Index ptr
+    ; Allocate memory in order to load copy routine to bank
+    malloc 255,basic11_ptr3 ; Index ptr
     cmp     #$00
     bne     @no_oom2
     cpy     #$00
     bne     @no_oom2
     print   str_enomem
     rts
-
 
 @no_oom2:
     ldy     #$00
@@ -657,7 +685,7 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     lda     basic11_driver,y
     sta     (basic11_ptr3),y
     iny
-    cpy     #250
+    cpy     #255
     bne     @L200
 
     ; and start
@@ -665,9 +693,10 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
     sta     VEXBNK+1
     lda     basic11_ptr3+1
     sta     VEXBNK+2
+
     ; stop t2 from via1
     jsr     basic11_stop_via
-    ldx     #$98 ; to avoid to remove $99 value
+    ldx     #$98 ; to avoid to remove $99 value (ch376 mount)
     lda     #$00                                    ; FIXME 65C02
 
 @loop12:
@@ -687,6 +716,7 @@ basic11_driver:
     sei
 
     ldx     #$00
+
 @L1000:
     lda     code_overlay_switch_sedoric,x
     sta     $477,x
@@ -711,7 +741,32 @@ basic11_driver:
     bne     @loop_copy_rom
     ; If the rom id is equal to 0, it means that it's for the hobbit.
     ; The hobbit rom does not handle path
-    lda     $F2 ; Load id ROM
+
+    lda     basic11_default_path_set
+    beq     @manage_others_cases
+
+    ldy     #$00
+
+@copy_rootpath:
+    lda     (basic11_argv1_ptr),y
+    beq     @end_start_with_default_path
+    cmp     #'a'                        ; 'a'
+    bcc     @do_not_uppercase_copy
+    cmp     #'z'+1                        ; 'z'
+    bcs     @do_not_uppercase_copy
+    sbc     #$1F
+
+@do_not_uppercase_copy:
+    sta     BASIC11_OFFSET_ROOT_PATH,y
+    iny
+    bne     @copy_rootpath
+
+@end_start_with_default_path:
+    sty     $FE6F
+    beq     @let_s_start_atmos
+
+@manage_others_cases:
+    lda     BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD ; Load id ROM
     beq     @hobbit_rom_do_not_forge_path
     lda     basic11_mode
     cmp     #BASIC11_ROM
@@ -746,11 +801,11 @@ basic11_driver:
     cmp     #BASIC11_ROM
     beq     @isatmosforpath
     lda     basic11_saveA
-    sta     $FCED,x
+    sta     $FCED,x         ; Rootpath for Oric-1
     bne     @continue_path
 
 @isatmosforpath:
-    lda     basic11_saveA
+    lda     basic11_saveA   ; Rootpath for Atmos
     sta     $FE70,x
 
 @continue_path:
@@ -773,7 +828,7 @@ basic11_driver:
 
 @isatmos_fix_EOS_and_length:
     lda     basic11_first_letter
-    sta     $FE70,x
+    sta     $FE70,x ; We store the into default path, the first letter
     inx
     lda     #'/'
     sta     $FE70,x
@@ -789,7 +844,7 @@ basic11_driver:
     lda     basic11_mode
     cmp     #BASIC10_ROM
     beq     @jmp_basic10_vector
-
+@let_s_start_atmos:
     jmp     $F88F ; NMI vector of ATMOS rom
 
 @jmp_basic10_vector:

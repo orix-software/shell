@@ -6,9 +6,6 @@
     cat_save_argc     := userzp+3
     cat_save_ptr_arg  := userzp+4 ; 16 bits
 
-    XMAINARGS = $2C
-    XGETARGV =  $2E
-
     initmainargs cat_save_argvlow, cat_save_argc, 0
     cpx     #$01
     beq     @print_usage

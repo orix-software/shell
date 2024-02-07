@@ -44,9 +44,6 @@ cp_mv_fp_dest_nb_bytes  := userzp+14
 @next:
   ; open first params
 ; $ffbd
-    XMAINARGS = $2C
-    XGETARGV =  $2E
-
     initmainargs cp_mv_rm_argv_ptr, cp_mv_rm_argc, 0
 
     cpx     #$03
@@ -59,7 +56,6 @@ allargs:
     getmainarg #1, (cp_mv_rm_argv_ptr)
     sta     cp_mv_rm_save_argv_ptr
     sty     cp_mv_rm_save_argv_ptr+1
-
 
     getmainarg #2, (cp_mv_rm_argv_ptr)
     sta     cp_mv_rm_save_argv_ptr2

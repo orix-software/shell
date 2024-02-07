@@ -1,12 +1,9 @@
 .include "zeropage.inc"
 
-
-
 .export _meminfo
 
    meminfo_ptr_malloc     := userzp
    meminfo_tmp1           := userzp+2
-
 
 .proc _meminfo
 

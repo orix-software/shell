@@ -4,8 +4,8 @@
     lsof_savey         :=userzp+2
     lsof_current_fd    :=userzp+3 ; 16 bits
 
-    lsof_max_number_file    :=userzp+5
-    lsof_savex    :=userzp+6
+    lsof_max_number_file :=userzp+5
+    lsof_savex           :=userzp+6
 
     lsof_file_ptr := userzp + 8
 

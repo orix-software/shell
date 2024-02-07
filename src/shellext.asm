@@ -10,9 +10,8 @@
 .include   "dependencies/kernel/src/include/keyboard.inc"
 .include   "include/bash.inc"
 
-XMAINARGS       = $2C
 XMAINARGS_GETV  = $2E
-XGETARGV        = $2E
+
 
 .define HISTORY_MAX_NUMBER_ENTRY 20
 

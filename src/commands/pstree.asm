@@ -19,6 +19,7 @@
 
 
     ldy     #$01
+
 @loop:
     lda     (pstree_ptr),y
     beq     @next
@@ -42,6 +43,7 @@
     bne     @loop
     crlf
     rts
+
 str_init:
     .asciiz "init"
 .endproc
