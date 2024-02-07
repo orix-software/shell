@@ -1,5 +1,9 @@
 # basic11
 
+## Usage
+
+basic11 [-g] [-l] [-p defaultpath]
+
 ## Introduction
 
 basic11 starts Atmos rom. You can type basic11 or press FUNCT+B to start.
@@ -151,6 +155,7 @@ could in the future.
 + basic11
 + basic11 -g
 + basic11 -l
++ basic11 -p path
 + basic11 "MYTAPE
 
 ## DESCRIPTION
@@ -173,7 +178,14 @@ or
 /#basic11 "DEFENDER"
 ```
 
-CLOAD"ZORGONS => it will load zorgons.tap
+A path can be specified :
+
+```bash
+/#basic11 -p /home/jede
+```
+
+In basic rom :
+CLOAD "ZORGONS => it will load zorgons.tap
 
 ## SOURCE
 
