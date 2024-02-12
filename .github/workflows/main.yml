@@ -135,7 +135,7 @@ jobs:
           cat  tests/unit-tests/commands.sub > ${GITHUB_WORKSPACE}/oricutron/sdcard/ETC/AUTOBOOT
           #cat  tests/unit_test/xrm.sub >> ${GITHUB_WORKSPACE}/oricutron/sdcard/ETC/AUTOBOOT
           cd ${GITHUB_WORKSPACE}/oricutron
-          timeout --preserve-status 5 ./xvfb.sh || exit 0
+          timeout --preserve-status 10 ./xvfb.sh || exit 0
 
       - name: Check unit-test
         run: |
