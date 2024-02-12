@@ -19,8 +19,6 @@
     first_char_id_bank              := userzp+15
     tmp3                            := userzp+17
 
-    XMAINARGS = $2C
-    XGETARGV  = $2E
 
     lda     #$01
     sta     bank_all_banks_display
@@ -28,21 +26,11 @@
     lda     #$00 ; return args with cut
     BRK_KERNEL XMAINARGS
 
-
-    sta     bank_save_argvlow
-    sty     bank_save_argvhigh
-    stx     bank_save_argc
-
+    initmainargs bank_save_argvlow, bank_save_argc, 0
     cpx     #$01
     beq     @jmp_displays_all_banks
 
-
-    ldx     #$01
-    lda     bank_save_argvlow
-    ldy     bank_save_argvhigh
-
-    BRK_KERNEL XGETARGV
-
+    getmainarg #1, (bank_save_argvlow)
     sta     ptr3
     sty     ptr3+1
 
@@ -50,20 +38,20 @@
     lda     (ptr3),y
     cmp     #'-' ; is an option ?
     bne     @not_an_option
-
     iny
     lda     (ptr3),y
     cmp     #'a'  ; displays all banks option ?
     bne     @unknown_option
     dec     bank_all_banks_display
+
 @jmp_displays_all_banks:
     jmp     displays_all_banks
 
 @unknown_option:
     ;PRINT usage
     rts
-@not_an_option:
 
+@not_an_option:
     sec
     sbc     #$30
     sta     first_char_id_bank
@@ -72,15 +60,13 @@
     lda     (ptr3),y ; FIXME
     beq     @only_one_digit
     ; convert to decimal
-
-
     sec
     sbc     #$30
     sta     bank_save_argc
     ldx     first_char_id_bank ; 2 chars, get the first digit
     lda     #$00
-@compute_again:
 
+@compute_again:
     clc
     adc     #10
     dex
@@ -96,19 +82,14 @@
     ora     #%00100000
     sta     TWILIGHTE_REGISTER
     pla
-@do_not_switch_to_ram_bank:
 
+@do_not_switch_to_ram_bank:
     jsr     _twil_get_registers_from_id_bank
     ; A bank
-
     sta     first_char_id_bank
     stx     TWILIGHTE_BANKING_REGISTER
 
-
-
 @only_one_digit:
-
-
     lda     first_char_id_bank
     sta     VAPLIC
     sta     current_bank
@@ -121,29 +102,23 @@
     ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
     sta     tmp2
-
-
     lda     #<$FFFD
     sta     ptr1
     lda     #>$FFFD
     sta     ptr1+1
     ldy     #$00
     ldx     #$00 ; Read mode
-
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get low
-
     tay
     cli
     ; NMI
     lda     tmp2
-
     sta     VAPLIC+1
     sty     VAPLIC+2
     sta     VEXBNK+1 ; BNK_ADDRESS_TO_JUMP_LOW
     sty     VEXBNK+2 ; BNK_ADDRESS_TO_JUMP_HIGH
     ldx     VAPLIC
     stx     BNKCIB
-
     ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
     sta     ptr2
@@ -151,7 +126,6 @@
     ldy     #$00
     lda     (ptr2),y
     sta     STORE_CURRENT_DEVICE
-
     jmp     EXBNK
 
 ; displays all bank
@@ -190,42 +164,35 @@ displays_all_banks:
     rts
 
 displays_banking:
-
-
     lda     #$07
     sta     TWILIGHTE_BANKING_REGISTER
 
 parse_next_banking_set:
 
-
 @skip:
     lda     #%00000100                ; we start from the bank 7 to 1
+
 @store:
     sta     current_bank
+
 loop2:
     jsr     check_if_bank_7_6_5
     lda     bank_all_banks_display
-
     beq     @display_all
-
     jsr     get_rom_type
     cmp     #$00   ; Empty ?
     beq     @next_bank
+
 @display_all:
-
     jsr     display_bank_id
-
     jmp     @check_kernel_ram_overlay
-
 
 @not_ram_overlay_kernel:
     sei
     jsr     upd_ptr
-
     lda     ptr1+1
     cmp     #$C0   ; Does signature is in rom ?
     bcc     @exit
-
 
 .IFPC02
 .pc02
@@ -275,11 +242,10 @@ loop2:
     cpy     #36    ; Exit if signature is longer than 37 bytes
     beq     @exit
     sty     ptr2
-
     sei
     jmp     @loopme
-@exit:
 
+@exit:
     cli
     crlf
 
@@ -318,27 +284,32 @@ loop2:
 
 check_if_bank_7_6_5:
     lda     bank_decimal_current_bank
-
     cmp     #$08
     bne     @check_bank4
+
 @set4:
     lda     #$04
     sta     TWILIGHTE_BANKING_REGISTER
     rts
+
 @check_bank4:
     cmp     #$04
     bne     @others
+
 @set0:
     lda     #$00
     sta     TWILIGHTE_BANKING_REGISTER
     rts
+
 @others:
     cmp     #20
     bne     @exit
+
 @set3:
     lda     #$03
     sta     TWILIGHTE_BANKING_REGISTER
     rts
+
 @exit:
     rts
 
@@ -356,83 +327,79 @@ display_bank_id:
     pla
     clc
     adc     #44+4                     ; Displays the number of the bank
-
-    BRK_ORIX XWR0
-    CPUTC ':'                         ; Displays a space
+    BRK_KERNEL XWR0
+    print #':'                         ; Displays a space
     rts
+
 greater_than_10:
     cmp     #20
     bcs     greater_than_20
     pha
     lda     #'1'
-    BRK_ORIX XWR0
+    BRK_KERNEL XWR0
     pla
     clc
     adc     #38
-    BRK_ORIX XWR0
-    CPUTC ':'
+    BRK_KERNEL XWR0
+    print #':'
     rts
+
 greater_than_20:
     cmp     #30
     bcs     greater_than_30
     pha
     lda     #'2'
-    BRK_ORIX XWR0
+    BRK_KERNEL XWR0
     pla
     clc
     adc     #28
-    BRK_ORIX XWR0
-    CPUTC ':'
+    BRK_KERNEL XWR0
+    print #':'
     rts
 
 greater_than_30:
     cmp     #40
     bcs     greater_than_40
     pha
-    lda     #'3'
-    BRK_ORIX XWR0
+    print   #'3'
     pla
     clc
     adc     #18
-    BRK_ORIX XWR0
-    CPUTC ':'
+    BRK_KERNEL XWR0
+    print #':'
     rts
 
 greater_than_40:
     cmp     #50
     bcs     greater_than_50
     pha
-    lda     #'4'
-    BRK_ORIX XWR0
+    print   #'4'
     pla
     clc
     adc     #8
-    BRK_ORIX XWR0
-    CPUTC ':'
+    BRK_KERNEL XWR0
+    print #':'
     rts
 
 greater_than_50:
     cmp     #60
     bcs     greater_than_60
     pha
-    lda     #'5'
-    BRK_ORIX XWR0
+    print   #'5'
     pla
     sec
-    sbc     #2
-
-    BRK_ORIX XWR0
-    CPUTC ':'
+    sbc     #$02
+    BRK_KERNEL XWR0
+    print #':'
     rts
 
 greater_than_60:
     pha
-    lda     #'6'
-    BRK_ORIX XWR0
+    print  #'6'
     pla
     sec
     sbc     #12
-    BRK_ORIX XWR0
+    BRK_KERNEL XWR0
     print #':'
     rts
 
@@ -449,7 +416,6 @@ upd_ptr:
     ldx     #$00 ; Read mode
     jsr     READ_BYTE_FROM_OVERLAY_RAM ; get high
     sta     RES+1
-
     lda     RES
     sta     ptr1
     lda     RES+1
@@ -470,16 +436,12 @@ checking_rom:
     ; ce code est supposé mettre des couleurs différentes pour indiquer s'il y une anomalie dans la banque
     lda     ptr1
     sta     tmp3
-
     lda     ptr1+1
     sta     tmp3+1
-
-
     lda     #<$FFFE
     sta     ptr1
     lda     #>$FFFE
     sta     ptr1+1
-
     ; Get Type
     ldy     #$00
     ldx     #$00                        ; Read mode
@@ -487,10 +449,8 @@ checking_rom:
     cmp     #$FA
     beq     @orix_rom
     cli
-@me:
-    jmp     @me
-    lda     #'2'
-    BRK_KERNEL XWR0
+
+    print  #'2'
     sei
 @orix_rom:
 @skip:
@@ -508,7 +468,6 @@ usage:
 str_kernel_reserved:
     .byte "Kernel reserved",$0D,$0A,$00
 .endproc
-
 
 ;unsigned char twil_get_registers_from_id_bank(unsigned char bank);
 .proc _twil_get_registers_from_id_bank

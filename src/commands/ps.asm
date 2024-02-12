@@ -7,8 +7,6 @@
     ptr_kernel_process_current   :=userzp+2
     ptr_one_process              :=userzp+4 ; 2 bytes
     ps_current_process_read      :=userzp+6 ; 1 bytes max 256 process to display
-
-
     print   str_ps_title
 
     ldx     #XVARS_KERNEL_PROCESS ; Get Kernel adress
@@ -22,7 +20,6 @@
     sty     ps_current_process_read
     ldy     ps_current_process_read
 
-
     lda     (ptr_kernel_process),y
     beq     @SKIP_NOPROCESS
 
@@ -30,9 +27,8 @@
     tya
 
     ldy     #$00
-    PRINT_BINARY_TO_DECIMAL_16BITS 1
+    PRINT_BINARY_TO_DECIMAL_16BITS 1 ; FIXME macro
     print   #' '
-
 
     lda     #kernel_process_struct::kernel_one_process_struct_ptr_low
     clc
@@ -55,21 +51,19 @@
     ldy     #kernel_one_process_struct::process_name
 @L1:
     lda     (ptr_one_process),y
-
     beq     @S1
     BRK_KERNEL XWR0
     iny
     bne     @L1
+
 @S1:
-
-
     crlf
+
 @SKIP_NOPROCESS:
     ldy     ps_current_process_read
     iny
     cpy     #KERNEL_MAX_PROCESS
     bne     @NEXT_PROCESS
-
     rts
 
 str_ps_title:

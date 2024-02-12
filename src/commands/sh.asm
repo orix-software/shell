@@ -12,22 +12,14 @@
     sh_mainargs_arg1_ptr              := userzp+18
     sh_saveY                          := userzp+20
 
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-    sta     sh_mainargs_argv
-    sty     sh_mainargs_argv+1
-    stx     sh_mainargs_argc
+    initmainargs sh_mainargs_argv, sh_mainargs_argc, 0
 
     cpx     #$01
 
     beq     @start_normal
 
 
-    ldx     #$01
-    lda     sh_mainargs_argv
-    ldy     sh_mainargs_argv+1
-
-    BRK_KERNEL XGETARGV
+    getmainarg #1, (sh_mainargs_argv)
     sta     sh_mainargs_arg1_ptr
     sty     sh_mainargs_arg1_ptr+1
 
@@ -41,14 +33,7 @@
 
 
 thereis_a_script_to_execute:
-
-    fopen (sh_mainargs_arg1_ptr),O_RDONLY
-
-
-
-    ; A register contains FP id
-    sta     fp_ptr_file_sh_interactive
-    sty     fp_ptr_file_sh_interactive+1
+    fopen (sh_mainargs_arg1_ptr),O_RDONLY,,fp_ptr_file_sh_interactive
 
     lda     #$01
     sta     sh_interactive_line_number
@@ -125,7 +110,6 @@ thereis_a_script_to_execute:
 
 
 @call_xexec:
-
     lda    ptr_file_sh_interactive_ptr_save
     ldy    ptr_file_sh_interactive_ptr_save+1
 

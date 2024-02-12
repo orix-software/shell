@@ -44,6 +44,8 @@ When kernel has finished to initialize at boot time, sh command is started in in
 
 ## Available commands
 
-The command line is limited in characters (37). If you reach this limit, you won’t be able to type the complete command line Known bugs
+The command line is limited in characters (37). If you reach this limit, you won't be able to type the complete command line
 
-* « ./ » can be used to launch a binary since Kernel v2023.2
+## Known bugs
+
+* "./" can be used to launch a binary since Kernel v2023.2

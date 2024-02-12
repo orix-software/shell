@@ -1,5 +1,9 @@
 # basic11
 
+## Usage
+
+basic11 [-g] [-l] [-p defaultpath]
+
 ## Introduction
 
 basic11 starts Atmos rom. You can type basic11 or press FUNCT+B to start.
@@ -135,7 +139,7 @@ Fire flash, Scuba Dive, 3D fongus (i,f letters)
 
 ## Some informations to start .tap file
 
-+ Le trésor du pirate : check information on www.oric.org (on "Trésor du pirate" software page), it explains on to proceed when the games is CLOAD'ed
+Le tresor du pirate : check information on www.oric.org (on "Tresor du pirate" software page), it explains on to proceed when the games is CLOAD'ed
 
 ## Joysticks issues
 
@@ -151,6 +155,7 @@ could in the future.
 + basic11
 + basic11 -g
 + basic11 -l
++ basic11 -p path
 + basic11 "MYTAPE
 
 ## DESCRIPTION
@@ -162,11 +167,25 @@ Cload works with .tap file. Multitap files works too.
 Get a tape file, and place it in the root folder of the sdcard.
 
 Starts basic11 :
-/#basic11
-or
-/#basic11 "DEFENDER"
 
-CLOAD"ZORGONS => it will load zorgons.tap
+```bash
+/#basic11
+```
+
+or
+
+```bash
+/#basic11 "DEFENDER"
+```
+
+A path can be specified :
+
+```bash
+/#basic11 -p /home/jede
+```
+
+In basic rom :
+CLOAD "ZORGONS => it will load zorgons.tap
 
 ## SOURCE
 

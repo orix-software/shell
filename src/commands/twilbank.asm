@@ -84,13 +84,11 @@ save_mode := userzp+11 ; FIXME erase shell commands
     cmp     #NETWORK_ROM
     bne     @systemd_rom
 
-
     lda     #<str_path_network
     sta     ptr2
     lda     #>str_path_network
     sta     ptr2+1
     jmp     @copy
-
 
 @systemd_rom:
     lda     #<str_path_rom
@@ -101,7 +99,6 @@ save_mode := userzp+11 ; FIXME erase shell commands
 @copy:
     ldy     #$00
 @loop4:
-
     lda     (ptr2),y
     beq     @out
     sta     (ptr1),y
@@ -110,7 +107,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
 
 @out:
     sta     (ptr1),y
-
+    ; FIXME macro
     ldy     #O_RDONLY
     lda     ptr1
     ldx     ptr1+1
@@ -153,9 +150,10 @@ save_mode := userzp+11 ; FIXME erase shell commands
     mfree (routine_to_load)
     fclose(fd_systemd)
     rts
+
 @not_oom2:
 
-
+    ; FIXME macro
     lda     buffer ; We read db version and rom version, and we write it, we avoid a seek to 2 bytes in the file
     sta     PTR_READ_DEST
 
@@ -167,7 +165,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
     ldy     #>16384
     ldx     fd_systemd
 
-  ; reads byte
+    ; reads byte
     BRK_KERNEL XFREAD
 
     fclose(fd_systemd)
@@ -178,6 +176,7 @@ save_mode := userzp+11 ; FIXME erase shell commands
 ; RESB contains the ptr address to write
 
     ldy     #$00
+
 @loop:
     lda     twil_copy_buffer_to_ram_bank,y
     sta     (routine_to_load),y
@@ -268,9 +267,8 @@ str_path_shellext:
     stx     sector_to_update
     sta     current_bank
 
-
 @start:
-	sei
+    sei
     ldx     TWILIGHTE_BANKING_REGISTER
     stx     tmp1
 
@@ -279,22 +277,19 @@ str_path_shellext:
 
     ldx     VIA2::PRA
     stx     save_bank
-	; on swappe pour que les banques 8,7,6,5 se retrouvent en bas en id : 1, 2, 3, 4
 
+    ; on swappe pour que les banques 8,7,6,5 se retrouvent en bas en id : 1, 2, 3, 4
     lda     VIA2::PRA
     and     #%11111000
     ora     current_bank
     sta     VIA2::PRA
 
-
     lda     sector_to_update ; pour debug FIXME, cela devrait être à 4
-    sta  	TWILIGHTE_BANKING_REGISTER
+    sta     TWILIGHTE_BANKING_REGISTER
 
-	lda		TWILIGHTE_REGISTER
-	ora		#%00100000
-	sta		TWILIGHTE_REGISTER
-
-
+    lda     TWILIGHTE_REGISTER
+    ora     #%00100000
+    sta     TWILIGHTE_REGISTER
 
     ldx     #$00
     ldy     #$00
@@ -343,7 +338,6 @@ str_path_shellext:
 
     jsr     $c003
 
-
 @out:
     ldx     #$05 ; Return to shell
     stx     VIA2::PRA
@@ -354,10 +348,10 @@ str_path_shellext:
     ldx     tmp3
     stx     TWILIGHTE_REGISTER
 
-	lda		#$00
-	cli
+    lda     #$00
+    cli
 
-	rts
+    rts
 
 .endproc
 

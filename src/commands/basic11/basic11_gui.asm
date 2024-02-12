@@ -32,7 +32,6 @@
     bne     @no_oom
     cpy     #$00
     bne     @no_oom
-
     print str_enomem
     rts
 
@@ -40,6 +39,7 @@
     ; init index
     ldy     #basic11_gui_struct::index
     lda     #$00
+
 @L200:
     sta     (basic11_ptr4),y
     iny
@@ -59,14 +59,12 @@
 
     ldy     #basic11_gui_struct::index
     lda     #$00
+
 @init_index:
     sta     (basic11_ptr4),y
     iny
     cpy     #basic11_gui_struct::index+BASIC11_SIZE_INDEX
     bne     @init_index
-
-
-
     ldy     #basic11_gui_struct::current_index_letter
     lda     #$00
     sta     (basic11_ptr4),y
@@ -75,7 +73,6 @@
     sta     (basic11_ptr4),y
 
     ; Displays only '1'
-
     lda     #'1'
     sta     basic11_first_letter_gui
 
@@ -89,6 +86,7 @@
     adc     #$00
     bcc     @add_to_ptr
     inc     basic11_ptr2+1
+
 @add_to_ptr:
     sta     basic11_ptr2
 
@@ -130,21 +128,19 @@
 .ifdef basic11_debug
     jsr     basic11_display_current_key
 .endif
+
 @read_input:
     jsr     basic11_read_joystick
     cmp     #$00
     bne     @joystick_pressed
     BRK_KERNEL XRD0     ; Should be removed but when we do ctrl+c we can not launch another command after
     bcs    @read_input
+
 @joystick_pressed:
-
-
     cmp     #KEY_RIGHT
     beq     @change_letter_right    ; right key not managed
-
     cmp     #KEY_LEFT
     beq     @change_letter_left
-
     cmp     #KEY_UP
     beq     @keyup
     cmp     #KEY_RETURN
@@ -154,19 +150,20 @@
     cmp     #KEY_ESC          ; is it enter key ?
     beq     @exitgui             ; no we display the char
     jmp     @loopinformations
+
 @exitgui:
     cursor on
     jmp     _clrscr
+
 @keyenter:
     ; get
     lda     basic11_ptr1
     ldy     basic11_ptr1+1
     BRK_KERNEL XFREE
     jmp     basic11_launch
-    ;jmp     @exitgui
+
 
 @change_letter_right:
-
     ldy     #basic11_gui_struct::current_index_letter
     lda     (basic11_ptr4),y
     cmp     #34
@@ -190,22 +187,19 @@
 @change_letter_left:
     ldy     #basic11_gui_struct::current_index_letter ; Are we on the first letter '1' ?)
     lda     (basic11_ptr4),y
-
     beq     @loopinformations     ; Yes we do nothing
-
-
-
     jsr     basic11_menu_letter_management_left
-
     lda     #$00
     sta     basic11_skip_dec
     jsr     basic11_update_ptr_fp
 
 @donot_dex:
     jmp     @manage_display
+
 @keyup:
     jsr     basic11_keyup_bar
     jmp     @loopinformations
+
 @keydown:
     jsr     basic11_keydown_bar
     jmp     @loopinformations
@@ -233,11 +227,10 @@
     lda     (basic11_ptr4),y
     sta     basic11_ptr3+1
 
-
     ldy     #$00
     lda     #' '
-@L2:
 
+@L2:
     sta     $bb80+25,y
     iny
     cpy     #$08
@@ -285,32 +278,31 @@
 .proc compute_position_bar
     lda     #>($bb80+40+1)
     sta     basic11_ptr3+1
-
     lda     #<($bb80+40+1)
     sta     basic11_saveA
     sta     basic11_ptr3
-
     ldy     #basic11_gui_struct::basic11_posy_screen
     lda     (basic11_ptr4),y
     tax
     pha
-
     beq     @S1
 
     lda     basic11_saveA
+
 @L1:
     clc
     adc     #40
     bcc     @S2
     inc     basic11_ptr3+1
+
 @S2:
     dex
     bne     @L1
     sta     basic11_saveA
+
 @S1:
     lda     basic11_saveA
     sta     basic11_ptr3
-
     jsr     displays_bar
     pla
     rts
@@ -347,19 +339,15 @@
     ldy     #basic11_gui_struct::software_key_to_launch_high
     sta     (basic11_ptr4),y
 
-
-
     lda     #$00
     sta     basic11_gui_key_reached
     sta     basic11_do_not_display
 
     ;       index first software
 
-
     ldy     #basic11_gui_struct::current_entry_id
     lda     #$00
     sta     (basic11_ptr4),y
-
 
     ldx     #$00
     ldy     #$00
@@ -415,23 +403,17 @@
 
     ; Exit
     iny
-;   $ce11
     lda     (basic11_ptr2),y                    ; Get next entry
     cmp     basic11_first_letter_gui
     beq     @it_s_the_same_letter_to_parse      ; if the next software name begins with the current letter then we jump
     ; Not the same letter, we jump
-.ifdef basic11_debug
-    sta     $bb80+18
-.endif
     tya
     clc
     adc     basic11_ptr2
     bcc     @skip200
     inc     basic11_ptr2+1
+
 @skip200:
-
-
-
     jmp     update_index
 
     ;rts
@@ -439,9 +421,7 @@
     lda     basic11_do_not_display
     bne     @skip_compute_max_current_entries ; skip because we reached 24 software on screen
 
-
 @skip_compute_max_current_entries:
-
     inc     basic11_gui_key_reached
     jmp     @reload_y
 
@@ -450,6 +430,7 @@
 
     iny     ; skip $00 of the software
     sty     basic11_saveY
+
 @L301:
     lda     (basic11_ptr2),y
     cmp     #';'     ; Trying to find name software
@@ -468,6 +449,7 @@
     cpx     basic11_first_letter_gui
     beq     @compute_next_letter
     ; The next letter is not the current + 1, will fill the next index with 0
+
 @compute_next_letter:
     tya
     clc
@@ -475,6 +457,7 @@
     ; build next index
     bcc     @S300
     inc     basic11_ptr2+1
+
 @S300:
     sta     basic11_ptr2
 
@@ -486,8 +469,6 @@
 @same_firt_letter:
     ldy     basic11_saveY
     dey
-
-
     lda     basic11_ptr3
     clc
     adc     #$28
@@ -521,37 +502,29 @@
     adc     basic11_ptr2
     bcc     @S10
     inc     basic11_ptr2+1
+
 @S10:
     sta     basic11_ptr2
-
-
 
     ldy     #basic11_gui_struct::number_of_lines_displayed
     lda     (basic11_ptr4),y
     cmp     #24
     bne     @continue
 
-
     ldx     #$01
     stx     basic11_do_not_display
-
-  ; jmp     @next_entry
 
 @continue:
     tax
     inx
     txa
     sta     (basic11_ptr4),y  ; fill #basic11_gui_struct::number_of_lines_displayed offset
+
 @next_entry:
     ldy     #$00
-
     sty     basic11_tmp
-
-
     dec     basic11_gui_key_reached
     jmp     @skip_displays
-
-
 .endproc
 
 .proc   basic11_read_joystick
@@ -563,11 +536,13 @@
     bne     @S1
     lda     #KEY_RETURN
     rts
+
 @S1:
     txa
     eor     #%11100001
     cmp     #$01
     bne     @S2
+
 @S2:
     lda     #$00
     rts
@@ -609,6 +584,7 @@
     iny
     lda     basic11_ptr2+1
     sta     (basic11_ptr4),y
+
 @out2:
     rts
 .endproc
@@ -624,8 +600,8 @@
     beq     @100
     clc
     adc     #$01
-@100:
 
+@100:
     asl
     clc
     adc     #basic11_gui_struct::index ; 3735
@@ -636,17 +612,17 @@
     iny
     lda     (basic11_ptr4),y
     sta     basic11_ptr2+1
-
-
-
     rts
 .endproc
 
 basic_str_fullline_title:
     .asciiz  "+-Basic 11 Menu------------------------+"
+
 basic10_str_fullline_title:
     .asciiz  "+-Basic 10 Menu------------------------+"
+
 basic_str_fullline:
     .asciiz  "+--------------------------------------+"
+
 basic_str_emptyline:
     .asciiz  "|                                      |"

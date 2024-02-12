@@ -3,7 +3,6 @@
     print oconfig_str_compile_time
     rts
 
-
 oconfig_str_compile_time:
 
 .ifdef WITH_MULTITASKING

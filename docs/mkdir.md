@@ -6,7 +6,9 @@ Create a folder
 
 ## SYNOPSYS
 
-+ mkdir PATH
+```bash
+/#mkdir PATH
+```
 
 ## DESCRIPTION
 

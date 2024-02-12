@@ -3,10 +3,10 @@
 .proc _viewhrs
 
 
-    VIEWHRS_SAVE_FP           := userzp
-    viewhrs_mainargs_arg1     := userzp+2
-    viewhrs_mainargs_argv     := userzp+4
-    viewhrs_mainargs_argc     := userzp+6
+    VIEWHRS_SAVE_FP                := userzp
+    viewhrs_mainargs_arg1          := userzp+2
+    viewhrs_mainargs_argv          := userzp+4
+    viewhrs_mainargs_argc          := userzp+6
     viewhrs_mainargs_arg_time      := userzp+8
     viewhrs_mainargs_time_activate := userzp+10
 
@@ -14,20 +14,12 @@
     lda     #$00
     sta     viewhrs_mainargs_time_activate
 
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-    sta     viewhrs_mainargs_argv
-    sty     viewhrs_mainargs_argv+1
-    stx     viewhrs_mainargs_argc
-
+    initmainargs viewhrs_mainargs_argv, viewhrs_mainargs_argc, 0
     cpx     #$01
     beq     usage_viewhrs                ; there is not parameter, jumps and displays str_man_error
 
-    ldx     #$01
-    lda     viewhrs_mainargs_argv
-    ldy     viewhrs_mainargs_argv+1
+    getmainarg #1, (viewhrs_mainargs_argv)
 
-    BRK_KERNEL XGETARGV
     sta     viewhrs_mainargs_arg1
     sty     viewhrs_mainargs_arg1+1
 
@@ -35,10 +27,7 @@
     cmp     #$04
     bne     open_and_display
 
-    ldx     #$02                    ; Get arg 2
-    lda     viewhrs_mainargs_argv
-    ldy     viewhrs_mainargs_argv+1
-    BRK_KERNEL XGETARGV
+    getmainarg #2, (viewhrs_mainargs_argv)
     sta     viewhrs_mainargs_arg_time
     sty     viewhrs_mainargs_arg_time+1
 
@@ -54,10 +43,7 @@
     cmp     #'t'
     bne     usage_viewhrs
 
-    ldx     #$03                    ; Get arg 3 (value of t)
-    lda     viewhrs_mainargs_argv
-    ldy     viewhrs_mainargs_argv+1
-    BRK_KERNEL XGETARGV
+    getmainarg #3, (viewhrs_mainargs_argv)
     sta     viewhrs_mainargs_arg_time
     sty     viewhrs_mainargs_arg_time+1
 
@@ -70,7 +56,6 @@
     inc     viewhrs_mainargs_time_activate ; Switch to 1
 
 open_and_display:
-
     fopen   (viewhrs_mainargs_arg1),O_RDONLY
 
     cpx     #$FF
@@ -86,11 +71,8 @@ usage_viewhrs:
     rts
 
 wait_viewhrs:
-
     ldx     viewhrs_mainargs_arg_time
-
     ldy     #$00
-
 @L2:
     jsr     wait_tmp
     jsr     wait_tmp
@@ -122,8 +104,8 @@ not_found:
 next:
     sta     VIEWHRS_SAVE_FP
     sty     VIEWHRS_SAVE_FP+1
-    SWITCH_OFF_CURSOR
-    BRK_KERNEL XHIRES
+    SWITCH_OFF_CURSOR ; FIXME macro
+    BRK_KERNEL XHIRES ; FIXME macro
 
     fread $A000, 8000, 1, VIEWHRS_SAVE_FP
 

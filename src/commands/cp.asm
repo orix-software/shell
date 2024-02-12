@@ -2,7 +2,7 @@
 
 
 ; Ne pas augmenter la taille car avec submit, cela fera trop
-CP_SIZE_OF_BUFFER=1000
+CP_SIZE_OF_BUFFER = 1000
 
 cp_mv_rm_argv_ptr       := userzp   ; 16 bits
 cp_mv_rm_argc           := userzp+2 ; 8 bits
@@ -20,8 +20,7 @@ cp_mv_fp_dest_nb_bytes  := userzp+14
     sta     cp_tmp
     jmp     _cp_mv_execute
 .endproc
-; d828
-; c166
+
 .proc _cp
     lda     #$00 ; don't Delete param1 file FIXME 65c02
     sta     cp_tmp
@@ -45,9 +44,6 @@ cp_mv_fp_dest_nb_bytes  := userzp+14
 @next:
   ; open first params
 ; $ffbd
-    XMAINARGS = $2C
-    XGETARGV =  $2E
-
     initmainargs cp_mv_rm_argv_ptr, cp_mv_rm_argc, 0
 
     cpx     #$03
@@ -56,29 +52,12 @@ cp_mv_fp_dest_nb_bytes  := userzp+14
     crlf
     rts
 
-
 allargs:
-
     getmainarg #1, (cp_mv_rm_argv_ptr)
-
-    ; ldx     #$01
-    ; lda     cp_mv_rm_argv_ptr
-    ; ldy     cp_mv_rm_argv_ptr+1
-
-    ; BRK_KERNEL XGETARGV
-
     sta     cp_mv_rm_save_argv_ptr
     sty     cp_mv_rm_save_argv_ptr+1
 
-
     getmainarg #2, (cp_mv_rm_argv_ptr)
-
-    ; ldx     #$02
-    ; lda     cp_mv_rm_argv_ptr
-    ; ldy     cp_mv_rm_argv_ptr+1
-
-    ; BRK_KERNEL XGETARGV
-
     sta     cp_mv_rm_save_argv_ptr2
     sty     cp_mv_rm_save_argv_ptr2+1
 
@@ -88,7 +67,6 @@ allargs:
     bne     arg2_not_empty
     print   error_second_arg_empty
     rts
-
 
 arg2_not_empty:
     fopen (cp_mv_rm_save_argv_ptr),O_RDONLY,,cp_mv_fp_src
@@ -101,29 +79,23 @@ arg2_not_empty:
 
 continue:
     fopen (cp_mv_rm_save_argv_ptr2),O_WRONLY|O_CREAT,,cp_mv_fp_dest
-
     cpx     #$FF
     bne     continue2
-
     cmp     #$FF
     bne     continue2
     jmp     no_such_file2
 
 continue2:
-
     malloc  #CP_SIZE_OF_BUFFER
-
     sta     MALLOC_PTR1
     sty     MALLOC_PTR1+1
     cmp     #$00
-    bne     @not_oom
+    bne     @loop_until_eof
     cpy     #$00
-    bne     @not_oom
+    bne     @loop_until_eof
     print   str_oom
     ; oom
     rts
-
-@not_oom:
 
 @loop_until_eof:
 
@@ -140,9 +112,8 @@ continue2:
     jmp     @copy_finished
 
 @continue_to_write:
-
     fwrite (MALLOC_PTR1), (cp_mv_fp_dest_nb_bytes), 1, cp_mv_fp_dest
-    jmp @loop_until_eof
+    jmp     @loop_until_eof
 
 @copy_finished:
     fclose(cp_mv_fp_src)
@@ -152,9 +123,11 @@ continue2:
     lda     cp_tmp
     beq     @out
 
-    lda     cp_mv_rm_save_argv_ptr2
-    ldx     cp_mv_rm_save_argv_ptr2+1
-    BRK_KERNEL XRM
+    unlink cp_mv_rm_save_argv_ptr2
+
+    ; lda     cp_mv_rm_save_argv_ptr2
+    ; ldx     cp_mv_rm_save_argv_ptr2+1
+    ; BRK_KERNEL XRM
     ; now remove file
 
 @out:
@@ -168,8 +141,6 @@ no_such_file:
     print   #'''
 
     print (cp_mv_rm_save_argv_ptr)
-
-
     lda     #$27
     BRK_KERNEL XWR0
 
@@ -185,8 +156,6 @@ no_such_file2:
     print   #'''
 
     print (cp_mv_rm_save_argv_ptr2)
-
-
     lda     #$27
     BRK_KERNEL XWR0
 

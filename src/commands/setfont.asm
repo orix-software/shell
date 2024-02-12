@@ -22,18 +22,13 @@
     setfont_mainargs_argc      := userzp+6
     setfont_mainargs_arg1_ptr  := userzp+8
 
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-    sta     setfont_mainargs_argv
-    sty     setfont_mainargs_argv+1
-    stx     setfont_mainargs_argc
+    initmainargs setfont_mainargs_argv, setfont_mainargs_argc, 0
 
     cpx     #$02
     beq     @continue
-
     jmp     usage
+
 @continue:
- ;   MALLOC .strlen(setfont_path)+FNAME_LEN+1+1
     malloc .strlen(setfont_path)+FNAME_LEN+1+1, userzp, str_oom
     cmp     #$00
     bne     @nooom
@@ -57,11 +52,7 @@
 
     jsr     _strcpy
 
-    ldx     #$01
-    lda     setfont_mainargs_argv
-    ldy     setfont_mainargs_argv+1
-
-    BRK_KERNEL XGETARGV
+    getmainarg #1, (setfont_mainargs_argv)
     sta     setfont_mainargs_arg1_ptr
     sty     setfont_mainargs_arg1_ptr+1
 
@@ -105,10 +96,7 @@
     ; FCLOSE 0
     ; mfree (setfont_fp)
 
-
-    lda     setfont_fp
-    ldy     setfont_fp+1
-    BRK_KERNEL XCLOSE
+    fclose (setfont_fp)
     mfree (userzp)
 
 
@@ -128,7 +116,7 @@
     crlf
 
     ; Code de retour
-    lda     #$ff
+    lda     #$FF
     tay
 
     rts
@@ -149,7 +137,7 @@
     mfree (userzp)
 
     ; Code de retour
-    lda     #$ff
+    lda     #$FF
     tay
 
     rts

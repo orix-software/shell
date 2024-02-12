@@ -18,6 +18,7 @@
 
 @myout:
     rts
+
 @scroll:
 
     ldy     #basic11_gui_struct::max_current_entries

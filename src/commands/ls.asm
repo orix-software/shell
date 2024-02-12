@@ -2,33 +2,66 @@
 
 ; Taille: $d3c6 -> $d7e0 := 1051 octets avec malloc
 ;         $d3c6 -> $d7b7 := 1010 sans malloc
-CH376_DIR_INFO_READ = $37
+CH376_DIR_INFO_READ      = $37
 
 ls_column_max            := userzp
 ls_column                := userzp+1
 ls_save_line_command_ptr := userzp+2 ; 2 bytes
 ls_file_found            := userzp+4
-ls_fp                    := userzp+7
-ls_file                  := userzp+9
-ls_mainargs              := userzp+11
-ls_arg                   := userzp+13
-ls_arg2                  := userzp+15
-ls_argc                  := userzp+17
+ls_mainargs              := userzp+5 ; Ne pas mettre 7, cela casse "ls *.txt" FIXME
+ls_arg                   := userzp+8
+ls_argc                  := userzp+10
+ls_pwd                   := userzp+12
+ls_fp                    := userzp+14
+ls_buffer_entry          := userzp+16
+ls_saveY                 := userzp+18
+ls_buffer_edt            := userzp+20
+ls_wilcard_buffer_ptr    := userzp+22
+ls_buffer_ptr            := userzp+24
 
 ; L'utilisation de malloc permet de mettre plusieurs noms de fichier en paramètre
 ;ls_use_malloc = 1
 
-
 .proc _ls
     lda     #$03
     sta     ls_column_max
-    BRK_KERNEL XGETCWD ; Return A and Y the string
 
 
-    sty     TR6
-    ldy     #O_RDONLY
-    ldx     TR6
-    BRK_KERNEL XOPEN
+
+    ; We use the same malloc for wildcard, filename and line to display
+    ; But we use different offset for the buffers
+    ; for wildcard and filename : ls_buffer_entry
+    ; for line to display : ls_buffer_edt
+    malloc 100  ; 13 + 32 (nb d'octets pour une entrée du CH376 :) + 15 pour le buffer de wildcard
+    sta     ls_buffer_entry
+    sty     ls_buffer_entry+1
+    sta     ls_wilcard_buffer_ptr
+    sty     ls_wilcard_buffer_ptr+1
+
+    ; compute ptr buffer for edt
+    sta     ls_buffer_edt
+    sty     ls_buffer_edt+1
+    clc
+    adc     #50
+    bcc     @no_inc_ls_buffer_edt
+    inc     ls_buffer_edt+1
+
+@no_inc_ls_buffer_edt:
+    sta     ls_buffer_edt
+
+    lda     ls_buffer_entry
+    clc
+    adc     #13+33
+    bcc     @no_inc_ls_wilcard_buffer_ptr
+    inc     ls_wilcard_buffer_ptr+1
+
+@no_inc_ls_wilcard_buffer_ptr:
+    sta     ls_wilcard_buffer_ptr
+
+    getcwd  ls_pwd
+
+    fopen (ls_pwd), O_RDONLY,,ls_fp
+
     cmp     #$FF
     bne     @free
 
@@ -40,44 +73,32 @@ ls_argc                  := userzp+17
     lda	    KERNEL_ERRNO
     cmp     #EIO
     bne     @failed_path
-    print  str_i_o_error, SAVE
+    print  str_i_o_error
     rts
 
 @failed_path:
 
-    lda     #<@str
-    ldy     #>@str
-    BRK_KERNEL XWSTR0
+    print   @str
     rts
+
 @str:
     .byte  "Unable to open current path",$0D,$0A,$00
 
     ; get A&Y
 @free:
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-
-    sta     ls_mainargs
-    sty     ls_mainargs+1
-    stx     ls_argc
+    initmainargs ls_mainargs, ls_argc, 0
 
     cpx     #$01
     beq     @set_bufnom_empty
 
+    getmainarg #1, (ls_mainargs)
 
-    ; Get arg 2
-    ldx     #$01
-    BRK_KERNEL XGETARGV
     sta     ls_arg
     sty     ls_arg+1
-    ;BRK_KERNEL XWSTR0
 
-
-
-
+    ; print (ls_arg)
     ; Prends le premier paramètre, retour avec C=0 si pas de paramètre, C=1 sinon
     ; ls_arg[0] = 0 si pas de paramètre
-
 
     ; Paramètre: -l ?
     ldy     #$00
@@ -91,39 +112,37 @@ ls_argc                  := userzp+17
     iny
     lda     (ls_arg),y
     bne     list
+
+    ;
     ; format long
-    lda     #$ff
+    lda     #$FF
     sta     ls_column_max
 
-
-
+    ; check if it's only ls -l ?
     lda     ls_argc
     cmp     #$02
-    beq     @set_bufnom_empty
-
-    lda     ls_mainargs
-    ldy     ls_mainargs+1
-    ldx     ls_argc
-
+    beq     @set_bufnom_empty ; Yes it's only ls -l
 
     ; Get arg 2
-    ldx     #$02
-    BRK_KERNEL XGETARGV
+
+    getmainarg #2, (ls_mainargs)
     sta     ls_arg
     sty     ls_arg+1
 
-
     jmp     list
+
 @set_bufnom_empty:
-    lda     #<BUFNOM
-    sta     ls_arg
-    lda     #>BUFNOM
-    sta     ls_arg+1
+    lda     ls_buffer_entry
+    sta     ls_buffer_ptr
+
+    lda     ls_buffer_entry+1
+    sta     ls_buffer_ptr+1
+
     lda     #$00
-    sta     BUFNOM
+    ldy     #$00
+    sta     (ls_buffer_entry),y
+
     jmp     no_arg_for_dash_l_option
-
-
 
 list:
     ; Potentiel buffer overflow ici
@@ -135,74 +154,55 @@ list:
 @loop_cpy:
     lda     (ls_arg),y
     beq     @EOS
-    sta     BUFNOM,y
+    sta     (ls_buffer_entry),y
 
     iny
     bne     @loop_cpy
 @EOS:
-    sta     BUFNOM,y
-
-
-
-@skip:
-
+    sta     (ls_buffer_entry),y
 
 no_arg_for_dash_l_option:
-.ifdef ls_use_malloc
-    malloc 13
+    lda     ls_wilcard_buffer_ptr
     sta     RESB
-    sty     RESB+1
-    ora     RESB
-    bne     copy_mask
-    jmp     error_oom
-    ;MALLOC 13
-    ; FIXME test OOM
-    ;TEST_OOM_AND_MAX_MALLOC
-    ;sta RESB
-    ;sty RESB+1
-.else
-    lda     bash_struct_command_line_ptr
-    sta     RESB
-    lda     bash_struct_command_line_ptr+1
+    lda     ls_wilcard_buffer_ptr+1
     sta     RESB+1
-.endif
 
 copy_mask:
-    ; Copie BUFNOM -> (RESB)
+    ; Copie ls_buffer_entry -> (RESB)
     ; Potentiel buffer overflow ici
     ; Il faudrait un STRNCPY
-    lda     #<BUFNOM
-    ldy     #>BUFNOM
+
+    lda     ls_buffer_entry
+    ldy     ls_buffer_entry+1
     sta     ls_save_line_command_ptr         ; ls_save_line_command_ptr: Cf Match
     sty     ls_save_line_command_ptr+1
 
     ; la destination, RESB, est déjà renseignée et AY contient l'adresse de la source
     strcpy , AY
 
-    ; RESB pointe toujours sur BUFEDT
+    ; RESB pointe toujours sur ls_buffer_entry
     jsr     WildCard
-.ifndef ls_use_malloc
 
-    bne Error       ; Il faut une autre erreur, ici c'est parce qu'il y a des caractères incorrects
-    ;bcc @ZZ0002     ; Pas de '?' ni de '*'
-.else
     beq     *+5
     jmp     Error
-.endif
-    bcs     all
 
-    lda     BUFNOM
+    bcc     all
+
+    ldy     #$00
+    lda     (ls_buffer_entry),y
     bne     ZZ0002
 
   all:
     lda     #'*'
-    sta     BUFNOM
-    lda     #$00
-    sta     BUFNOM+1
+    ldy     #$00
+    sta     (ls_buffer_entry),y
 
+    lda     #$00
+    iny
+    sta     (ls_buffer_entry),y
 
   ZZ0002:
-    jsr     _ch376_set_file_name
+    jsr     _set_filename_ls
     jsr     _ch376_file_open
     ; Au retour, on peut avoir USB_INT_SUCCESS ou USB_INT_DISK_READ)
 
@@ -212,9 +212,7 @@ copy_mask:
     ; $42 -> fichier inexistant (ERR_MISS_FILE)
 
     cmp     #CH376_ERR_MISS_FILE
-
     beq     Error
-
 
 nextme:
     ; Indique pas de fichier trouvé pour le moment
@@ -226,7 +224,7 @@ nextme:
     inx
     stx     ls_column
 
-    ; Ajuste le pointeur vers BUFNOM pour plus tard
+    ; Ajuste le pointeur vers ls_buffer_entry pour plus tard
     ; (le 1er caractère contient la couleur)
     inc     ls_save_line_command_ptr
     bne     *+4
@@ -252,14 +250,12 @@ ZZ1002:
 display_one_file_catalog:
     lda     #CH376_DIR_INFO_READ
     sta     CH376_COMMAND
-    lda     #$ff
+    lda     #$FF
     sta     CH376_DATA
     jsr     _ch376_wait_response
     cmp     #CH376_USB_INT_SUCCESS
 
-
-    bne     Error
-
+   ; bne     Error
 
 go:
     lda     #CH376_RD_USB_DATA0
@@ -267,67 +263,74 @@ go:
     lda     CH376_DATA
     cmp     #$20
     beq     ZZ0005
-
-.ifdef ls_use_malloc
-    ;FREE RESB
-    mfree (RESB)
-.endif
     rts
 
   ZZ0005:
+; @me:
+;     jmp     @me
     jsr     display_catalog
 
     ; display_one_file_catalog renvoie la valeur de _ch376_wait_response qui renvoie 1 en cas d'erreur
     ; et le CH376 ne renvoie pas de valeur 0
     ; donc le bne devient un saut inconditionnel!
-    ; jmp @ZZ0003
+
     bne     ZZ0003
 
   ZZ0004:
-    ;FREE RESB
-
-    crlf
-
     ; Erreur si aucun fichier trouvé
     lda     ls_file_found
-
     beq     Error
 
-.ifdef ls_use_malloc
     ;FREE RESB
-    mfree (RESB)
+    lda     ls_column_max
+    cmp     #$03
+    bne     @skip_crlf
+    crlf
+    ; lda     ls_file_found
+    ; beq     Error
+@skip_crlf:
 
-    ldx     ls_argc
-    inx
-    stx     s_argc
-    jsr     _orix_get_opt
-    bcc     ZZ0001
-    jmp     list
-.endif
+    ; lda     ls_file_found
+    ; beq     Error
 
   ZZ0001:
-
-
     rts
-
-
 
 ; ------------------------------------------------------------------------------
 Error:
-    print     txt_file_not_found
-    ;FREE RESB
-    print     BUFNOM
 
+     print     txt_file_not_found
+
+     print     (ls_arg)
 
 error_oom:
     crlf
-
-.ifdef ls_use_malloc
-    ;FREE RESB
-    mfree (RESB)
-.endif
     rts
 
+_set_filename_ls:
+    lda     #CH376_SET_FILE_NAME        ;$2f
+    sta     CH376_COMMAND
+    ldy     #$00
+
+loop300:
+    lda     (ls_buffer_entry),y
+    beq     end300                      ; we reached 0 value
+    cmp     #'a'                        ; 'a'
+    bcc     skip300
+    cmp     #$7B                        ; 'z'
+    bcs     skip300
+    sbc     #$1F
+skip300:
+   ; sta $bb80,x
+    sta     CH376_DATA
+    iny
+    cpy     #13                         ; because we don't manage longfilename shortname =13 8+3 and dot and \0
+    bne     loop300
+    lda     #$00
+end300:
+    sta     CH376_DATA
+
+    rts
 ; ------------------------------------------------------------------------------
 ; Entrée du catalogue:
 ;   Offset              Description
@@ -367,39 +370,47 @@ error_oom:
 ; ------------------------------------------------------------------------------
 display_catalog:
     lda     #COLOR_FOR_FILES
-    sta     BUFNOM
+
+    ldy     #$00
+    sta     (ls_buffer_entry),y
+
     ldy     #$01
 
   ZZ0007:
+
     lda     CH376_DATA
-    sta     BUFNOM,y
+    sta     (ls_buffer_entry),y
     iny
     cpy     #12
     bne     ZZ0007
 
     lda     CH376_DATA
     sta     TR0         ; Sauvegarde l'attribut pour plus tard
-;    cmp #$10
-;    bne @ZZ0012
+
 
     and     #$10
     beq     ZZ0012
 
     lda     #COLOR_FOR_DIRECTORY
-;    clc
-;    adc #$40
-    sta     BUFNOM
+
+
+    sty     ls_saveY
+
+    ldy     #$00
+    sta     (ls_buffer_entry),y
+    ldy     ls_saveY
 
   ZZ0012:
     lda     #$00
-    sta     BUFNOM,Y
 
+    sta     (ls_buffer_entry),y
 
     ldx     #$14
 
   ZZ0013:
     lda     CH376_DATA
-    sta BUFEDT+1,y
+    ;sta     BUFEDT+1,y
+    sta     (ls_buffer_edt),y
     iny
     dex
     bpl     ZZ0013
@@ -407,11 +418,16 @@ display_catalog:
     jsr     Match
     bne     ZZ0014
 
-    lda     BUFNOM
+    ldy     #$00
+    lda     (ls_buffer_entry),y
+
     cmp     #'.'
     beq     ZZ0014
 
-    lda     BUFNOM+1
+    iny
+    lda     (ls_buffer_entry),y
+
+
     cmp     #'.'
     beq     ZZ0015
 
@@ -435,40 +451,38 @@ display_catalog:
 
     lda     ls_column_max
     sta     ls_column
-    bne ZZ0016
+    bne     ZZ0016
 
 _verbose:
     ; Affiche l'attribut
     lda     TR0
-    ; jsr PrintHexByte
     jsr     PrintFileAttr
 
   ZZ0016:
 
-    ; PRINT BUFNOM
-;    ldy #$ff
     ldy     #$00
     ldx     #$00
 
     ; Affiche directement la couleur
     ; Ne doit pas être 0
-    lda     BUFNOM,y
+    lda     (ls_buffer_entry),y
     bne     skip
 
   loop:
     iny
-    lda BUFNOM,y
-    beq end
 
-    cmp #' '
-    beq loop
 
-    cpy #$09
-    bne suite
+    lda     (ls_buffer_entry),y
+    beq     end
+
+    cmp     #' '
+    beq     loop
+
+    cpy     #$09
+    bne     suite
 
     pha
-;    CPUTC '.'
-    print #'.'
+    print     #'.'
     pla
     inx
 
@@ -500,28 +514,27 @@ _verbose:
 
 
   ZZ0017:
-    cpx #13
-    beq ZZ0018
+    cpx     #13
+    beq     ZZ0018
 
     inx
-;    CPUTC ' '
-    print #' '
-    jmp ZZ0017
+    print     #' '
+    jmp     ZZ0017
 
   ZZ0018:
-    lda ls_column_max
-    bpl ZZ0014
+    lda     ls_column_max
+    bpl     ZZ0014
 
-    jsr ls_display_date_size
+    jsr     ls_display_date_size
 
   ZZ0015:
   ZZ0014:
-    asl KBDCTC
-    bcs  display_catalog_end
+    asl     KBDCTC
+    bcs     display_catalog_end
 
-    lda #CH376_FILE_ENUM_GO
-    sta CH376_COMMAND
-    jsr _ch376_wait_response
+    lda     #CH376_FILE_ENUM_GO
+    sta     CH376_COMMAND
+    jsr     _ch376_wait_response
 
  display_catalog_end:
     rts
@@ -549,23 +562,18 @@ _verbose:
 .proc WildCard
 
     ; Initialise le buffer: '***********'
-    lda #'*'
-    ldy #11-1
+    lda     #'*'
+    ldy     #11-1
 
 loop:
-    sta (RESB),y
+    sta     (RESB),y
     dey
-    bpl loop
-
-; Pas de '.' renvoyé par le CH376
-;    lda #'.'
-;    ldy #$08
-;    sta (RESB),y
+    bpl     loop
 
     ; ajoute un NULL à la fin du buffer
-    lda #$00
-    ldy #12-1
-    sta (RESB),y
+    lda     #$00
+    ldy     #12-1
+    sta     (RESB),y
 
     ; X: Pointeur dans le buffer résultat
     ; Y: Pointeur dans le buffer source
@@ -573,119 +581,116 @@ loop:
     ldy     #$00
 
     ; Si masque vide <-> *.*
-    lda (RES),y
-    beq extension_star
+    lda     (RES),y
+    beq     extension_star
 
 fill_name:
-    lda (RES),y
-    beq end_mask
-;    cmp #'?'
-;    beq name_next
-    cmp #'*'
-    beq name_star
-    cmp #'.'
-    beq extension
+    lda     (RES),y
+    beq     end_mask
+
+    cmp     #'*'
+    beq     name_star
+    cmp     #'.'
+    beq     extension
 
     ; Nombre de caractères maximal pour le nom >=8?
-    cpx #08
-    beq error_too_many_characters_name
+    cpx     #$08
+    beq     error_too_many_characters_name
 
     ; Ajoute le caractère au masque si il est valide
-    jsr add_char
-    bcs error_invalid
+    jsr     add_char
+    bcs     error_invalid
 
 name_next:
     inx
     iny
-    bne fill_name
+    bne     fill_name
     ; Ne doit pas arriver, mais au cas où...
-    beq error_too_many_characters
+    beq     error_too_many_characters
 
     ; On a vu une '*', on cherche le '.'
 name_star:
     ; Place le pointeur de RESB au niveau début de l'extension
-    ldx #08
+    ldx     #08
 @loop:
     iny
     ; Ne doit pas arriver, mais au cas où...
-    beq error_too_many_characters
-    lda (RES),y
-    beq end_mask
-    cmp #'.'
-    beq extension
-    bne @loop
+    beq     error_too_many_characters
+    lda     (RES),y
+    beq     end_mask
+    cmp     #'.'
+    beq     extension
+    bne     @loop
 
     ; On a vu un '.'
 extension:
     iny
-    cpx #08
-    beq fill_extension
+    cpx     #$08
+    beq     fill_extension
     ; Sauvegarde Y et complète le nom avec des ' '
-    sty TR0
+    sty     TR0
     txa
     tay
-    lda #' '
+    lda     #' '
 @loop:
-    sta (RESB),y
+    sta     (RESB),y
     iny
-    cpy #$08
-    bne @loop
+    cpy     #$08
+    bne     @loop
     ; Restaure X et Y
     tya
     tax
-    ldy TR0
+    ldy     TR0
 
 fill_extension:
-    lda (RES),y
-    beq end_mask
-;    cmp #'?'
-;    beq extension_next
-    cmp #'*'
-    beq extension_star
-    cmp #'.'
-    beq error_invalid
+    lda     (RES),y
+    beq     end_mask
+    cmp     #'*'
+    beq     extension_star
+    cmp     #'.'
+    beq     error_invalid
 
     ; Nombre de caractères maximal pour le nom+extension >=12?
-    cpx #12
-    beq error_too_many_characters_ext
+    cpx     #12
+    beq     error_too_many_characters_ext
 
     ; Ajoute le caractère au masque si il est valide
-    jsr add_char
-    bcs error_invalid
+    jsr     add_char
+    bcs     error_invalid
 
 extension_next:
     inx
     iny
-    bne fill_extension
+    bne     fill_extension
     ; Ne doit pas arriver, mais au cas où...
-    beq error_too_many_characters
+    beq     error_too_many_characters
 
     ; Complète le masque avec des ' '
 end_mask:
-    cpx #12-1
-    bcs extension_star
+    cpx     #12-1
+    bcs     extension_star
     txa
     tay
-    lda #' '
+    lda     #' '
 @loop:
-    sta (RESB),y
+    sta     (RESB),y
     iny
-    cpy #12-1
-    bne @loop
+    cpy     #12-1
+    bne     @loop
 
     ; On arrive ici si l'extension se termine par '*' ou via end_mask
 extension_star:
-    ; Vérifie si on a utiliser un caractère joker
-;    lda #'?'
-    ldy #11-1
+    ; Vérifie si on a utilisé un caractère joker
+
+    ldy     #11-1
 check:
-    lda (RESB),y
-    cmp #'?'
-    beq wild_found
-    cmp #'*'
-    beq wild_found
+    lda     (RESB),y
+    cmp     #'?'
+    beq     wild_found
+    cmp     #'*'
+    beq     wild_found
     dey
-    bpl check
+    bpl     check
     ; N=1, Z=0, C=1, Y=$FF
     iny
     ; Laisser C=1 si on veut quand même faire un ls * avec vérification du modèle
@@ -702,16 +707,19 @@ wild_found:
 
     ; Erreur: Z=0, A=erreur
 error_invalid:
-    lda #$01
+    lda     #$01
     rts
+
 error_too_many_characters:
-    lda #$02
+    lda     #$02
     rts
+
 error_too_many_characters_name:
-    lda #$03
+    lda     #$03
     rts
+
 error_too_many_characters_ext:
-    lda #$04
+    lda     #$04
     rts
 
 .endproc
@@ -740,54 +748,41 @@ error_too_many_characters_ext:
 ;----------------------------------------------------------------------
 .proc add_char
     ; Caractères '-', '_' ou '?' autorisés
-    cmp #'-'
-    beq ok
-    cmp #'_'
-    beq ok
-    cmp #'?'
-    beq ok
+    cmp     #'-'
+    beq     ok
+    cmp     #'_'
+    beq     ok
+    cmp     #'?'
+    beq     ok
 
     ; Caractère numérique?
-    cmp #'0'
-    bcc error
-    cmp #'9'+1
-    bcc ok
+    cmp     #'0'
+    bcc     error
+    cmp     #'9'+1
+    bcc     ok
 
 ; Pour forcer le caractère en majuscule
-    cmp #'A'
-    bcc error
-    cmp #'Z'+1
-    bcc ok
+    cmp     #'A'
+    bcc     error
+    cmp     #'Z'+1
+    bcc     ok
 
-    cmp #'a'
-    bcc error
-    cmp #'z'+1
-    bcs error
-    and #$DF
-;    bne ok
-
-; Pour forcer le caractère en minuscule
-;    cmp #'z'+1
-;    bcs Erreur
-;    cmp #'a'
-;    bcs ok
-;
-;    cmp #'A'
-;    bcc Erreur
-;    cmp #'Z'+1
-;    bcs Erreur
-;    ora #$20
+    cmp     #'a'
+    bcc     error
+    cmp     #'z'+1
+    bcs     error
+    and     #$DF
 ;    bne ok
 
 ; Ajoute le caractère au tampon
 ok:
     pha
-    sty TR0
+    sty     TR0
     txa
     tay
     pla
-    sta (RESB),y
-    ldy TR0
+    sta     (RESB),y
+    ldy     TR0
 
     clc
     rts
@@ -814,33 +809,33 @@ error:
 ;
 ; ------------------------------------------------------------------------------
 .proc Match
-    ldy #$ff
+    ldy     #$ff
 
   @loop:
     iny
 
     ; Fin du masque?
-    lda (RESB),y
-    beq @end
+    lda     (RESB),y
+    beq     @end
 
     ; Caractères identiques?
-    cmp (ls_save_line_command_ptr),y
-    beq @loop
+    cmp     (ls_save_line_command_ptr),y
+    beq     @loop
 
     ; Si le masque est '*', on passe au caractère suivant
-    cmp #'*'
-    beq @loop
+    cmp     #'*'
+    beq     @loop
 
     ; Si le masque est '?', il faut un caractère qui ne soit pas un ' '
-    cmp #'?'
-    bne @end
+    cmp     #'?'
+    bne     @end
 
-    lda (ls_save_line_command_ptr),y
-    cmp #' '
-    bne @loop
+    lda     (ls_save_line_command_ptr),y
+    cmp     #' '
+    bne     @loop
 
     ; Force Z=0 (pas de concordance, replcae le dernier caractère testé dans ACC)
-    lda #'?'
+    lda     #'?'
 
     ; Si on veut vérifier que la chaîne fait la même longueur que le masque
     ; (pas valable ici, les noms de fichiers sont complétés avec des ' ')
@@ -864,31 +859,19 @@ error:
 .proc ls_display_date_size
     ; Sauvegarde RES-RESB
     ; Sauvegarde ls_save_line_command_ptr-ls_save_line_command_ptr+1 (pour Match)
-;;    lda RES
-;;    pha
-;;    lda RES+1
-;;    pha
-    lda RESB
+
+    lda     RESB
     pha
-    lda RESB+1
+    lda     RESB+1
     pha
-;    lda ls_save_line_command_ptr
-;    pha
-;    lda ls_save_line_command_ptr+1
-;    pha
-    jsr ls_display_size
-;    pla
-;    sta ls_save_line_command_ptr+1
-;    pla
-;    sta ls_save_line_command_ptr
+
+    jsr     ls_display_size
+
     pla
-    sta RESB+1
+    sta     RESB+1
     pla
-    sta RESB
-;;    pla
-;;    sta RES+1
-;;    pla
-;;    sta RES
+    sta     RESB
+
 
     jmp ls_display_date
 
@@ -912,40 +895,41 @@ error:
 ;
 ; ------------------------------------------------------------------------------
 .proc ls_display_date
-   CPUTC ' '
-;    print #' '
-;    ; Encre blanche
-;    lda #$87
-;    BRK_ORIX XWR0
+    print #' '
 
+    ; Encre blanche
 
     ; $07bc = 1980
-    lda #$bc
-    sta TR0
-    lda #$07
-    sta TR1
+    lda     #$BC
+    sta     TR0
+    lda     #$07
+    sta     TR1
 
-    ldy #$0c
-    lda BUFEDT+14,y
+
+
+    ldy     #$0C+13
+    lda     (ls_buffer_edt),y
+
+    ;ldy     #$0C
+   ; lda     BUFEDT+14,y
     lsr
     php
 
     clc
-    adc TR0
+    adc     TR0
     ; sta TR0
-    bcc *+4
-    inc TR1
-    ldx #$10
-    jsr Bin2BCD
+    bcc     *+4
+    inc     TR1
+    ldx     #$10
+    jsr     Bin2BCD
 
-;    CPUTC '-'
-    print #'-'
+    print     #'-'
 
-;    lda #$00
-;    sta TR1
 
-;    ldy #$0c
-    lda BUFEDT+13,y
+    ldy     #$0C+12
+    lda     (ls_buffer_edt),y
+
+  ;  lda     BUFEDT+13,y
     plp
     ror
     lsr
@@ -953,52 +937,49 @@ error:
     lsr
     lsr
 
-    jsr Bin2BCD
+    jsr     Bin2BCD
 
-;    CPUTC '-'
-    print #'-'
+    print     #'-'
 
-;    ldy #$0c
-    lda BUFEDT+13,y
-    and #$1f
-    jsr Bin2BCD
+    ldy     #$0C+12
+    lda     (ls_buffer_edt),y
 
-;    CPUTC ' '
-;    CPUTC ' '
-;    print #' ', NOSAVE
-    print #' '
+   ; lda     BUFEDT+13,y
+    and     #$1f
+    jsr     Bin2BCD
 
-    lda BUFEDT+12,y
+    print     #' '
+    ldy     #$0C+11
+    lda     (ls_buffer_edt),y
+
+  ;  lda     BUFEDT+12,y
     lsr
     lsr
     lsr
-    jsr Bin2BCD
+    jsr     Bin2BCD
 
-;    CPUTC ':'
     print #':'
-    lda BUFEDT+12,y
-    and #$07
-    sta TR1
-    lda BUFEDT+11,y
-    and #$e0
+    ldy     #$0C+11
+    lda     (ls_buffer_edt),y
+
+   ; lda     BUFEDT+12,y
+    and     #$07
+    sta     TR1
+    ldy     #$0C+1
+    lda     (ls_buffer_edt),y
+   ; lda     BUFEDT+11,y
+    and     #$E0
     clc
-    ror TR1
+    ror     TR1
     ror
-    ror TR1
+    ror     TR1
     ror
-    ror TR1
+    ror     TR1
     ror
     ror
     ror
 
-; Nécessaire uniquement pour afficher les secondes
-;    jsr Bin2BCD
-;
-;;    CPUTC ':'
-;    print #':', NOSAVE
-;    lda BUFEDT+12,y
-;    and #$1f
-;    asl
+    ; Continue without RTS (to Bin2BCD)
 .endproc
 
 ; ------------------------------------------------------------------------------
@@ -1014,41 +995,41 @@ error:
     ;      X: $00
     ;      Y: Inchangé
     ;      A: Modifié
-    sta TR0
-    lda #$00
-    sta TR4
-    sta TR5
-    sta TR6
+    sta     TR0
+    lda     #$00
+    sta     TR4
+    sta     TR5
+    sta     TR6
 
-    ldx #$10
+    ldx     #$10
     sed
   @loop:
-    asl TR0
-    rol TR0+1
+    asl     TR0
+    rol     TR0+1
 
-    lda TR4
-    adc TR4
-    sta TR4
+    lda     TR4
+    adc     TR4
+    sta     TR4
 
-    lda TR4+1
-    adc TR4+1
-    sta TR4+1
+    lda     TR4+1
+    adc     TR4+1
+    sta     TR4+1
 
-    lda TR4+2
-    adc TR4+2
-    sta TR4+2
+    lda     TR4+2
+    adc     TR4+2
+    sta     TR4+2
 
     dex
-    bne @loop
+    bne     @loop
     cld
 
-    lda TR6
-    beq *+5
-    jsr PrintHexByte
-    lda TR5
-    beq *+5
-    jsr PrintHexByte
-    lda TR4
+    lda     TR6
+    beq     *+5
+    jsr     PrintHexByte
+    lda     TR5
+    beq     *+5
+    jsr     PrintHexByte
+    lda     TR4
 .endproc
 
 ; ------------------------------------------------------------------------------
@@ -1062,17 +1043,17 @@ error:
     lsr
     lsr
     lsr
-    jsr Hex2Asc
+    jsr     Hex2Asc
 
     ;Low nibble
     pla
-    and #$0f
+    and     #$0F
 
 Hex2Asc:
-    ora #$30
-    cmp #$3a
-    bcc *+4
-    adc #$06
+    ora     #$30
+    cmp     #$3A
+    bcc     *+4
+    adc     #$06
     BRK_KERNEL XWR0
     rts
 .endproc
@@ -1082,21 +1063,21 @@ Hex2Asc:
 ; ------------------------------------------------------------------------------
 .proc PrintFileAttr
     pha
-    and #$10
-    beq @attr_nodir
-    lda #'d'
-    .byte $2c
+    and     #$10
+    beq     @attr_nodir
+    lda     #'d'
+    .byte   $2C
   @attr_nodir:
-    lda #'-'
-    BRK_KERNEL XWR0
+    print   #'-'
     pla
     lsr
-    bcc @attr_rw
-    lda #'r'
+    bcc     @attr_rw
+    lda     #'r'
     .byte $2c
   @attr_rw:
-    lda #'-'
-    BRK_KERNEL XWR0
+    print   #'-'
+    ; lda     #'-'
+    ; BRK_KERNEL XWR0
     rts
 .endproc
 
@@ -1104,40 +1085,53 @@ Hex2Asc:
 ;
 ; ------------------------------------------------------------------------------
 .proc ls_display_size
-;    CPUTC ' '
+
     ; Encre blanche
-    lda #$87
+    lda     #$87
     BRK_KERNEL XWR0
 
     ; Copie la taille du fichier en RES-RESB
-    ldy #$03
+    ldx     #$03
+    ldy     #19+$0C
  @loop:
-    lda BUFEDT+17+$0C,y
-    sta RES,y
+    ;sty     ls_saveY
+    lda     (ls_buffer_edt),y
+    ;lda     BUFEDT+17+$0C,x
+    sta     RES,x
+    dex
     dey
-    bpl @loop
+    bpl     @loop
 
     ; Conversion en BCD
-    jsr convd
+    jsr     convd
 
     ; Conversion en chaine
-    lda #<(BUFEDT+17+$0C+4)
-    ldy #>(BUFEDT+17+$0C+4)
-    jsr bcd2str
+
+    ldy     ls_buffer_edt+1
+    lda     ls_buffer_edt
+    clc
+    adc     #17+$0C+4
+    bcc     @no_inc_offset_size
+    iny
+@no_inc_offset_size:
+
+    ;lda     #<(BUFEDT+17+$0C+4)
+    ;ldy     #>(BUFEDT+17+$0C+4)
+    jsr     bcd2str
 
     ; Remplace les '0' non significatifs par des ' '
-    ldy #$ff
-    ldx #' '
+    ldy     #$FF
+    ldx     #' '
   @skip:
     iny
-    cpy #$09
-    beq @display
-    lda (RES),y
-    cmp #'0'
-    bne @display
+    cpy     #$09
+    beq     @display
+    lda     (RES),y
+    cmp     #'0'
+    bne     @display
     txa
-    sta (RES),y
-    bne @skip
+    sta     (RES),y
+    bne     @skip
 
   @display:
     ; On saute les espaces du début
@@ -1152,13 +1146,13 @@ Hex2Asc:
      ; Taille maximale: < 9 999 999
      ; donc on saute les 3 premiers caractères
     clc
-    lda #$03
-    adc RES
-    sta RES
-    bcc *+4
-    inc RES+1
+    lda     #$03
+    adc     RES
+    sta     RES
+    bcc     *+4
+    inc     RES+1
 
-    print (RES), SAVE
+    print   (RES)
     rts
 .endproc
 
@@ -1177,26 +1171,26 @@ MSB  = NMSB+1
 ;    TR0-TR4: Valeur en BCD
 ;
 ; ------------------------------------------------------------------------------
-BCDA = (TR0-$FB) & $ff ; = $0C
+BCDA = (TR0-$FB) & $FF ; = $0C
 
 .proc convd
-        ldx #$04          ; Clear BCD accumulator
-        lda #$00
+        ldx     #$04          ; Clear BCD accumulator
+        lda     #$00
 
     BRM:
-        sta TR0,x        ; Zeros into BCD accumulator
+        sta     TR0,x        ; Zeros into BCD accumulator
         dex
-        bpl BRM
+        bpl     BRM
 
-        sed               ; Decimal mode for add.
+        sed                  ; Decimal mode for add.
 
-        ldy #$20          ; Y has number of bits to be converted
+        ldy     #$20         ; Y has number of bits to be converted
 
     BRN:
-        asl LSB           ; Rotate binary number into carry
-        rol NLSB
-        rol NMSB
-        rol MSB
+        asl     LSB          ; Rotate binary number into carry
+        rol     NLSB
+        rol     NMSB
+        rol     MSB
 
 ;-------
 ; Pour MSB en premier dans BCDA
@@ -1212,17 +1206,17 @@ BCDA = (TR0-$FB) & $ff ; = $0C
 ;-------
 ; Pour LSB en premier dans BCDA
 
-        ldx #$fb          ; X will control a five byte addition.
+        ldx     #$FB          ; X will control a five byte addition.
 
     BRO:
-        lda BCDA,x    ; Get least-signficant byte of the BCD accumulator
-        adc BCDA,x    ; Add it to itself, then store.
-        sta BCDA,x
+        lda     BCDA,x    ; Get least-signficant byte of the BCD accumulator
+        adc     BCDA,x    ; Add it to itself, then store.
+        sta     BCDA,x
         inx               ; Repeat until five byte have been added
-        bne BRO
+        bne     BRO
 
         dey               ; et another bit rom the binary number.
-        bne BRN
+        bne     BRN
 
         cld               ; Back to binary mode.
         rts               ; And back to the program.
@@ -1236,41 +1230,39 @@ BCDA = (TR0-$FB) & $ff ; = $0C
 ;
 ; ------------------------------------------------------------------------------
 .proc bcd2str
-	sta RES
-	sty RES+1
 
-	ldx #$04          ; Nombre d'octets à convertir
-	ldy #$00
+	sta     RES
+	sty     RES+1
+
+	ldx     #$04          ; Nombre d'octets à convertir
+	ldy     #$00
 ;	clc
 
 @loop:
 	; BCDA: LSB en premier
-	lda TR0,X
+	lda     TR0,x
 	pha
 	; and #$f0
 	lsr
 	lsr
 	lsr
 	lsr
-;	clc
-	ora #'0'
-	sta (RES),Y
+
+	ora     #'0'
+	sta     (RES),Y
 
 	pla
-	and #$0f
-	ora #'0'
+	and     #$0F
+	ora     #'0'
 	iny
-	sta (RES),y
+	sta     (RES),y
 
 	iny
 	dex
-	bpl @loop
+	bpl     @loop
 
-	lda #$00
-	sta (RES),y
-	; lda RES
-	; ldy RES+1
+	lda     #$00
+	sta     (RES),y
+
 	rts
 .endproc
-
-

@@ -1,19 +1,16 @@
 .include "zeropage.inc"
 
-
-
 .export _meminfo
 
    meminfo_ptr_malloc     := userzp
    meminfo_tmp1           := userzp+2
-
 
 .proc _meminfo
 
     print strMemTotal
 
     ldx     #XVARS_KERNEL_MALLOC ; Get adress struct of malloc from kernel
-    BRK_ORIX(XVARS)
+    BRK_KERNEL(XVARS)
     sta     meminfo_ptr_malloc
     sty     meminfo_ptr_malloc+1
     ldy     #(kernel_malloc_struct::kernel_malloc_max_memory_main)

@@ -4,6 +4,8 @@
     ; routine used for some debug
     print   str_cpu
     jsr     _getcpu
+    cmp     #CPU_65816
+    beq     @is65c816
     cmp     #CPU_65C02
     bne     @is6502
     print   str_65C02
@@ -12,15 +14,20 @@
     bra     @next        ; At this step we are sure that it's a 65C02, so we use its opcode :)
 .p02
 @is6502:
-
     print   str_6502
+    jmp     @debug_next
+
+@is65c816:
+    print   str_65c816
+
+@debug_next:
 	crlf
+
 @next:
     print   str_ch376
     jsr     _ch376_ic_get_ver
     BRK_KERNEL XWR0
     crlf
-
 
     print   str_ch376_check_exist
     jsr     _ch376_check_exist
@@ -34,14 +41,15 @@
     jsr     mount_key
     crlf
 
-    lda     #$09
-    ldy     #$02
+    ; FIXME macro
 
-    BRK_KERNEL XMALLOC
+    malloc  #$209
+
     ; A & Y are the ptr here
     BRK_KERNEL XFREE
 
     rts
+
 mount_sdcard:
     lda     #CH376_SET_USB_MODE ; $15
     sta     CH376_COMMAND
@@ -54,6 +62,7 @@ mount_sdcard:
     beq 	ok
     print   str_error_sdcard
     rts
+
 ok:
     print   str_ok_sdcard
     rts
@@ -71,25 +80,32 @@ mount_key:
     beq 	ok2
     print   str_error_key
     rts
+
 ok2:
     print   str_ok_key
     rts
 
+str_65c816:
+    .asciiz "65c816"
 
 str_error_sdcard:
     .asciiz "sdcard mount error !  "
+
 str_ok_sdcard:
     .asciiz "sdcard mount OK !  "
 
 str_error_key:
     .asciiz "key mount error !  "
+
 str_ok_key:
     .asciiz "key mount OK !  "
 
 str_ch376:
     .asciiz "CH376 VERSION : "
+
 str_ch376_check_exist:
     .asciiz "CH376 CHECK EXIST : "
+
 str_cpu:
     .asciiz "CPU: "
 .endproc

@@ -110,51 +110,47 @@ df_suite:
 	lda     userzp+4
 	sta     RESB
 	lda     userzp+5
-	sta RESB+1
-	jsr convd
+	sta     RESB+1
+	jsr     convd
 
 	clc
-	lda userzp
-	adc #$0b
-	ldy userzp+1
-	bcc *+3
+	lda     userzp
+	adc     #$0b
+	ldy     userzp+1
+	bcc     *+3
 	iny
-	jsr bcd2str
+	jsr     bcd2str
 	; Remplace le caractère nul par un ' '
-	lda #' '
-	sta (RES),y
+	lda     #' '
+	sta     (RES),y
 
-	jsr display_size
+	jsr     display_size
 
-	print (userzp), SAVE
-
-
+	print (userzp)
 	mfree (userzp)
 
 	; Récupère le périphérique de root
-	ldx #XVARS_KERNEL_CH376_MOUNT
+	ldx     #XVARS_KERNEL_CH376_MOUNT
 	BRK_KERNEL XVARS
-	sta userzp
-	sty userzp+1
-	ldy #$00
-	lda (userzp),y
-
+	sta     userzp
+	sty     userzp+1
+	ldy     #$00
+	lda     (userzp),y
 	tax
-	lda #<str_sda1
-	ldy #>str_sda1
+	lda     #<str_sda1
+	ldy     #>str_sda1
 	; SDCARD?
-	cpx #$03
+	cpx     #$03
 	beq print_device
-	lda #<str_usb1
-	ldy #>str_usb1
-print_device:
-	BRK_KERNEL XWSTR0
+	lda     #<str_usb1
+	ldy     #>str_usb1
 
+print_device:
+    BRK_KERNEL XWSTR0
 
 df_end:
-	crlf
-	rts
-
+    crlf
+    rts
 
 ;----------------------------------------------------------------------
 ;		Suppression des '0' non significatifs
@@ -162,37 +158,31 @@ df_end:
 
 display_size:
     ; Remplace les '0' non significatifs par des ' '
-    ldy #$ff
-    ldx #' '
+    ldy     #$FF
+    ldx     #' '
   @skip:
     iny
-    cpy #$09
-    beq @display
-    lda (RES),y
-    cmp #'0'
-    bne @display
+    cpy     #$09
+    beq     @display
+    lda     (RES),y
+    cmp     #'0'
+    bne     @display
     txa
-    sta (RES),y
-    bne @skip
+    sta     (RES),y
+    bne     @skip
 
   @display:
-
-
      ; La chaine fait 10 caractères
      ; Taille maximale: < 999 999
      ; donc on saute les 4 premiers caractères
 .if 0
     clc
-    lda #$04
-    adc RES
-    sta RES
-    bcc *+4
-    inc RES+1
-
-
+    lda     #$04
+    adc     RES
+    sta     RES
+    bcc     *+4
+    inc     RES+1
 .endif
-
-
     rts
 
 
@@ -212,5 +202,3 @@ str_usb1:
     .asciiz "usb1"
 
 .endproc
-
-

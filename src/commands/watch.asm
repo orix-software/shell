@@ -9,11 +9,7 @@
     watch_mainargs_arg1_ptr := userzp+10 ; 2 bytes
     watch_save_bank         := userzp+12
 
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
-    sta     watch_mainargs_argv
-    sty     watch_mainargs_argv+1
-    stx     watch_mainargs_argc
+    initmainargs watch_mainargs_argv, watch_mainargs_argc, 0
 
     malloc 100
     sta     save_mainargs_ptr
@@ -23,11 +19,7 @@
 
     beq     @usage
 
-    ldx     #$01
-    lda     watch_mainargs_argv
-    ldy     watch_mainargs_argv+1
-
-    BRK_KERNEL XGETARGV
+    getmainarg #1, (watch_mainargs_argv)
     sta     watch_mainargs_arg1_ptr
     sty     watch_mainargs_arg1_ptr+1
 
@@ -48,17 +40,15 @@
 
     mfree   (watch_mainargs_argv)
 
-    lda     save_mainargs_ptr
-    ldy     save_mainargs_ptr+1
-    BRK_KERNEL XWSTR0
+    print (save_mainargs_ptr)
+
+
     SWITCH_OFF_CURSOR
 @L1:
     asl     KBDCTC
     bcc     @no_ctrl
 
     SWITCH_ON_CURSOR
-
-
     rts
 
 @no_ctrl:
@@ -66,7 +56,6 @@
 
     lda     save_mainargs_ptr
     ldy     save_mainargs_ptr+1
-
     jsr     _bash
 
 
@@ -83,16 +72,12 @@
     jmp     @L1
 
 @notfound:
-    lda     save_mainargs_ptr
-    ldy     save_mainargs_ptr+1
-    BRK_KERNEL XWSTR0
+    print   save_mainargs_ptr
     print str_not_found
     rts
 
 @usage:
     rts
-
-
 
 @wait:
     ldy     #$00

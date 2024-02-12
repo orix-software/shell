@@ -10,24 +10,17 @@
     mkdir_arg          := userzp+14
 
 .proc _mkdir
-    lda     #$00 ; return args with cut
-    BRK_KERNEL XMAINARGS
 
-    sta     mkdir_mainargs_ptr
-    sty     mkdir_mainargs_ptr+1
-    stx     mkdir_argc
+    initmainargs mkdir_mainargs_ptr, mkdir_argc, 0
     cpx     #$01
     beq     @missing_operand
 
-    ldx     #$01 ; get arg 2 ; Get the third param
-    lda     mkdir_mainargs_ptr
-    ldy     mkdir_mainargs_ptr+1
-
-    BRK_KERNEL XGETARGV
+    getmainarg #1, (mkdir_mainargs_ptr)
     sta     mkdir_arg
     sty     mkdir_arg+1
 
     ldy     #$00
+
 @L20:
     lda     (mkdir_arg),y
     beq     @out20
@@ -35,6 +28,7 @@
     beq     @slash_found
     iny
     bne     @L20
+
 @out20:
     lda     mkdir_arg
     ldy     mkdir_arg+1
@@ -42,9 +36,11 @@
     BRK_KERNEL XMKDIR
     BRK_KERNEL XCLOSE ; ???
     rts
+
 @slash_found:
     print str_arg_not_managed_yet
     rts
+
 @missing_operand:
     print str_mkdir
     print str_missing_operand

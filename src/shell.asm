@@ -59,9 +59,6 @@ STORE_CURRENT_DEVICE :=$99
 ;                       Defines / Constants
 ;----------------------------------------------------------------------
 
-XMAINARGS       = $2C
-XGETARGV        = $2E
-
 RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
 
 .include   "build.inc"
@@ -220,6 +217,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         ; lda     bash_struct_command_line_ptr
         ; ldy     bash_struct_command_line_ptr+1
         ; BRK_KERNEL XEXEC
+        ldx     #$00
         exec (bash_struct_command_line_ptr)
         jsr     external_cmd
         jmp     loop
@@ -231,7 +229,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
         lda     (bash_struct_ptr),y
         beq     @shell_extension_not_loaded
         ; Disable for bug : Quannd on lance bootcfg et que cela lance cp, on se retrouve à essayer d'enregister la commande tapée alors que la rom history n'est pas chargée
-        
+
        ; jsr     register_command_line
 
         lda     TWILIGHTE_REGISTER
@@ -275,6 +273,7 @@ RETURN_BANK_READ_BYTE_FROM_OVERLAY_RAM := $78
     ; lda     bash_struct_ptr
     ; ldy     bash_struct_ptr+1
     ; BRK_KERNEL XEXEC
+    ldx     #$00
     exec (bash_struct_ptr)
 
     jsr     external_cmd
@@ -657,9 +656,7 @@ internal_commands_length:
     .include "commands/tree.asm"
 .endif
 
-.ifdef WITH_UNAME
     .include "commands/uname.asm"
-.endif
 
 .ifdef WITH_SETFONT
     .include "commands/setfont.asm"
@@ -677,17 +674,11 @@ internal_commands_length:
     .include "commands/watch.asm"
 .endif
 
-.ifdef WITH_VI
-    .include "commands/vi.asm"
-.endif
-
 .ifdef WITH_VIEWHRS
     .include "commands/viewhrs.asm"
 .endif
 
-.ifdef WITH_XORIX
-    .include "commands/xorix.asm"
-.endif
+
 
 ; Functions
 .include "lib/strcpy.asm"
@@ -923,9 +914,7 @@ addr_commands:
     .addr  _twil
 .endif
 
-.ifdef WITH_UNAME
     .addr  _uname
-.endif
 
 .ifdef WITH_VIEWHRS
     .addr  _viewhrs
@@ -935,9 +924,6 @@ addr_commands:
     .addr  _watch
 .endif
 
-.ifdef WITH_XORIX
-    .addr  _xorix
-.endif
 addr_commands_end:
 
 .if addr_commands_end-addr_commands > 255
@@ -1082,9 +1068,8 @@ commands_length:
     .byt 4 ; twil
 .endif
 
-.ifdef WITH_UNAME
     .byt 5 ; _uname
-.endif
+
 
 .ifdef WITH_VIEWHRS
     .byt 7 ; viewhrs
@@ -1092,10 +1077,6 @@ commands_length:
 
 .ifdef WITH_WATCH
     .byt 5 ; watch
-.endif
-
-.ifdef WITH_XORIX
-    .byt 5 ; xorix
 .endif
 
 list_of_commands_bank:
@@ -1282,15 +1263,8 @@ twilight:
     .asciiz "twil"
 .endif
 
-.ifdef WITH_UNAME
 uname:
     .asciiz "uname"
-.endif
-
-.ifdef WITH_VI
-vi:
-    .asciiz "vi"
-.endif
 
 .ifdef WITH_VIEWHRS
 viewhrs:
@@ -1300,11 +1274,6 @@ viewhrs:
 .ifdef WITH_WATCH
 watch:
     .asciiz "watch"
-.endif
-
-.ifdef WITH_XORIX
-xorix:
-    .asciiz "xorix"
 .endif
 
 .ifdef WITH_CA65
@@ -1356,7 +1325,7 @@ str_max_malloc_reached:
     .asciiz "Max number of malloc reached"
 
 signature:
-    .asciiz  "Shell v2023.3"
+    .asciiz "Shell v2024.1"
 
 shellext_found:
     .byte "Shell extentions found",$0A,$0D,$00

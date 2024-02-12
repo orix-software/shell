@@ -5,7 +5,7 @@ CFLAGS=-ttelestrat
 LDFILES=
 ROM=shell
 
-all : init build after_success
+all : init build after_success docs
 .PHONY : all
 
 SOURCE=src/$(ROM).asm
@@ -40,6 +40,9 @@ build: $(SOURCE)
 	$(AS) $(CFLAGS) $(SOURCE) -DWITH_SDCARD_FOR_ROOT=1 -o $(ROM)sd.ld65 --debug-info
 	$(LD) -vm -m map7banks.txt -DWITH_SDCARD_FOR_ROOT=1 -DWITH_TWILIGHTE_BOARD=1 -Ln memorymap.txt  -tnone $(ROM)sd.ld65 -o $(ROM)tsd.rom libs/lib8/twil.lib libs/lib8/ch376.lib
 
+docs:
+	sh tools/builddocs.sh
+
 after_success:
 	ls -l
 	ls -l ../
@@ -50,7 +53,7 @@ after_success:
 	cp data/USR/SHARE/FONTS/* build/usr/share/fonts/ -adpR
 	cp shellsd.rom build/usr/share/shell/
 	cp shellus.rom build/usr/share/shell/
-	sh tools/builddocs.sh
+
 	cp Makefile build/usr/src/shell/
 	cp README.md build/usr/src/shell/
 	cp src/* build/usr/src/shell/src/ -adpR

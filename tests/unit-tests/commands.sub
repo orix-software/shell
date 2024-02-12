@@ -1,0 +1,37 @@
+#! /bin/submit
+touch started
+bank
+#basic10
+#basic11
+#cat
+clear
+#cp
+debug
+df
+env
+ioports
+#loader
+ls
+lscpu
+lsmem
+lsof
+man
+#mkdir
+mount
+#otimer
+ps
+pstree
+#reboot
+#rm
+setfont
+#touch
+#twiconf
+#twil
+uname
+viewhrs
+
+cp started started.cop
+cp started testmv
+cp testmv.mv
+
+touch stopped
