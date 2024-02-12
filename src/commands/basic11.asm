@@ -2,6 +2,7 @@
 
 .define BASIC11_OFFSET_ROOT_PATH $FE70
 .define BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD $F2
+.define BASIC11_MAX_LENGTH_DEFAULT_PATH      16 ; MAX : 32
 
 .define basic11_color_bar $11
 .define BASIC11_PATH_DB "/var/cache/basic11/"
@@ -349,6 +350,22 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     getmainarg #2, (basic11_argv_ptr)
     sta     basic11_argv1_ptr
     sty     basic11_argv1_ptr+1
+
+    ; Checking if the path is less than 32 chars (Atmos rom can't contains more than 32 chars)
+    ldy     #$00
+
+@check_path:
+    lda     (basic11_argv1_ptr),y
+    beq     @end_check
+    iny
+    cpy     #BASIC11_MAX_LENGTH_DEFAULT_PATH
+    bne     @check_path
+
+    print   str_error_path_too_long
+    crlf
+    rts
+
+@end_check:
     lda     #$01
     sta     basic11_default_path_set
     lda     #$02
@@ -646,13 +663,7 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     BRK_KERNEL XFREAD
     fclose(basic11_fp)
 
-    ldy     #$00
-    lda     #$00
 
-@loop_copy_bufedt:
-    sta     BUFEDT,y   ; Because we pass to basic ROM the command line
-    iny
-    bne     @loop_copy_bufedt
 
 
     ldy     #$00
@@ -746,11 +757,19 @@ basic11_driver:
     beq     @manage_others_cases
 
     ldy     #$00
+    lda     #$00
+
+@loop_copy_bufedt:
+    sta     BUFEDT,y   ; Because we pass to basic ROM the command line
+    iny
+    bne     @loop_copy_bufedt
+
+    ldy     #$00
 
 @copy_rootpath:
     lda     (basic11_argv1_ptr),y
     beq     @end_start_with_default_path
-    cmp     #'a'                        ; 'a'
+    cmp     #'a'                          ; 'a'
     bcc     @do_not_uppercase_copy
     cmp     #'z'+1                        ; 'z'
     bcs     @do_not_uppercase_copy
@@ -844,6 +863,7 @@ basic11_driver:
     lda     basic11_mode
     cmp     #BASIC10_ROM
     beq     @jmp_basic10_vector
+
 @let_s_start_atmos:
     jmp     $F88F ; NMI vector of ATMOS rom
 
@@ -970,6 +990,9 @@ copy_bufedt:
 .endproc
 
 .include "basic11/basic11_gui.asm"
+
+str_error_path_too_long:
+    .byte "Path can not longer than ",.string(BASIC11_MAX_LENGTH_DEFAULT_PATH)," chars",0
 
 str_basic11_missing_rom:
     .asciiz "Missing ROM file : "
