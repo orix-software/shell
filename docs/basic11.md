@@ -1,8 +1,38 @@
 # basic11
 
-## Usage
+## NAME
 
-basic11 [-g] [-l] [-p defaultpath]
+basic11 - start atmos rom
+
+## SYNOPSYS
+
+basic11 [OPTION]... ["FILE]
+
+
+
+
+## DESCRIPTION
+
+This command starts the atmos rom. This rom did not test RAM and cload/csave are done on sdcard. It means that it calls file from sdcard.
+
+Cload works with .tap file. Multitap files works too.
+
+Get a tape file, and place it in the root folder of the sdcard.
+
+-g
+  Start interface
+
+-l
+  list available .tap
+
+-p path
+  Set Default path to find .tap file
+
+-r [id_rom]
+  Set type of rom to load (value = 0, 1, 2)
+
+"MYTAPE
+  Load MYTAPE
 
 ## Introduction
 
@@ -150,21 +180,9 @@ not done.
 Some others games uses special keys (SHIFT, CTRL) for direction or the first button. Theses cases are not handle yet : but it
 could in the future.
 
-## SYNOPSYS
 
-+ basic11
-+ basic11 -g
-+ basic11 -l
-+ basic11 -p path
-+ basic11 "MYTAPE
 
-## DESCRIPTION
-
-This command starts the atmos rom. This rom did not test RAM and cload/csave are done on sdcard. It means that it calls file from sdcard.
-
-Cload works with .tap file. Multitap files works too.
-
-Get a tape file, and place it in the root folder of the sdcard.
+## Example
 
 Starts basic11 :
 
@@ -183,6 +201,8 @@ A path can be specified :
 ```bash
 /#basic11 -p /home/jede
 ```
+
+
 
 In basic rom :
 CLOAD "ZORGONS => it will load zorgons.tap

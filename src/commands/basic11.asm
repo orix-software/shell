@@ -1,17 +1,35 @@
 .export _basic11
 
-.define BASIC11_OFFSET_ROOT_PATH $FE70
-.define BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD $F2
-.define BASIC11_MAX_LENGTH_DEFAULT_PATH      16 ; MAX : 32
+;; OPTIONS
 
-.define basic11_color_bar $11
-.define BASIC11_PATH_DB "/var/cache/basic11/"
-.define BASIC10_PATH_DB "/var/cache/basic10/"
-.define BASIC11_MAX_MAINDB_LENGTH 20000
+
+.define BASIC11_OPTION_DEFAULT_PATH_IS_NOT_SET $00
+.define BASIC11_OPTION_DEFAULT_PATH_IS_SET     $01
+
+.define BASIC11_OPTION_ROM_ID_IS_NOT_SET       $00
+.define BASIC11_OPTION_ROM_ID_IS_SET           $01
+
+.define BASIC11_START_GUI                      $01
+.define BASIC11_START_LIST                     $02
+.define BASIC11_DEFAULT_PATH_SET               $03
+.define BASIC11_OPTION_UNKNOWN                 $FF
+
+.define BASIC11_NMI_VECTOR                     $F88F
+.define BASIC11_OFFSET_ROOT_PATH               $FE70
+.define BASIC11_OFFSET_LENGTH_ROOT_PATH        BASIC11_OFFSET_ROOT_PATH-1
+
+.define BASIC10_OFFSET_ROOT_PATH               $FCED
+.define BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD   $F2
+.define BASIC11_MAX_LENGTH_DEFAULT_PATH        16 ; MAX : 32
+
+.define basic11_color_bar                      $11
+.define BASIC11_PATH_DB                        "/var/cache/basic11/"
+.define BASIC10_PATH_DB                        "/var/cache/basic10/"
+.define BASIC11_MAX_MAINDB_LENGTH              23000
 .define basic11_sizeof_max_length_of_conf_file_bin .strlen(BASIC11_PATH_DB)+1+1+8+1+2+1 ; used for the path but also for the cnf content
 .define basic11_sizeof_binary_conf_file 9 ; Rom + direction + fire1 + fire2 + fire3
 
-basic11_tmp                     := userzp  ; One byte (used in gui)
+basic11_tmp                     := userzp   ; One byte (used in gui)
 basic11_ptr1                    := userzp+1 ; Two bytes
 basic11_ptr2                    := userzp+3 ; Two bytes
 
@@ -32,7 +50,6 @@ basic11_skip_dec                := userzp+8
 basic11_fp                      := userzp+9
 
 basic11_ptr3                    := userzp+11
-basic11_mainargs_ptr            := userzp+11
  ; Avoid 13 because it's device store offset
 basic11_first_letter_gui        := userzp+14
 
@@ -46,7 +63,10 @@ basic11_argv1_ptr               := userzp+21 ; 16 bits
 
 basic11_mode                    := userzp+23 ; 8 bits store if we need to start atmos rom or oric-1
 basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start atmos rom or oric-1
-basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p path"
+basic11_option_default_path_set := userzp+26 ; Used when user type "basic11 -p path"
+basic11_current_arg_id          := userzp+28 ; One byte
+basic11_rootpath_ptr            := userzp + 29 ; Used to save ptr of the path
+
 
 .define BASIC10_ROM $01
 .define BASIC11_ROM $02
@@ -65,11 +85,18 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
 
 .proc _basic_main
     COPY_CODE_TO_BOOT_ATMOS_ROM_ADRESS := $200
+    ; Set Default ROM
+    lda     #$02
+    sta     BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD
 
+    lda     #$01
+    sta     basic11_current_arg_id
 
     lda     #$00
     sta     basic11_no_arg_provided
-    sta     basic11_default_path_set
+
+    lda     #BASIC11_OPTION_DEFAULT_PATH_IS_NOT_SET
+    sta     basic11_option_default_path_set
 
     initmainargs basic11_argv_ptr, basic11_argc, 0 ; Get args
     cpx     #$01
@@ -102,9 +129,9 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     sta     basic11_no_arg_provided
 
     ; Allocating memory to load conf file
-    lda     #basic11_sizeof_max_length_of_conf_file_bin
-    ldy     #$00
-    BRK_KERNEL XMALLOC
+    ; FIXME macro
+
+    malloc #basic11_sizeof_max_length_of_conf_file_bin
     cmp     #$00
     bne     @no_oom5
     cpy     #$00
@@ -113,13 +140,10 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
 
     crlf
 
-    ; FIXME macro
-    lda     #basic11_sizeof_max_length_of_conf_file_bin
-    ldy     #$00
-    ldx     #$20 ;
-    stx     DEFAFF
-    ldx     #$00
-    BRK_KERNEL XDECIM
+    lda     #<basic11_sizeof_max_length_of_conf_file_bin
+    ldy     #>basic11_sizeof_max_length_of_conf_file_bin
+
+    print_int  ,2, 2 ; an arg is skipped because the number is from register
     rts
 
 @no_oom5:
@@ -134,7 +158,7 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
 @L2:
     lda     basic11_mode        ; Is it atmos ?
     cmp     #BASIC11_ROM
-    beq     @copy_atmos_db_path ; Yes copy basic path in atmos path offset 
+    beq     @copy_atmos_db_path   ; Yes copy basic path in atmos path offset
     lda     basic10_conf_str,y    ; Copy db path into ptr
     jmp     @continue_copy_path_db
 
@@ -213,7 +237,6 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
 
     ; Let's copy BUFEDT
     jsr     copy_bufedt
-
 
     ldy     #$00
     lda     (basic11_ptr2),y
@@ -326,16 +349,18 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     rts
 
 @basic11_option_management:
-    ldy     #$01
-    lda     (basic11_argv1_ptr),y
-    cmp     #'g'
+    jsr     basic11_manage_option_cmdline
+    cmp     #BASIC11_START_GUI
     beq     @gui
 
-    cmp     #'p'
-    beq     @root_path
+    cmp     #BASIC11_START_LIST
+    beq     @start_list
 
-    cmp     #'l'
+    cmp     #BASIC11_DEFAULT_PATH_SET
+    beq     @root_path
     bne     @option_not_known
+
+@start_list:
     mfree (basic11_argv_ptr)
 
     jsr     basic11_read_main_dbfile
@@ -347,15 +372,15 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     rts
 
 @root_path:
-    getmainarg #2, (basic11_argv_ptr)
-    sta     basic11_argv1_ptr
-    sty     basic11_argv1_ptr+1
+    getmainarg basic11_current_arg_id, (basic11_argv_ptr)
+    sta     basic11_rootpath_ptr
+    sty     basic11_rootpath_ptr+1
 
     ; Checking if the path is less than 32 chars (Atmos rom can't contains more than 32 chars)
     ldy     #$00
 
 @check_path:
-    lda     (basic11_argv1_ptr),y
+    lda     (basic11_rootpath_ptr),y
     beq     @end_check
     iny
     cpy     #BASIC11_MAX_LENGTH_DEFAULT_PATH
@@ -366,23 +391,26 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     rts
 
 @end_check:
-    lda     #$01
-    sta     basic11_default_path_set
-    lda     #$02
-    sta     BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD
+    cpy     #$00
+    bne     @path_not_empty
+    print   str_basic11_missing_arg
+    crlf
+    rts
+
+@path_not_empty:
+    lda     #BASIC11_OPTION_DEFAULT_PATH_IS_SET
+    sta     basic11_option_default_path_set
     jmp     @load_ROM_in_memory_and_start
 
 @continue_l_option:
     ; Search now
     print   basic_str_search
-
     jmp     @displays_all
 
 @exit_search:
     print   basic_str_last_line
 
 @exit:
-
     mfree(basic11_ptr1)
 
     ; Open
@@ -499,21 +527,17 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
 ; # Code to load ROM into RAM bank
 ; #############################################################
 @load_ROM_in_memory_and_start:
-
-    malloc 16384,basic11_ptr1 ; Index ptr
+    malloc #16384, basic11_ptr1 ; Index ptr
     cmp     #$00
     bne     @no_oom
     cpy     #$00
     bne     @no_oom
     print   str_enomem
 
-    ; FIXME macro
-    lda     #<16384
-    ldy     #>16384
-    ldx     #$20 ;
-    stx     DEFAFF
-    ldx     #$00
-    BRK_KERNEL XDECIM
+    lda     #<16384 ; 12
+    ldy     #>16384 ; 0 because the number is 12 (from A)
+    print_int  ,2, 2 ; an arg is skipped because the number is from register
+
     crlf
     rts
 
@@ -523,7 +547,7 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     beq     @start_copy_path
     ; For rom oric-1 we force to rom 2 (why because i don't know :) => it's the only rom available :)
     lda     #$02
-    sta     $F2
+    sta     BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD
 
 @start_copy_path:
     ; copy path of the root folder
@@ -556,7 +580,7 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     iny
     sta     (basic11_ptr1),y
 
-    ; Get value
+    ; Get if kernel default is sdcard or usb device
     ldx     #XVARS_KERNEL_CH376_MOUNT
     BRK_KERNEL XVARS
     sta     basic11_ptr2
@@ -566,6 +590,7 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     lda     (basic11_ptr2),y   ;
     cmp     #CH376_SET_USB_MODE_CODE_SDCARD
     beq     @sdcard
+    ; It's usb device, let's load basicusX.rom
     ldy     basic11_tmp0
     ; concat 'us'
     lda     #'u'
@@ -663,9 +688,6 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
     BRK_KERNEL XFREAD
     fclose(basic11_fp)
 
-
-
-
     ldy     #$00
     lda     (basic11_ptr2),y
     sta     STORE_CURRENT_DEVICE ; For atmos ROM : it pass the current device ()
@@ -723,9 +745,11 @@ basic11_default_path_set        := userzp+26 ; Used when user type "basic11 -p p
 code_overlay_switch_sedoric:
     .byt $08,$48,$78,$a9,$00,$8d,$21,$03,$68,$28,$60
 
+;*******************************************************
+;; This code to
+
 basic11_driver:
     sei
-
     ldx     #$00
 
 @L1000:
@@ -750,12 +774,14 @@ basic11_driver:
     inx
     cpx     #64
     bne     @loop_copy_rom
+
     ; If the rom id is equal to 0, it means that it's for the hobbit.
     ; The hobbit rom does not handle path
-
-    lda     basic11_default_path_set
+    lda     basic11_option_default_path_set
     beq     @manage_others_cases
 
+
+; Clear BUFEDT when we don't need to insert any tape file
     ldy     #$00
     lda     #$00
 
@@ -764,10 +790,11 @@ basic11_driver:
     iny
     bne     @loop_copy_bufedt
 
+; Copy default path into rom path (ram bank)
     ldy     #$00
 
 @copy_rootpath:
-    lda     (basic11_argv1_ptr),y
+    lda     (basic11_rootpath_ptr),y
     beq     @end_start_with_default_path
     cmp     #'a'                          ; 'a'
     bcc     @do_not_uppercase_copy
@@ -776,12 +803,25 @@ basic11_driver:
     sbc     #$1F
 
 @do_not_uppercase_copy:
+    sta     basic11_tmp
+    lda     basic11_mode
+    cmp     #BASIC11_ROM
+    beq     @forge_path_for_atmos
+    lda     basic11_tmp
+    sta     BASIC10_OFFSET_ROOT_PATH,y
+    bne     @skip_basic11_forge_path
+
+@forge_path_for_atmos:
+    lda     basic11_tmp
     sta     BASIC11_OFFSET_ROOT_PATH,y
+
+@skip_basic11_forge_path:
     iny
     bne     @copy_rootpath
 
 @end_start_with_default_path:
-    sty     $FE6F
+    ; Store the length of the string
+    sty     BASIC11_OFFSET_LENGTH_ROOT_PATH
     beq     @let_s_start_atmos
 
 @manage_others_cases:
@@ -825,7 +865,7 @@ basic11_driver:
 
 @isatmosforpath:
     lda     basic11_saveA   ; Rootpath for Atmos
-    sta     $FE70,x
+    sta     BASIC11_OFFSET_ROOT_PATH,x
 
 @continue_path:
     iny
@@ -837,6 +877,7 @@ basic11_driver:
     cmp     #BASIC11_ROM
     beq     @isatmos_fix_EOS_and_length
 
+    ; Set path for Oric-1
     lda     basic11_first_letter
     sta     $FCED,x
     inx
@@ -847,11 +888,11 @@ basic11_driver:
 
 @isatmos_fix_EOS_and_length:
     lda     basic11_first_letter
-    sta     $FE70,x ; We store the into default path, the first letter
+    sta     BASIC11_OFFSET_ROOT_PATH,x ; We store the into default path, the first letter
     inx
     lda     #'/'
-    sta     $FE70,x
-    stx     $FE6F ; Store length of the path
+    sta     BASIC11_OFFSET_ROOT_PATH,x
+    stx     BASIC11_OFFSET_ROOT_PATH-1 ; Store length of the path
 
 @let_s_start:
 
@@ -869,6 +910,12 @@ basic11_driver:
 
 @jmp_basic10_vector:
     jmp     $F42D
+end_basic11_driver:
+
+
+;; this end will be in main memory !!!
+;*******************************************************
+
 
 ; don't move it because it's used in the copy of basic11_driver
 tapes_path:
@@ -876,6 +923,11 @@ tapes_path:
 
 tapes_path_basic10:
     .asciiz "/usr/share/basic10/"
+
+.if     end_basic11_driver-basic11_driver > 254
+    .out     .sprintf("Basic11: Size of copy routine = %d", (end_basic11_driver-basic11_driver))
+    .error  "Basic11: Size of copy routine us greater than 255. Basic11 will crash"
+.endif
 
 copy_bufedt:
     initmainargs basic11_ptr1, basic11_ptr4, 1
@@ -997,6 +1049,9 @@ str_error_path_too_long:
 str_basic11_missing_rom:
     .asciiz "Missing ROM file : "
 
+str_basic11_missing_arg:
+    .asciiz "Missing arg "
+
 rom_path:
     .asciiz "/usr/share/atmos/basic"
 
@@ -1044,3 +1099,5 @@ basic_str_last_line:
 basic_rnd_init:
     .byte   $80,$4F,$C7,$52,$FF,$FF
 .endproc
+
+.include "commands/basic11/basic11_manage_option_cmdline.s"

@@ -16,11 +16,14 @@
 .include   "dependencies/kernel/src/include/memory.inc"
 .include   "dependencies/kernel/src/include/files.inc"
 
+
 ;----------------------------------------------------------------------
 ;                       Orix SDK includes
 ;----------------------------------------------------------------------
 .include   "dependencies/orix-sdk/macros/SDK.mac"
+.include   "dependencies/orix-sdk/macros/SDK_print.mac"
 .include   "dependencies/orix-sdk/include/SDK.inc"
+
 
 ;----------------------------------------------------------------------
 ;                   Twilighte board includes
