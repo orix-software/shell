@@ -1,7 +1,7 @@
 .export _basic11
+.export _basic10
 
 ;; OPTIONS
-
 
 .define BASIC11_OPTION_DEFAULT_PATH_IS_NOT_SET $00
 .define BASIC11_OPTION_DEFAULT_PATH_IS_SET     $01
@@ -9,9 +9,13 @@
 .define BASIC11_OPTION_ROM_ID_IS_NOT_SET       $00
 .define BASIC11_OPTION_ROM_ID_IS_SET           $01
 
+.define BASIC11_MAX_NUMBER_OF_ROM              $03
+
 .define BASIC11_START_GUI                      $01
 .define BASIC11_START_LIST                     $02
 .define BASIC11_DEFAULT_PATH_SET               $03
+.define BASIC11_END_OF_ARGS                    $04
+.define BASIC11_SET_ROM                        $05
 .define BASIC11_OPTION_UNKNOWN                 $FF
 
 .define BASIC11_NMI_VECTOR                     $F88F
@@ -66,7 +70,6 @@ basic11_no_arg_provided         := userzp+24 ; 8 bits store if we need to start 
 basic11_option_default_path_set := userzp+26 ; Used when user type "basic11 -p path"
 basic11_current_arg_id          := userzp+28 ; One byte
 basic11_rootpath_ptr            := userzp + 29 ; Used to save ptr of the path
-
 
 .define BASIC10_ROM $01
 .define BASIC11_ROM $02
@@ -196,7 +199,7 @@ basic11_rootpath_ptr            := userzp + 29 ; Used to save ptr of the path
     tay
     lda     (basic11_argv1_ptr),y
     ldy     basic11_save_pos_arg
-    cmp     #$22 ; " char
+    cmp     #'"' ; " char
     beq     @outstrcat
     cmp     #$00
     beq     @outstrcat
@@ -356,6 +359,12 @@ basic11_rootpath_ptr            := userzp + 29 ; Used to save ptr of the path
     cmp     #BASIC11_START_LIST
     beq     @start_list
 
+    cmp     #BASIC11_SET_ROM
+    beq     @set_rom
+
+    cmp     #BASIC11_END_OF_ARGS
+    beq     @start_rom
+
     cmp     #BASIC11_DEFAULT_PATH_SET
     beq     @root_path
     bne     @option_not_known
@@ -371,12 +380,34 @@ basic11_rootpath_ptr            := userzp + 29 ; Used to save ptr of the path
     print   str_can_not
     rts
 
+@set_rom:
+    getmainarg basic11_current_arg_id, (basic11_argv_ptr)
+    sta     basic11_ptr2
+    sty     basic11_ptr2+1
+    ;BASIC11_MAX_NUMBER_OF_ROM
+    ldy     #$00
+    lda     (basic11_ptr2),y
+    beq     @param_empty
+    sec
+    sbc     #$30
+
+    cmp     #BASIC11_MAX_NUMBER_OF_ROM
+    bcc     @set_rom_id
+    print   str_rom_not_known
+    crlf
+    rts
+
+@set_rom_id:
+    sta     BASIC11_OFFSET_FOR_ID_OF_ROM_TO_LOAD
+    inc     basic11_current_arg_id
+    jmp     @basic11_option_management
+
 @root_path:
     getmainarg basic11_current_arg_id, (basic11_argv_ptr)
     sta     basic11_rootpath_ptr
     sty     basic11_rootpath_ptr+1
-
     ; Checking if the path is less than 32 chars (Atmos rom can't contains more than 32 chars)
+
     ldy     #$00
 
 @check_path:
@@ -393,6 +424,8 @@ basic11_rootpath_ptr            := userzp + 29 ; Used to save ptr of the path
 @end_check:
     cpy     #$00
     bne     @path_not_empty
+
+@param_empty:
     print   str_basic11_missing_arg
     crlf
     rts
@@ -400,6 +433,10 @@ basic11_rootpath_ptr            := userzp + 29 ; Used to save ptr of the path
 @path_not_empty:
     lda     #BASIC11_OPTION_DEFAULT_PATH_IS_SET
     sta     basic11_option_default_path_set
+    inc     basic11_current_arg_id
+    jmp     @basic11_option_management
+
+@start_rom:
     jmp     @load_ROM_in_memory_and_start
 
 @continue_l_option:
@@ -1042,6 +1079,9 @@ copy_bufedt:
 .endproc
 
 .include "basic11/basic11_gui.asm"
+
+str_rom_not_known:
+    .asciiz "Rom not known"
 
 str_error_path_too_long:
     .byte "Path can not longer than ",.string(BASIC11_MAX_LENGTH_DEFAULT_PATH)," chars",0
